@@ -54,6 +54,7 @@ public class SM_test_OpMode extends LinearOpMode {
     Servo xfer = null;
     double lasttime = 0;
     boolean xferready = false;
+    
     void update(){
         switch (IOState){
             case IDLE:
@@ -234,7 +235,7 @@ public class SM_test_OpMode extends LinearOpMode {
 
             else {
                 rightSlideMotor.setPower(0);
-                leftSlideMotor.setPower(100);
+                leftSlideMotor.setPower(0);
             }
 
             // Set power for the motors
