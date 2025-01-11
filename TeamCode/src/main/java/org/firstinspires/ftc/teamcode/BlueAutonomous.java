@@ -49,7 +49,7 @@ public class BlueAutonomous extends LinearOpMode {
 
 
         Trajectory traj1 = drive.trajectoryBuilder(new Pose2d())
-                .back(53)
+                .back(20)
                 .build();
 
         Trajectory traj2 = drive.trajectoryBuilder(traj1.end())
