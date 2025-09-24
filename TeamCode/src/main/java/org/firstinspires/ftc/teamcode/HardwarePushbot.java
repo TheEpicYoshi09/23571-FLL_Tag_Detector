@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -54,7 +53,10 @@ public class HardwarePushbot {
         public DcMotor  rightFrontDriveWheel  = null; //motor for right front wheel
         public DcMotor  rightBackDriveWheel  = null; //motor for right back wheel
 
-        public Servo launcherServo = null; 
+        public Servo launcherServo = null;
+
+        public BasicBot_Launcher launcher = null;
+
 
         
         /* local OpMode members. */
@@ -96,6 +98,9 @@ public class HardwarePushbot {
             leftBackDriveWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             rightFrontDriveWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             rightBackDriveWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+            launcher= new BasicBot_Launcher(hwMap);
+            
         }
     }
 

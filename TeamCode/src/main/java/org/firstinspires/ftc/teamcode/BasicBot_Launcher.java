@@ -4,15 +4,14 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
-public class Launcher
+public class BasicBot_Launcher
 {
     private Servo agitator = null;
     private DcMotor flywheel = null;
     private DcMotorEx shooterIntake = null;
 
-    public Launcher(HardwareMap hwMap)
+    public BasicBot_Launcher(HardwareMap hwMap)
     {
         agitator  = hwMap.get(Servo.class, "agitator");
         flywheel  = hwMap.get(DcMotor.class, "flywheel");
