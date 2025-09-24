@@ -29,8 +29,6 @@
 
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
@@ -49,8 +47,8 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
 */
 
-@TeleOp(name="Pushbot: Teleop Tank", group="Pushbot")
-public class PushbotTeleopTank_Iterative extends OpMode
+@TeleOp(name="Steering Controls", group="Pushbot")
+public class SteeringControls extends OpMode
 {
     /* Declare OpMode members. */
     HardwarePushbot robot       = new HardwarePushbot(); // use the class created to define a Pushbot's hardware
