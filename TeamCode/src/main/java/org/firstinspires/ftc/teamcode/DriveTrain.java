@@ -41,5 +41,30 @@ public class DriveTrain
         leftBackDriveWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         rightFrontDriveWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         rightBackDriveWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+
+    }
+    //Drives the robot
+    //Forward = how fast to move forward
+    //Right = how fast to move right
+    //Clockwise = how fast to move clockwise
+    public void drive(double forward, double right, double clockwise)
+    {
+
+        //Controls the speed for going across the field; can be changed if going too slow
+        //strafe is lateral movement!!! Looking forward while moving sideways
+        //if(gamepad1.right_bumper)
+        //{
+        //  forward /= 4;
+        //   strafe /= 4;
+        //   turn /= 4;
+        //}
+
+        double denominator = Math.max(Math.abs(forward) + Math.abs(right) + Math.abs(clockwise), 1);
+
+        rightFrontDriveWheel.setPower((forward - right - clockwise) / denominator);
+        leftFrontDriveWheel.setPower((forward + right + clockwise) / denominator);
+        leftBackDriveWheel.setPower((forward - right +  clockwise) / denominator);
+        rightBackDriveWheel.setPower((forward +  right - clockwise) / denominator);
     }
 }
