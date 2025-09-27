@@ -1,10 +1,5 @@
 package org.firstinspires.ftc.teamcode.auto;
 
-public class AutoRed {
-
-
-package org.firstinspires.ftc.teamcode.pedroPathing; // make sure this aligns with class location
-
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
@@ -12,72 +7,196 @@ import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import  com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
-    @Autonomous(name = "Example Auto", group = "Examples")
-    public class ExampleAuto extends OpMode {
+import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
-        private Follower follower;
-        private Timer pathTimer, actionTimer, opmodeTimer;
+@Autonomous(name = "AutoRed", group = "Auto")
+public class AutoRed extends OpMode {
 
-        private int pathState;
+    private Follower follower;
+    private Timer pathTimer, actionTimer, opmodeTimer;
 
-        private final Pose startPose = new Pose(80.6, 9, Math.toRadians(90)); // Start Pose of our robot.
-        private final Pose scorePose = new Pose(86, 90, Math.toRadians(45)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
-        private final Pose align1Pose = new Pose(102.5, 84, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
-        private final Pose pickup1Pose = new Pose(117.5, 84, Math.toRadians(180));
-        private final Pose align2Pose = new Pose(102.5, 60, Math.toRadians(180)); Middle (Second Set) of Artifacts from the Spike Mark.
-        private final Pose pickup2Pose = new Pose(117.5, 60, Math.toRadians(180));
-        private final Pose align1Pose = new Pose(102.5, 36, Math.toRadians(180)); // Lowest (Last Set) of Artifacts from the Spike Mark.
-        private final Pose pickup2Pose = new Pose(117.5, 36, Math.toRadians(180));
+    private int pathState;
 
+    private final Pose startPose = new Pose(80.6, 9, Math.toRadians(90));
+    private final Pose scorePose = new Pose(86, 90, Math.toRadians(45));
+    private final Pose align1Pose = new Pose(102.5, 84, Math.toRadians(180));
+    private final Pose pickup1Pose = new Pose(117.5, 84, Math.toRadians(180));
+    private final Pose align2Pose = new Pose(102.5, 60, Math.toRadians(180));
+    private final Pose pickup2Pose = new Pose(117.5, 60, Math.toRadians(180));
+    private final Pose align3Pose = new Pose(102.5, 36, Math.toRadians(180));
+    private final Pose pickup3Pose = new Pose(117.5, 36, Math.toRadians(180));
 
+    private Path scorePreload;
+    private PathChain alignPickup1, grabPickup1, scorePickup1,
+            alignPickup2, grabPickup2, scorePickup2,
+            alignPickup3, grabPickup3, scorePickup3;
 
-        private Path scorePreload;
-        private PathChain alignPickup1, grabPickup1, scorePickup1, alignPickup2, grabPickup2, scorePickup2, alignPickup3, grabPickup3, scorePickup3;
+    public void buildPaths() {
+        scorePreload = new Path(new BezierLine(startPose, scorePose));
+        scorePreload.setLinearHeadingInterpolation(startPose.getHeading(), scorePose.getHeading());
 
-        public void buildPaths() {
-            scorePreload = new Path(new BezierLine(startPose, scorePose));
-            scorePreload.setLinearHeadingInterpolation(startPose.getHeading(), scorePose.getHeading());
+        alignPickup1 = follower.pathBuilder()
+                .addPath(new BezierLine(scorePose, align1Pose))
+                .setLinearHeadingInterpolation(scorePose.getHeading(), align1Pose.getHeading())
+                .build();
 
-    /* Here is an example for Constant Interpolation
-    scorePreload.setConstantInterpolation(startPose.getHeading()); */
+        grabPickup1 = follower.pathBuilder()
+                .addPath(new BezierLine(align1Pose, pickup1Pose))
+                .setLinearHeadingInterpolation(align1Pose.getHeading(), pickup1Pose.getHeading())
+                .build();
 
-            /* This is our grabPickup1 PathChain. We are using a single path with a BezierLine, which is a straight line. */
-            grabPickup1 = follower.pathBuilder()
-                    .addPath(new BezierLine(scorePose, pickup1Pose))
-                    .setLinearHeadingInterpolation(scorePose.getHeading(), pickup1Pose.getHeading())
-                    .build();
+        scorePickup1 = follower.pathBuilder()
+                .addPath(new BezierLine(pickup1Pose, scorePose))
+                .setLinearHeadingInterpolation(pickup1Pose.getHeading(), scorePose.getHeading())
+                .build();
 
-            /* This is our scorePickup1 PathChain. We are using a single path with a BezierLine, which is a straight line. */
-            scorePickup1 = follower.pathBuilder()
-                    .addPath(new BezierLine(pickup1Pose, scorePose))
-                    .setLinearHeadingInterpolation(pickup1Pose.getHeading(), scorePose.getHeading())
-                    .build();
+        alignPickup2 = follower.pathBuilder()
+                .addPath(new BezierLine(scorePose, align2Pose))
+                .setLinearHeadingInterpolation(scorePose.getHeading(), align2Pose.getHeading())
+                .build();
 
-            /* This is our grabPickup2 PathChain. We are using a single path with a BezierLine, which is a straight line. */
-            grabPickup2 = follower.pathBuilder()
-                    .addPath(new BezierLine(scorePose, pickup2Pose))
-                    .setLinearHeadingInterpolation(scorePose.getHeading(), pickup2Pose.getHeading())
-                    .build();
+        grabPickup2 = follower.pathBuilder()
+                .addPath(new BezierLine(align2Pose, pickup2Pose))
+                .setLinearHeadingInterpolation(align2Pose.getHeading(), pickup2Pose.getHeading())
+                .build();
 
-            /* This is our scorePickup2 PathChain. We are using a single path with a BezierLine, which is a straight line. */
-            scorePickup2 = follower.pathBuilder()
-                    .addPath(new BezierLine(pickup2Pose, scorePose))
-                    .setLinearHeadingInterpolation(pickup2Pose.getHeading(), scorePose.getHeading())
-                    .build();
+        scorePickup2 = follower.pathBuilder()
+                .addPath(new BezierLine(pickup2Pose, scorePose))
+                .setLinearHeadingInterpolation(pickup2Pose.getHeading(), scorePose.getHeading())
+                .build();
 
-            /* This is our grabPickup3 PathChain. We are using a single path with a BezierLine, which is a straight line. */
-            grabPickup3 = follower.pathBuilder()
-                    .addPath(new BezierLine(scorePose, pickup3Pose))
-                    .setLinearHeadingInterpolation(scorePose.getHeading(), pickup3Pose.getHeading())
-                    .build();
+        alignPickup3 = follower.pathBuilder()
+                .addPath(new BezierLine(scorePose, align3Pose))
+                .setLinearHeadingInterpolation(scorePose.getHeading(), align3Pose.getHeading())
+                .build();
 
-            /* This is our scorePickup3 PathChain. We are using a single path with a BezierLine, which is a straight line. */
-            scorePickup3 = follower.pathBuilder()
-                    .addPath(new BezierLine(pickup3Pose, scorePose))
-                    .setLinearHeadingInterpolation(pickup3Pose.getHeading(), scorePose.getHeading())
-                    .build();
-        }
+        grabPickup3 = follower.pathBuilder()
+                .addPath(new BezierLine(align3Pose, pickup3Pose))
+                .setLinearHeadingInterpolation(align3Pose.getHeading(), pickup3Pose.getHeading())
+                .build();
 
+        scorePickup3 = follower.pathBuilder()
+                .addPath(new BezierLine(pickup3Pose, scorePose))
+                .setLinearHeadingInterpolation(pickup3Pose.getHeading(), scorePose.getHeading())
+                .build();
     }
+
+    public void autonomousPathUpdate() {
+        switch (pathState) {
+            case 0:
+                follower.followPath(scorePreload);
+                setPathState(1);
+                break;
+            case 1:
+                if (!follower.isBusy()) {
+                    follower.followPath(alignPickup1, true);
+                    setPathState(2);
+                }
+                break;
+            case 2:
+                if (!follower.isBusy()) {
+                    follower.followPath(grabPickup1, true);
+                    setPathState(3);
+                }
+                break;
+            case 3:
+                if (!follower.isBusy()) {
+                    follower.followPath(scorePickup1, true);
+                    setPathState(4);
+                }
+                break;
+            case 4:
+                if (!follower.isBusy()) {
+                    follower.followPath(alignPickup2, true);
+                    setPathState(5);
+                }
+                break;
+            case 5:
+                if (!follower.isBusy()) {
+                    follower.followPath(grabPickup2, true);
+                    setPathState(6);
+                }
+                break;
+            case 6:
+                if (!follower.isBusy()) {
+                    follower.followPath(scorePickup2, true);
+                    setPathState(7);
+                }
+                break;
+            case 7:
+                if (!follower.isBusy()) {
+                    follower.followPath(alignPickup3, true);
+                    setPathState(8);
+                }
+                break;
+            case 8:
+                if (!follower.isBusy()) {
+                    follower.followPath(grabPickup3, true);
+                    setPathState(9);
+                }
+                break;
+            case 9:
+                if (!follower.isBusy()) {
+                    follower.followPath(scorePickup3, true);
+                    setPathState(10);
+                }
+                break;
+            case 10:
+                if (!follower.isBusy()) {
+                    setPathState(-1); // finished
+                }
+                break;
+        }
+    }
+
+    public void setPathState(int pState) {
+        pathState = pState;
+        pathTimer.resetTimer();
+    }
+
+    /** Called once at INIT button press */
+    @Override
+    public void init() {
+        pathTimer = new Timer();
+        actionTimer = new Timer();
+        opmodeTimer = new Timer();
+        opmodeTimer.resetTimer();
+
+        follower = Constants.createFollower(hardwareMap);
+        buildPaths();
+        follower.setStartingPose(startPose);
+
+        telemetry.addLine("AutoRed initialized");
+        telemetry.update();
+    }
+
+    /** Called repeatedly after INIT, before START */
+    @Override
+    public void init_loop() {}
+
+    /** Called once at START */
+    @Override
+    public void start() {
+        opmodeTimer.resetTimer();
+        setPathState(0);
+    }
+
+    /** Called repeatedly after START */
+    @Override
+    public void loop() {
+        follower.update();
+        autonomousPathUpdate();
+
+        telemetry.addData("path state", pathState);
+        telemetry.addData("x", follower.getPose().getX());
+        telemetry.addData("y", follower.getPose().getY());
+        telemetry.addData("heading", follower.getPose().getHeading());
+        telemetry.update();
+    }
+
+    /** Called once at STOP */
+    @Override
+    public void stop() {}
+}
