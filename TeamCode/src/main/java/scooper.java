@@ -71,7 +71,7 @@ public class scooper extends OpMode {
      */
     final double LAUNCHER_TARGET_VELOCITY = 1125;
     //1125
-    final double LAUNCHER_MIN_VELOCITY = 1075;
+    final double LAUNCHER_MIN_VELOCITY = 75;
 
     // Declare OpMode members.
     private DcMotor leftDrive = null;
