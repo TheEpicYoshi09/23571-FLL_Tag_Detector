@@ -13,13 +13,9 @@ public class Intake {
         loadMotor = hwMap.get(DcMotor.class, "loadMotor");
     }
 
-    public void intake(double intakeSpeed) {
+    public void intake(double intakeSpeed, double loadSpeed) {
 
         intakeMotor.setPower(intakeSpeed);
-    }
-
-    public void load(double loadSpeed) {
-
         loadMotor.setPower(loadSpeed);
     }
 }

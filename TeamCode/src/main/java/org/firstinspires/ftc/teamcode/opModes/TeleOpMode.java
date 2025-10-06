@@ -76,8 +76,8 @@ public class TeleOpMode extends OpMode {
 
             loadSpeed = 0.5;
         }
-        intake.intake(intakeSpeed);
-        intake.load(loadSpeed);
+
+        intake.intake(intakeSpeed, loadSpeed);
 
         if (shootSwitch) {
             shoot.shoot(shootSpeed);
