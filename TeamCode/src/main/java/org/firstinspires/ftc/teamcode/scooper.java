@@ -69,9 +69,9 @@ public class scooper extends OpMode {
      * velocity. Here we are setting the target, and minimum velocity that the launcher should run
      * at. The minimum velocity is a threshold for determining when to fire.
      */
-    final double LAUNCHER_TARGET_VELOCITY = 1125;
+    final double LAUNCHER_TARGET_VELOCITY = 5;
     //1125
-    final double LAUNCHER_MIN_VELOCITY = 75;
+    final double LAUNCHER_MIN_VELOCITY = 0;
 
     // Declare OpMode members.
     private DcMotor leftDrive = null;
@@ -136,8 +136,8 @@ public class scooper extends OpMode {
          * Note: The settings here assume direct drive on left and right wheels. Gear
          * Reduction or 90 Deg drives may require direction flips
          */
-        leftDrive.setDirection(DcMotor.Direction.REVERSE);
-        rightDrive.setDirection(DcMotor.Direction.FORWARD);
+        leftDrive.setDirection(DcMotor.Direction.FORWARD);
+        rightDrive.setDirection(DcMotor.Direction.REVERSE);
 
         launcher.setDirection(DcMotor.Direction.REVERSE);
 
@@ -212,7 +212,7 @@ public class scooper extends OpMode {
          * both motors work to rotate the robot. Combinations of these inputs can be used to create
          * more complex maneuvers.
          */
-        arcadeDrive(-gamepad1.left_stick_x, gamepad1.right_stick_y);
+        arcadeDrive(-gamepad1.left_stick_y, gamepad1.right_stick_x);
 
         /*
          * Here we give the user control of the speed of the launcher motor without automatically
