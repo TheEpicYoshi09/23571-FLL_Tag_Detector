@@ -33,7 +33,7 @@ public class Util {
         }
     }
 
-    public static void printOdoTelemetry(GoBildaPinpointDriver odo, Telemetry telemetry ){
+    public static void printAllOdoTelemetry(GoBildaPinpointDriver odo, Telemetry telemetry ){
         telemetry.addData("Odo Device Name: ", odo.getDeviceName());
         telemetry.addData("Odo Device Version: ", odo.getDeviceVersion());
         telemetry.addData("Odo Connection Info: ", odo.getConnectionInfo());
@@ -41,6 +41,14 @@ public class Util {
         telemetry.addData("Odo Position X (cms): ", odo.getPosX(DistanceUnit.CM));
         telemetry.addData("Odo Position Y (cms): ", odo.getPosY(DistanceUnit.CM));
         telemetry.addData("Odo Heading (degrees): ", odo.getHeading(AngleUnit.DEGREES));
+        telemetry.update();
+    }
+
+    public static void printOdoPositionTelemetry( GoBildaPinpointDriver odo, Telemetry telemetry ){
+        telemetry.addData("Odo Position X (cms): ", odo.getPosX(DistanceUnit.CM));
+        telemetry.addData("Odo Position Y (cms): ", odo.getPosY(DistanceUnit.CM));
+        telemetry.addData("Odo Heading (degrees): ", odo.getHeading(AngleUnit.DEGREES));
+        telemetry.update();
     }
 
     public static void printIMUTelemetry(IMU imu, Telemetry telemetry ){

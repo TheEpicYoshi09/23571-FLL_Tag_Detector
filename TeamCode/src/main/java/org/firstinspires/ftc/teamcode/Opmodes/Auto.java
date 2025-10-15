@@ -6,10 +6,10 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.teamcode.Helper.Chassis;
 import org.firstinspires.ftc.teamcode.Helper.FlyWheel;
-import org.firstinspires.ftc.teamcode.Helper.Gate;
+import org.firstinspires.ftc.teamcode.Helper.Kicker;
 import org.firstinspires.ftc.teamcode.Helper.Util;
 
-@Autonomous(name = "Alaqmar Auto 2.72;")
+@Autonomous(name = "Alaqmar Auto 2.73;")
 
 public class Auto extends LinearOpMode {
 
@@ -30,7 +30,6 @@ public class Auto extends LinearOpMode {
     private DcMotor backRightDrive;
 
     FlyWheel flyWheel = new FlyWheel();
-    Gate gate = new Gate();
 
     //DecodeAprilTag aprilTag = new DecodeAprilTag(this);
 
@@ -43,25 +42,29 @@ public class Auto extends LinearOpMode {
         flyWheel = new FlyWheel();
         flyWheel.init(this);
 
-        gate = new Gate();
-        gate.init(this);
+        Kicker kicker = new Kicker();
+        kicker.init(hardwareMap);
 
         //DecodeAprilTag aprilTag = new DecodeAprilTag(this);
         //aprilTag.initCamera();
 
 
         while (opModeInInit()) {
-            if (opModeInInit()) {
-                chassis.odo.update();
-                telemetry.addData("Odo x", chassis.odo.getEncoderX());
-                telemetry.addData("Odo y", chassis.odo.getEncoderY());
-                telemetry.update();
-            }
-        }
-        waitForStart();
+            chassis.odo.resetPosAndIMU();
+            Util.printOdoPositionTelemetry(chassis.odo,telemetry);
+
+            waitForStart();
+
+
 
         while (opModeIsActive()) {
 
+            kicker.setKickerPos(0.45);
+            sleep(1000);
+            kicker.setKickerPos(0.3);
+            sleep(1000);
+            kicker.setKickerPos(0.6);
+            sleep(1000);
 
             // for(int i = 15; i <= 180; i += 15){
             //   chassis.turnToAngle(i);
@@ -87,7 +90,8 @@ public class Auto extends LinearOpMode {
             //chassis.moveDistance(-10,0,0);
 
 
-            while (opModeIsActive()) {
+
+
 
 
                 //chassis.printOdoTelemetry();

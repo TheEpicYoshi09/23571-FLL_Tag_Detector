@@ -3,15 +3,12 @@ package org.firstinspires.ftc.teamcode.Opmodes;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.Helper.Chassis;
-import org.firstinspires.ftc.teamcode.Helper.DecodeAprilTag;
 import org.firstinspires.ftc.teamcode.Helper.FlyWheel;
-import org.firstinspires.ftc.teamcode.Helper.Gate;
-import org.firstinspires.ftc.vision.apriltag.AprilTagPoseFtc;
 import org.firstinspires.ftc.teamcode.Helper.Intake;
+import org.firstinspires.ftc.teamcode.Helper.Kicker;
 
-@TeleOp(name = "DecodeTeleopV2.5", group = "TeleOp")
+@TeleOp(name = "DecodeTeleopV2.92 Alaqmar", group = "TeleOp")
 
 public class Teleop extends LinearOpMode {
 
@@ -24,11 +21,12 @@ public class Teleop extends LinearOpMode {
         FlyWheel flyWheel = new FlyWheel();
         flyWheel.init(this);
 
-        Gate gate = new Gate();
-        gate.init(this);
-
         Intake intake =new Intake();
-        gate.init(this);
+        intake.init(this);
+
+        Kicker kicker = new Kicker();
+        kicker.init(hardwareMap);
+
 //        DecodeAprilTag aprilTag = new DecodeAprilTag(this);
 
         telemetry.addData("Status", "Initialized");
@@ -60,23 +58,55 @@ public class Teleop extends LinearOpMode {
             float yaw = -gamepad1.right_stick_x;
             chassis.moveRobot(axial, lateral, yaw);
 
-            if (gamepad2.right_bumper) {
-                flyWheel.start(1);
-                sleep(1500);
-                gate.release(1);
+            // Kicker
+            double gateClose = 0.4;
+            double gateShooting = 0.05;
+            double gateIntake = 1;
 
+            //Shooting
+            if (gamepad2.right_bumper) {
+                kicker.setKickerPos(gateClose);// Middle P
+                sleep(500);
+                flyWheel.start(-0.6);
+                sleep(2000);
+
+
+                kicker.setKickerPos(gateShooting);
+                sleep(200);
+                kicker.setKickerPos(gateClose);
+                sleep(500);
+                intake.intake(0.6);
+                sleep(600);
+                kicker.setKickerPos(gateShooting);
+
+
+              // Turns Flywheel off.
             } else if (gamepad2.left_bumper) {
+                intake.stopIntake();
+                kicker.setKickerPos(gateClose);
+                flyWheel.start(1);
+                sleep(530);
                 flyWheel.stop();
-                gate.stop();
+                kicker.setKickerPos(gateIntake);
 
 
         }
             if (gamepad2.a){
-                intake.intake(0.8);
+                intake.intake(0.5);
             } else if (gamepad2.b) {
                 intake.stopIntake();
             }
+
+          /*  if (gamepad2.x){
+                kicker.setKickerPos(1);
+            }
+            else if (gamepad2.y)
+            kicker.setKickerPos(0.5);
+
+            else if (gamepad2.dpad_right){
+                kicker.setKickerPos(0.15);
+            }*/
+                }
         }
 
 }
-    }

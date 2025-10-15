@@ -545,7 +545,7 @@ public class Chassis {
     }
 
     public void printOdoTelemetry(){
-        Util.printOdoTelemetry(odo, opMode.telemetry);
+        Util.printAllOdoTelemetry(odo, opMode.telemetry);
     }
 
     public void printIMUTelemetry(){

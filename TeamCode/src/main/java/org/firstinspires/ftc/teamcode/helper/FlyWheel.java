@@ -23,7 +23,10 @@ public class FlyWheel {
         flyWheel.setPower(power);
     }
     public void stop() {
-
         flyWheel.setPower(0);
-}
+    }
+    public void setPower(double power) {
+
+        flyWheel.setPower(power);
+    }
     }
