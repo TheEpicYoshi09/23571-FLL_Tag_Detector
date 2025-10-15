@@ -36,7 +36,7 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
 
 @TeleOp(name = "April Tags Test", group = "Robot")
 
-public class AprilTags extends LinearOpMode {
+public final class AprilTags extends LinearOpMode {
 	@Override
     public void runOpMode() {
         WebcamName webcamName = hardwareMap.get(WebcamName.class, "Webcam 1");
