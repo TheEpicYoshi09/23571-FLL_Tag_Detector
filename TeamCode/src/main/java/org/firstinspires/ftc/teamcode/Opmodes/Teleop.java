@@ -8,7 +8,7 @@ import org.firstinspires.ftc.teamcode.Helper.FlyWheel;
 import org.firstinspires.ftc.teamcode.Helper.Intake;
 import org.firstinspires.ftc.teamcode.Helper.Kicker;
 
-@TeleOp(name = "DecodeTeleopV2.92 Alaqmar", group = "TeleOp")
+@TeleOp(name = "DecodeTeleopV2.94 Alaqmar", group = "TeleOp")
 
 public class Teleop extends LinearOpMode {
 
@@ -61,24 +61,34 @@ public class Teleop extends LinearOpMode {
             // Kicker
             double gateClose = 0.4;
             double gateShooting = 0.05;
-            double gateIntake = 1;
-
+            double gateIntake = 0.8;
+            long flyWheelReadyTime = 600;
             //Shooting
             if (gamepad2.right_bumper) {
+                intake.stopIntake();
                 kicker.setKickerPos(gateClose);// Middle P
                 sleep(500);
-                flyWheel.start(-0.6);
-                sleep(2000);
+                flyWheel.start(-0.58);
+                sleep(1800);
 
-
+                // First Shot
                 kicker.setKickerPos(gateShooting);
                 sleep(200);
                 kicker.setKickerPos(gateClose);
-                sleep(500);
-                intake.intake(0.6);
-                sleep(600);
-                kicker.setKickerPos(gateShooting);
 
+                // Turn intake on
+                sleep(flyWheelReadyTime);
+                intake.intake(0.8);
+                sleep(200);
+
+                //Second Shot
+                kicker.setKickerPos(gateShooting);
+                sleep(200);
+                kicker.setKickerPos(gateClose);
+                sleep(flyWheelReadyTime);
+
+                // Third Shot
+                kicker.setKickerPos(gateShooting);
 
               // Turns Flywheel off.
             } else if (gamepad2.left_bumper) {
