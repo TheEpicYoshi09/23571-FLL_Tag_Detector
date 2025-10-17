@@ -10,39 +10,48 @@ import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.OpticalDistanceSensor;
 
 import org.firstinspires.ftc.teamcode.subsystems.Indexer;
+import org.firstinspires.ftc.teamcode.subsystems.Intake;
 
 @TeleOp(name = "SpindexerTest", group = "Teleop")
 public class SpindexerTester extends LinearOpMode {
-    ColorSensor colorSensor;
+    //ColorSensor colorSensor;
     Indexer indexer;
+    Intake intake;
     GamepadEx gp2;
 
     @Override
     public void runOpMode(){
-        colorSensor = hardwareMap.get(ColorSensor.class, "color");
+        // colorSensor = hardwareMap.get(ColorSensor.class, "color");
         indexer = new Indexer(hardwareMap);
+        intake = new Intake(hardwareMap);
         gp2 = new GamepadEx(gamepad2);
 
         waitForStart();
         while(opModeIsActive()){
             if(gp2.wasJustPressed(GamepadKeys.Button.DPAD_UP)){
-                indexer.nextState();
+                indexer.moveTo(indexer.nextState());
             }
             if(gp2.wasJustPressed(GamepadKeys.Button.A))
             {
                 indexer.setIntaking(!indexer.getIntaking());
             }
-            telemetry.addData("Light Detected:",((OpticalDistanceSensor) colorSensor).getLightDetected());
-            telemetry.addData("Red", colorSensor.red());
-            telemetry.addData("Green", colorSensor.green());
-            telemetry.addData("Blue", colorSensor.blue());
+            if(gp2.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER)>0.01){
+                intake.run(true);
+            }
+            else {
+                intake.run(false);
+            }
+            //telemetry.addData("Light Detected:",((OpticalDistanceSensor) colorSensor).getLightDetected());
+            //telemetry.addData("Red", colorSensor.red());
+            //telemetry.addData("Green", colorSensor.green());
+            //telemetry.addData("Blue", colorSensor.blue());
 
-            int r = colorSensor.red();
-            int g = colorSensor.green();
-            int b = colorSensor.blue();
+            //int r = colorSensor.red();
+            //int g = colorSensor.green();
+            //int b = colorSensor.blue();
 
-            String mainColor = getMainColor(r, g, b);
-            telemetry.addData("Color Detected overall:",mainColor);
+            //String mainColor = getMainColor(r, g, b);
+            //telemetry.addData("Color Detected overall:",mainColor);
 
             telemetry.update();
         }
