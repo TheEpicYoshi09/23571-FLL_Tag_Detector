@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.testing;
 
+import androidx.annotation.NonNull;
+
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.arcrobotics.ftclib.gamepad.GamepadKeys;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -39,31 +41,37 @@ public class SpindexerTester extends LinearOpMode {
             int g = colorSensor.green();
             int b = colorSensor.blue();
 
-            double total = r + g + b;
-            double rRatio = r / total;
-            double gRatio = g / total;
-            double bRatio = b / total;
-
-            String mainColor;
-
-            if (rRatio > 0.45 && gRatio < 0.35 && bRatio < 0.35) {
-                mainColor = "Red";
-            } else if (rRatio > 0.45 && gRatio > 0.25 && bRatio < 0.20) {
-                mainColor = "Orange";
-            } else if (rRatio > 0.38 && gRatio > 0.38 && bRatio < 0.25) {
-                mainColor = "Yellow";
-            } else if (gRatio > 0.45 && rRatio < 0.35 && bRatio < 0.35) {
-                mainColor = "Green";
-            } else if (bRatio > 0.45 && rRatio < 0.35 && gRatio < 0.35) {
-                mainColor = "Blue";
-            } else if (rRatio > 0.35 && bRatio > 0.35 && gRatio < 0.30) {
-                mainColor = "Purple";
-            } else {
-                mainColor = "Unclear";
-            }
+            String mainColor = getMainColor(r, g, b);
             telemetry.addData("Color Detected overall:",mainColor);
 
             telemetry.update();
         }
+    }
+
+    @NonNull
+    private static String getMainColor(int r, int g, int b) {
+        double total = r+g+b;
+        double rRatio = r / total;
+        double gRatio = g / total;
+        double bRatio = b / total;
+
+        String mainColor;
+
+        if (rRatio > 0.45 && gRatio < 0.35 && bRatio < 0.35) {
+            mainColor = "Red";
+        } else if (rRatio > 0.45 && gRatio > 0.25 && bRatio < 0.20) {
+            mainColor = "Orange";
+        } else if (rRatio > 0.38 && gRatio > 0.38 && bRatio < 0.25) {
+            mainColor = "Yellow";
+        } else if (gRatio > 0.45 && rRatio < 0.35 && bRatio < 0.35) {
+            mainColor = "Green";
+        } else if (bRatio > 0.45 && rRatio < 0.35 && gRatio < 0.35) {
+            mainColor = "Blue";
+        } else if (rRatio > 0.35 && bRatio > 0.35 && gRatio < 0.30) {
+            mainColor = "Purple";
+        } else {
+            mainColor = "Unclear";
+        }
+        return mainColor;
     }
 }
