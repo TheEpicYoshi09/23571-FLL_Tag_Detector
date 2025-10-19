@@ -8,8 +8,8 @@ import org.firstinspires.ftc.teamcode.Helper.FlyWheel;
 import org.firstinspires.ftc.teamcode.Helper.Intake;
 import org.firstinspires.ftc.teamcode.Helper.Kicker;
 import org.firstinspires.ftc.teamcode.Helper.DecodeAprilTag;
-
-@TeleOp(name = "DecodeTeleopV2.97 Alaqmar", group = "TeleOp")
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+@TeleOp(name = "DecodeTeleopV2.98 Alaqmar", group = "TeleOp")
 
 public class Teleop extends LinearOpMode {
 
@@ -110,17 +110,25 @@ public class Teleop extends LinearOpMode {
                 telemetry.addData("Flywheel warmup time (ms): ",  + durationInMillis );
                 telemetry.update();
                 */
+                double currentVelocity = flyWheel.getVelocity();
+                telemetry.addData("Velocity Before First Shot", currentVelocity);
+
 
 
                 // First Shot
                 kicker.setKickerPos(gateShooting);
                 sleep(250);
                 kicker.setKickerPos(gateClose);
+                currentVelocity = flyWheel.getVelocity();
+                telemetry.addData("Velocity After First Shot", currentVelocity);
+
 
                 // Turn intake on
                 sleep(flyWheelReadyTime);
                 intake.intake(0.6);
                 sleep(200);
+                currentVelocity = flyWheel.getVelocity();
+                telemetry.addData("Velocity Before 2nd Shot", currentVelocity);
 
                 //Second Shot
                 kicker.setKickerPos(gateShooting);
@@ -129,8 +137,11 @@ public class Teleop extends LinearOpMode {
                 sleep(flyWheelReadyTime);
 
                 // Third Shot
+                currentVelocity = flyWheel.getVelocity();
+                telemetry.addData("Velocity Before Third Shot", currentVelocity);
                 kicker.setKickerPos(gateShooting);
 
+                telemetry.update();
               // Turns Flywheel off.
             } else if (gamepad2.left_bumper) {
                 intake.stopIntake();
