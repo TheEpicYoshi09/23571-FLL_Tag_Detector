@@ -3,8 +3,11 @@ package org.firstinspires.ftc.teamcode.subsystems;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.Gamepad;
+
+import org.firstinspires.ftc.teamcode.interstellar.Subsystem;
+import org.firstinspires.ftc.teamcode.interstellar.directives.SetPosition;
+import org.firstinspires.ftc.teamcode.interstellar.hardwaremapwrapper.StellarServo;
 
 public final class Spindexer extends Subsystem {
 	private Gamepad gamepad1, gamepad2;
@@ -14,14 +17,14 @@ public final class Spindexer extends Subsystem {
 	private final static double[] INTAKE_DEGREE_POSITIONS = {0.0, 240.0, 120.0};
 	private final static double[] TRANSFER_DEGREE_POSITIONS = {180.0, 60.0, 300.0};
 
-	private Servo spindexer;
+	private StellarServo spindexer;
 	private DigitalChannel beamBreak;
 	private ColorSensor colorSensor;
 	private ButtonMap xButtonMap, yButtonMap, bButtonMap, aButtonMap;
 
 	@Override
 	public void init(HardwareMap hardwareMap) {
-		spindexer = hardwareMap.get(Servo.class, "spindexer");
+		spindexer = new StellarServo(hardwareMap, "spindexer");
 		beamBreak = hardwareMap.get(DigitalChannel.class, "beamBreak");
 		colorSensor = hardwareMap.get(ColorSensor.class, "colorSensor");
 	}
@@ -39,6 +42,7 @@ public final class Spindexer extends Subsystem {
 
 	@Override
 	public void update() {
+		//todo: stop command spam and buttonMap spam
 		xButtonMap.updateState();
 		yButtonMap.updateState();
 		bButtonMap.updateState();
@@ -58,20 +62,28 @@ public final class Spindexer extends Subsystem {
 			isIntakePosition = !isIntakePosition;
 		});
 
+		new SetPosition(
+				spindexer,
+				isIntakePosition ?
+						INTAKE_DEGREE_POSITIONS[selectedSegment] * DEGREES_TO_SERVO :
+						TRANSFER_DEGREE_POSITIONS[selectedSegment] * DEGREES_TO_SERVO
+		).interruptible(true).requires(this).schedule();
+
+		/*
 		spindexer.setPosition(
-			isIntakePosition ?
-				INTAKE_DEGREE_POSITIONS[selectedSegment] * DEGREES_TO_SERVO :
-				TRANSFER_DEGREE_POSITIONS[selectedSegment] * DEGREES_TO_SERVO
-		);
+				isIntakePosition ?
+						INTAKE_DEGREE_POSITIONS[selectedSegment] * DEGREES_TO_SERVO :
+						TRANSFER_DEGREE_POSITIONS[selectedSegment] * DEGREES_TO_SERVO
+		);*/
 	}
 
 	@Override
 	public String getTelemetryData() {
 		return String.format(
 				"selectedSegment: %d\n" +
-				"isIntakePosition: %b\n" +
-				"beamBreak: %b\n" +
-				"colorSensorRGB: %d, %d, %d",
+						"isIntakePosition: %b\n" +
+						"beamBreak: %b\n" +
+						"colorSensorRGB: %d, %d, %d",
 				selectedSegment, isIntakePosition, beamBreak.getState(),
 				colorSensor.red(), colorSensor.green(), colorSensor.blue());
 	}

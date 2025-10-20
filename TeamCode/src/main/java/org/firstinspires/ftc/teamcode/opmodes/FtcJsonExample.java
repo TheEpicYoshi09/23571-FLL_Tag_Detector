@@ -1,11 +1,11 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
-import org.firstinspires.ftc.teamcode.utils.DecodeDataTypes.ArtifactSequence;
-import org.firstinspires.ftc.teamcode.utils.DecodeDataTypes.Coords;
-import org.firstinspires.ftc.teamcode.utils.DecodeDataTypes.DateMs;
-import org.firstinspires.ftc.teamcode.utils.DecodeDataTypes.MotorPositions;
+import org.firstinspires.ftc.teamcode.util.DecodeDataTypes.ArtifactSequence;
+import org.firstinspires.ftc.teamcode.util.DecodeDataTypes.Coords;
+import org.firstinspires.ftc.teamcode.util.DecodeDataTypes.DateMs;
+import org.firstinspires.ftc.teamcode.util.DecodeDataTypes.MotorPositions;
 
-import org.firstinspires.ftc.teamcode.utils.FtcJsonStorage;
+import org.firstinspires.ftc.teamcode.util.FtcJsonStorage;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;

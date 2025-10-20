@@ -1,9 +1,12 @@
-package org.firstinspires.ftc.teamcode.subsystems;
+package org.firstinspires.ftc.teamcode.interstellar;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
+import org.firstinspires.ftc.teamcode.interstellar.actions.Action;
+
 public abstract class Subsystem {
+	//todo: implement subsystem super to update everything
 	public abstract void init(HardwareMap hardwareMap);
 	public abstract void setGamepads(Gamepad gamepad1, Gamepad gamepad2);
 	public abstract void update();
@@ -21,11 +24,6 @@ public abstract class Subsystem {
 			A, B, X, Y,
 			LEFT_BUMPER, RIGHT_BUMPER,
 			DPAD_UP, DPAD_DOWN, DPAD_LEFT, DPAD_RIGHT
-		}
-
-		@FunctionalInterface
-		public interface Action {
-			void run();
 		}
 
 		private final Gamepad gamepad;

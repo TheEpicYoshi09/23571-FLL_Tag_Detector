@@ -1,12 +1,16 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.Servo;
+
+import org.firstinspires.ftc.teamcode.interstellar.directives.SetPosition;
+import org.firstinspires.ftc.teamcode.interstellar.hardwaremapwrapper.StellarServo;
 import com.qualcomm.robotcore.hardware.Gamepad;
+
+import org.firstinspires.ftc.teamcode.interstellar.Subsystem;
 
 public final class LeverTransfer extends Subsystem {
 	private Gamepad gamepad1, gamepad2;
-	private Servo leverTransfer;
+	private StellarServo leverTransfer;
 	private final double leverDownPosition, leverUpPosition;
 	private boolean leverTargetIsUpPosition = false;
 	private ButtonMap dpadUpButtonMap, dpadDownButtonMap, dpadLeftButtonMap;
@@ -18,7 +22,7 @@ public final class LeverTransfer extends Subsystem {
 
 	@Override
 	public void init(HardwareMap hardwareMap) {
-		leverTransfer = hardwareMap.get(Servo.class, "leverTransfer");
+		leverTransfer = new StellarServo(hardwareMap, "leverTransfer");
 	}
 
 	@Override
@@ -33,6 +37,7 @@ public final class LeverTransfer extends Subsystem {
 
 	@Override
 	public void update() {
+		//todo: stop command spam
 		dpadUpButtonMap.handle(() -> {
 			leverTargetIsUpPosition = true;
 		});
@@ -45,7 +50,11 @@ public final class LeverTransfer extends Subsystem {
 			leverTargetIsUpPosition = !leverTargetIsUpPosition;
 		});
 
-		leverTransfer.setPosition(leverTargetIsUpPosition ? leverUpPosition : leverDownPosition);
+		new SetPosition(leverTransfer,
+				leverTargetIsUpPosition ? leverUpPosition : leverDownPosition
+		).interruptible(true).requires(this).schedule();
+
+		//leverTransfer.setPosition(leverTargetIsUpPosition ? leverUpPosition : leverDownPosition);
 	}
 
 	@Override

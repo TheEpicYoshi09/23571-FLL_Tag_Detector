@@ -1,12 +1,16 @@
-package org.firstinspires.ftc.teamcode.core;
+package org.firstinspires.ftc.teamcode.interstellar;
 
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
-import org.firstinspires.ftc.teamcode.subsystems.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+
+
+//Stellar, Wormholes, Docking Procedure, Murphy's Law, Procedure
 
 public class InterstellarBot {
-	final Subsystem[] subsystems;
+	protected final Subsystem[] subsystems;
 
 	public InterstellarBot(Subsystem... subsystems) {
 		this.subsystems = subsystems;
@@ -25,6 +29,18 @@ public class InterstellarBot {
 	}
 
 	public void update() {
+		Scheduler.getInstance().run();
+		/*
+		final AtomicInteger test = new AtomicInteger(2);
+		Condition condition = new Condition(() -> test.get() == 3);
+		condition.updateState();
+		//condition.getState() == false
+		test.set(2);
+		condition.updateState();
+		//condition.getState() == true
+		*/
+
+
 		for (Subsystem subsystem : subsystems) {
 			subsystem.update();
 		}
@@ -36,5 +52,9 @@ public class InterstellarBot {
 			telemetry.append(subsystem.getTelemetryData()).append('\n');
 		}
 		return telemetry.toString();
+	}
+
+	public void cancelAll() {
+		Scheduler.getInstance().cancelAll();
 	}
 }

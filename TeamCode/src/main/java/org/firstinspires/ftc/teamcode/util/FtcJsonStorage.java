@@ -1,9 +1,9 @@
-package org.firstinspires.ftc.teamcode.utils;
+package org.firstinspires.ftc.teamcode.util;
 
-import org.firstinspires.ftc.teamcode.utils.DecodeDataTypes.ArtifactSequence;
-import org.firstinspires.ftc.teamcode.utils.DecodeDataTypes.Coords;
-import org.firstinspires.ftc.teamcode.utils.DecodeDataTypes.DateMs;
-import org.firstinspires.ftc.teamcode.utils.DecodeDataTypes.MotorPositions;
+import org.firstinspires.ftc.teamcode.util.DecodeDataTypes.ArtifactSequence;
+import org.firstinspires.ftc.teamcode.util.DecodeDataTypes.Coords;
+import org.firstinspires.ftc.teamcode.util.DecodeDataTypes.DateMs;
+import org.firstinspires.ftc.teamcode.util.DecodeDataTypes.MotorPositions;
 
 import java.io.BufferedReader;
 import java.io.File;

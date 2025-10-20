@@ -1,22 +1,13 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
-import org.firstinspires.ftc.teamcode.core.InterstellarBot;
-import org.firstinspires.ftc.teamcode.subsystems.Drivebase;
-import org.firstinspires.ftc.teamcode.subsystems.Intake;
-import org.firstinspires.ftc.teamcode.subsystems.LeverTransfer;
-import org.firstinspires.ftc.teamcode.subsystems.Spindexer;
+import org.firstinspires.ftc.teamcode.core.TarsBase;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 @TeleOp(name = "TARS -JetEngine", group = "Robot")
 public class TARS extends LinearOpMode {
-	final InterstellarBot tars = new InterstellarBot(
-			new Drivebase(1.00, 1.00),
-			new Intake(),
-			new LeverTransfer(0.28, 0.00),
-			new Spindexer()
-	);
+	final TarsBase tars = new TarsBase();
 
 	@Override
 	public void runOpMode() {
@@ -32,8 +23,6 @@ public class TARS extends LinearOpMode {
 
 		while (opModeIsActive()) {
 			// run subsystems logic
-			//todo: fix calling buttonMaps being called multiple times
-			//todo: more comments
 			tars.update();
 
 			// print telemetry
@@ -43,7 +32,10 @@ public class TARS extends LinearOpMode {
 				telemetry.addData("telemetry didn't work", e);
 			}
 			telemetry.addLine("Honesty setting: 90%");
+			telemetry.addLine("Humor setting: 75%");
+
 			telemetry.update();
 		}
+		tars.cancelAll();
 	}
 }
