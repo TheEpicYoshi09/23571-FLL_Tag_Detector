@@ -151,6 +151,8 @@ public class DecodeAprilTag {
         return bFound;
     }
 
+    // blue target = "bluetarget"
+    // red targer = "redtarget"
     public AprilTagPoseFtc getCoordinate(String name) {
 
         AprilTagPoseFtc retPose = null;

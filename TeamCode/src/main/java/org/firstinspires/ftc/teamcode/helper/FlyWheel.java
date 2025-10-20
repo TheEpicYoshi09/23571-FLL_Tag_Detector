@@ -19,7 +19,6 @@ public class FlyWheel {
     }
 
     public void start(double power) {
-
         flyWheel.setPower(power);
     }
     public void stop() {

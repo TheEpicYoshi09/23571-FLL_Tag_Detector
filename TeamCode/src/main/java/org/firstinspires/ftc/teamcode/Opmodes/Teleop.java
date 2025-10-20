@@ -9,7 +9,7 @@ import org.firstinspires.ftc.teamcode.Helper.Intake;
 import org.firstinspires.ftc.teamcode.Helper.Kicker;
 import org.firstinspires.ftc.teamcode.Helper.DecodeAprilTag;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-@TeleOp(name = "DecodeTeleopV2.98 Alaqmar", group = "TeleOp")
+@TeleOp(name = "DecodeTeleopV2.99 Alaqmar", group = "TeleOp")
 
 public class Teleop extends LinearOpMode {
 
@@ -69,59 +69,59 @@ public class Teleop extends LinearOpMode {
 
 
 
-            /*Running the following code in Thread
+            //Running the following code in Thread
                 float axial = -gamepad1.left_stick_y;
                 float lateral = -gamepad1.left_stick_x;
                 float yaw = -gamepad1.right_stick_x;
                 chassis.moveRobot(axial, lateral, yaw);
-             */
+
 
             // Kicker
-            double gateClose = 0.4;
-            double gateShooting = 0.05;
-            double gateIntake = 0.8;
+            double gateClose = 0.7;
+            double gateShooting = 0.4;
+            double gateIntake = 1;
             long flyWheelReadyTime = 1000;
 
+            if(gamepad2.dpad_down) {
+                kicker.setKickerPos(gateClose);
+            }
+            if(gamepad2.dpad_up) {
+                kicker.setKickerPos(gateShooting);
+            }
+            if(gamepad2.dpad_right) {
+                kicker.setKickerPos(gateIntake);
+            }
             //Shooting
             if (gamepad2.right_bumper) {
 
-                intake.stopIntake();
+                intake.intake(0.6); 
                 kicker.setKickerPos(gateClose);// Middle P
-                sleep(500);
+                sleep(1000);
 
                 long startTime = System.currentTimeMillis();
 
-                flyWheel.start(-1.0);
-                sleep(400);
-                flyWheel.setPower(-0.6);
-                sleep(1000);
+                flyWheel.setPower(-0.65);
 
-                /*
                 telemetry.addData("Flywheel start power: ",  + flyWheel.getPower());
 
-                while (flyWheel.getPower() >= -0.55){
-                    sleep(180);
-                    telemetry.addData("Flywheel current power: ",  + flyWheel.getPower());
-                    telemetry.update();
-                }
+                while (flyWheel.getVelocity() < -1500){}
+
                 long endTime = System.currentTimeMillis();
                 long durationInMillis = endTime - startTime;
 
                 telemetry.addData("Flywheel warmup time (ms): ",  + durationInMillis );
-                telemetry.update();
-                */
+
                 double currentVelocity = flyWheel.getVelocity();
                 telemetry.addData("Velocity Before First Shot", currentVelocity);
 
 
-
+                sleep(1000);
                 // First Shot
                 kicker.setKickerPos(gateShooting);
-                sleep(250);
+                sleep(500);
                 kicker.setKickerPos(gateClose);
                 currentVelocity = flyWheel.getVelocity();
                 telemetry.addData("Velocity After First Shot", currentVelocity);
-
 
                 // Turn intake on
                 sleep(flyWheelReadyTime);
@@ -130,11 +130,15 @@ public class Teleop extends LinearOpMode {
                 currentVelocity = flyWheel.getVelocity();
                 telemetry.addData("Velocity Before 2nd Shot", currentVelocity);
 
+                while (flyWheel.getVelocity() < -1500){}
+
                 //Second Shot
                 kicker.setKickerPos(gateShooting);
-                sleep(200);
+                sleep(500);
                 kicker.setKickerPos(gateClose);
                 sleep(flyWheelReadyTime);
+
+                while (flyWheel.getVelocity() < -1500){}
 
                 // Third Shot
                 currentVelocity = flyWheel.getVelocity();
@@ -142,6 +146,8 @@ public class Teleop extends LinearOpMode {
                 kicker.setKickerPos(gateShooting);
 
                 telemetry.update();
+                sleep(5000);
+
               // Turns Flywheel off.
             } else if (gamepad2.left_bumper) {
                 intake.stopIntake();
