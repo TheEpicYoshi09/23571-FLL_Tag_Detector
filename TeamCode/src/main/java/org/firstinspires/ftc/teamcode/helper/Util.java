@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.Helper;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.IMU;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -188,5 +189,26 @@ public class Util {
                 return;
             }
         }
+    }
+
+    public static boolean waitForMotor(DcMotorEx dcWheel, long timeoutMs, double ticksPerSecond) {
+        boolean ret = false;
+        long sleepInMs = 200;
+
+        for (long i = 0; i < timeoutMs; i++) {
+            if (dcWheel.getVelocity() >= Math.abs(ticksPerSecond)) {
+                ret = true;
+                break;
+            }
+
+            try {
+                Thread.sleep(sleepInMs);
+            } catch (InterruptedException e) {
+            }
+
+            i = i + sleepInMs;
+        }
+
+        return ret;
     }
 }

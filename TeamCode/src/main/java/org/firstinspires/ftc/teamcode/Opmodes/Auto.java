@@ -10,7 +10,7 @@ import org.firstinspires.ftc.teamcode.Helper.FlyWheel;
 import org.firstinspires.ftc.teamcode.Helper.Kicker;
 import org.firstinspires.ftc.teamcode.Helper.Util;
 import org.firstinspires.ftc.vision.apriltag.AprilTagPoseFtc;
-@Autonomous(name = "Alaqmar Auto 2.74;")
+@Autonomous(name = "Alaqmar Auto 2.75;")
 
 public class Auto extends LinearOpMode {
 
@@ -60,6 +60,14 @@ public class Auto extends LinearOpMode {
         while (opModeIsActive()) {
 
             AprilTagPoseFtc cameraPosition = aprilTag.getCoordinate("BlueTarget");
+            if (cameraPosition != null) {
+                double range = cameraPosition.range; //distance in inches
+                double yaw = cameraPosition.yaw; //use straffing to align to 0
+                double bearing = cameraPosition.bearing; //use turning to align to 0
+
+            }
+
+
 
             // for(int i = 15; i <= 180; i += 15){
             //   chassis.turnToAngle(i);

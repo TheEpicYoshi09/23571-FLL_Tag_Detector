@@ -3,16 +3,18 @@ package org.firstinspires.ftc.teamcode.Opmodes;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.teamcode.Helper.Chassis;
-import org.firstinspires.ftc.teamcode.Helper.FlyWheel;
-import org.firstinspires.ftc.teamcode.Helper.Intake;
-import org.firstinspires.ftc.teamcode.Helper.Kicker;
-import org.firstinspires.ftc.teamcode.Helper.DecodeAprilTag;
-import org.firstinspires.ftc.teamcode.Helper.Util;
+import org.firstinspires.ftc.teamcode.Helper.*;
+import org.firstinspires.ftc.vision.apriltag.AprilTagPoseFtc;
+//import org.firstinspires.ftc.teamcode.Helper.Chassis;
+//import org.firstinspires.ftc.teamcode.Helper.FlyWheel;
+//import org.firstinspires.ftc.teamcode.Helper.Intake;
+//import org.firstinspires.ftc.teamcode.Helper.Kicker;
+//import org.firstinspires.ftc.teamcode.Helper.DecodeAprilTag;
+//import org.firstinspires.ftc.teamcode.Helper.Util;
 
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 
-@TeleOp(name = "DecodeTeleopV3.19 Alaqmar", group = "TeleOp")
+@TeleOp(name = "DecodeTeleopV3.23 Alaqmar", group = "TeleOp")
 
 public class Teleop extends LinearOpMode {
 
@@ -57,6 +59,37 @@ public class Teleop extends LinearOpMode {
 
         //Util.telemetryFlyWheelVelocity(flyWheel, 0.65, 3000,telemetry);
         //telemetry.update();
+
+        /*
+        double destRange = 10;
+        double destYaw = 0;
+        double destBearing = 0;
+        double currentRange = 0;
+        double currentYaw = 0;
+        double currentBearing = 0;
+
+        while ( Math.abs((destRange - currentRange)) >  0) {
+            AprilTagPoseFtc cameraPosition = aprilTag.getCoordinate("BlueTarget");
+            if (cameraPosition != null) {
+                currentRange = cameraPosition.range; //distance in inches
+                currentYaw = cameraPosition.yaw; //use straffing to align to 0
+                currentBearing = cameraPosition.bearing; //use turning to align to 0
+
+                chassis.drive(-0.5,0,0);
+            }
+        }
+
+            while ( Math.abs((destYaw - currentYaw)) >  0) {
+            AprilTagPoseFtc cameraPosition = aprilTag.getCoordinate("BlueTarget");
+            if (cameraPosition != null) {
+                currentRange = cameraPosition.range; //distance in inches
+                currentYaw = cameraPosition.yaw; //use straffing to align to 0
+                currentBearing = cameraPosition.bearing; //use turning to align to 0
+
+                chassis.drive(0,0.5,0);
+            }
+        }
+         */
 
         // Run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
@@ -131,7 +164,7 @@ public class Teleop extends LinearOpMode {
                 //sleep(1000);
                 // First Shot
                 kicker.setKickerPos(gateShooting);
-                sleep(800);
+                sleep(400);
                 kicker.setKickerPos(gateClose);
 
                  intermidiateTime =  System.currentTimeMillis();
@@ -154,7 +187,7 @@ public class Teleop extends LinearOpMode {
 
                 //Second Shot
                 kicker.setKickerPos(gateShooting);
-                sleep(800);
+                sleep(500);
                 kicker.setKickerPos(gateClose);
                 //sleep(flyWheelReadyTime);
 
