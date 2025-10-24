@@ -14,8 +14,8 @@ import com.qualcomm.robotcore.hardware.Servo;
 public class Testdrive extends OpMode {
     // THIS IS where we put our public variables that are stored in the oppmodes class
 
-    public double LauncherMaxsSpeed = 1128; // The speed that the launcher moater wll spinn at when ready, and the speed that we want when it puts the ball into the chanmber
-    public double LauncherSpeedLaunch = 1100; // the speed at witch the launcher will deplay the ball
+    public double LauncherMaxsSpeed = 1125; // The speed that the launcher motor wll spin at when ready, and the speed that we want when it puts the ball into the chanmber
+    public double LauncherSpeedLaunch = 1075; // the speed at witch the launcher will deplay the ball
 
     final double STOP_SPEED = 0.0; //We send this power to the servos when we want them to stop.
     final double FULL_SPEED = 1.0;

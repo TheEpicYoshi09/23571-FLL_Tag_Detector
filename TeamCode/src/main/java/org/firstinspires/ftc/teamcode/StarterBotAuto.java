@@ -72,7 +72,7 @@ public class StarterBotAuto extends OpMode
      * velocity. Here we are setting the target and minimum velocity that the launcher should run
      * at. The minimum velocity is a threshold for determining when to fire.
      */
-    final double LAUNCHER_TARGET_VELOCITY = 0.5;
+    final double LAUNCHER_TARGET_VELOCITY = 1125;
     final double LAUNCHER_MIN_VELOCITY = 0;
 
     /*
@@ -238,7 +238,8 @@ public class StarterBotAuto extends OpMode
          * Much like our drivetrain motors, we set the left feeder servo to reverse so that they
          * both work to feed the ball into the robot.
          */
-        leftFeeder.setDirection(DcMotorSimple.Direction.REVERSE);
+        leftFeeder.setDirection(DcMotorSimple.Direction.FORWARD);
+        rightFeeder.setDirection(DcMotorSimple.Direction.REVERSE);
 
 
         // Tell the driver that initialization is complete.
@@ -286,7 +287,8 @@ public class StarterBotAuto extends OpMode
     public void loop() {
         /*
          * TECH TIP: Switch Statements
-         * switch statements are an excellent way to take advantage of an enum. They work very
+         * switch statements are an excellent way to t
+         * ake advantage of an enum. They work very
          * similarly to a series of "if" statements, but allow for cleaner and more readable code.
          * We switch between each enum member and write the code that should run when our enum
          * reflects that state. We end each case with "break" to skip out of checking the rest
