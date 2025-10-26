@@ -41,7 +41,7 @@ public class Teleop extends LinearOpMode {
         intake.init(this);
 
         Kicker kicker = new Kicker();
-        kicker.init(hardwareMap);
+        kicker.init(this);
 
         DecodeAprilTag aprilTag  = new DecodeAprilTag(this);
         aprilTag.initCamera();
@@ -60,36 +60,7 @@ public class Teleop extends LinearOpMode {
         //Util.telemetryFlyWheelVelocity(flyWheel, 0.65, 3000,telemetry);
         //telemetry.update();
 
-        /*
-        double destRange = 10;
-        double destYaw = 0;
-        double destBearing = 0;
-        double currentRange = 0;
-        double currentYaw = 0;
-        double currentBearing = 0;
 
-        while ( Math.abs((destRange - currentRange)) >  0) {
-            AprilTagPoseFtc cameraPosition = aprilTag.getCoordinate("BlueTarget");
-            if (cameraPosition != null) {
-                currentRange = cameraPosition.range; //distance in inches
-                currentYaw = cameraPosition.yaw; //use straffing to align to 0
-                currentBearing = cameraPosition.bearing; //use turning to align to 0
-
-                chassis.drive(-0.5,0,0);
-            }
-        }
-
-            while ( Math.abs((destYaw - currentYaw)) >  0) {
-            AprilTagPoseFtc cameraPosition = aprilTag.getCoordinate("BlueTarget");
-            if (cameraPosition != null) {
-                currentRange = cameraPosition.range; //distance in inches
-                currentYaw = cameraPosition.yaw; //use straffing to align to 0
-                currentBearing = cameraPosition.bearing; //use turning to align to 0
-
-                chassis.drive(0,0.5,0);
-            }
-        }
-         */
 
         // Run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
@@ -125,8 +96,7 @@ public class Teleop extends LinearOpMode {
             // Kicker
             double gateClose = 0.4;
             double gateShooting = 0.25;
-            double gateIntake = 0.6
-                    ;
+            double gateIntake = 0.6;
             long flyWheelReadyTime = 1000;
 
             if(gamepad2.dpad_down) {
@@ -138,6 +108,7 @@ public class Teleop extends LinearOpMode {
             if(gamepad2.dpad_right) {
                 kicker.setKickerPos(gateIntake);
             }
+
             //Shooting
             if (gamepad2.right_bumper) {
 

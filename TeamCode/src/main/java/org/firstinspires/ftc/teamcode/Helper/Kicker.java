@@ -10,9 +10,10 @@ public class Kicker {
     private Servo kickerPos;
     private OpMode opMode;
 
-    public void init(HardwareMap hwMap) {
-        kickerPos = hwMap.get(Servo.class, "kicker");
+    public void init(OpMode opMode) {
         this.opMode = opMode;
+        kickerPos = opMode.hardwareMap.get(Servo.class, "kicker");
+
 
     }
 
