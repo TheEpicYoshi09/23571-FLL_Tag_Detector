@@ -23,9 +23,9 @@ public class Scheduler {
 		subsystems.add(subsystem);
 	}
 
-	public void schedule(Runnable activeRunnables) {
+	public void schedule(Runnable runnableToSchedule) {
 		// prevent scheduling of the same directive multiple times
-		if (this.activeRunnables.contains(activeRunnables)) {
+		if (this.activeRunnables.contains(runnableToSchedule)) {
 			return;
 		}
 
@@ -38,7 +38,7 @@ public class Scheduler {
 			// check for conflicts
 			CONFLICT_CHECK:
 			// for every subsystem required by the new directive
-			for (Subsystem requiredByNew : activeRunnables.getRequiredSubsystems()) {
+			for (Subsystem requiredByNew : runnableToSchedule.getRequiredSubsystems()) {
 				// for every subsystem required by the running directive
 				for (Subsystem requiredByRunning : activeRunnable.getRequiredSubsystems()) {
 					if (requiredByNew == requiredByRunning) {
@@ -61,8 +61,10 @@ public class Scheduler {
 			}
 		}
 
-		this.activeRunnables.add(activeRunnables); // add to running directives
-		activeRunnables.start(didInterrupt); // start directive and pass hadToInterruptToStart status
+		runnableToSchedule.setHasFinished(false); // in case it has finished earlier
+
+		this.activeRunnables.add(runnableToSchedule); // add to running directives
+		runnableToSchedule.start(didInterrupt); // start directive and pass hadToInterruptToStart status
 	}
 
 	public void addTrigger(Trigger trigger) {
@@ -70,9 +72,6 @@ public class Scheduler {
 	}
 
 	public void run() {
-		//todo: add sequences
-		//todo: be able to add subsystems other than `this` to requirements
-
 		// check and run all triggers
 		for (Trigger trigger : activeTriggers) {
 			if (trigger.check()) {

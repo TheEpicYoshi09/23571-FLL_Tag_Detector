@@ -24,6 +24,7 @@ public class Procedure extends Runnable {
 			requiredSubsystems.addAll(Arrays.asList(directive.getRequiredSubsystems()));
         }
         setRequires(requiredSubsystems.toArray(new Subsystem[0]));
+        setInterruptible(false);
     }
 
     @Override
@@ -40,15 +41,18 @@ public class Procedure extends Runnable {
 
         Directive currentDirective = directives[currentDirectiveIndex];
 
-        if (currentDirective.getHasFinished()) {
-            if (currentDirectiveIndex == directives.length - 1) {
+        if (currentDirective.isFinished()) {
+            currentDirective.stop(false);
+            currentDirectiveIndex++;
+
+            if (currentDirectiveIndex >= directives.length) {
                 return;
             }
 
-            currentDirectiveIndex++;
             currentDirective = directives[currentDirectiveIndex];
-
             currentDirective.start(false);
+
+            return;
         }
 
         currentDirective.update();
