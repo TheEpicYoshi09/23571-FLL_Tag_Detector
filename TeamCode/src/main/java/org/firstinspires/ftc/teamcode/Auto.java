@@ -29,25 +29,11 @@
 
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
-import com.qualcomm.robotcore.hardware.CRServo;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import com.qualcomm.hardware.rev.RevColorSensorV3;
-import org.firstinspires.ftc.vision.VisionPortal;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import com.qualcomm.robotcore.hardware.ColorSensor;
-import com.qualcomm.robotcore.hardware.DistanceSensor;
-
-import java.util.List;
 
 /*
 * This OpMode illustrates the basics of TensorFlow Object Detection,
@@ -56,39 +42,15 @@ import java.util.List;
 * Use Android Studio to Copy this Class, and Paste it into your team's code folder with a new name.
 * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list.
 */
-@Autonomous(name = "Auto Left Arm", group = "Concept")
+@Autonomous(name = "Auto", group = "Concept")
 //USING THIS ONE. ARM
 
-public class AutoLeftArm extends LinearOpMode {
+public class Auto extends LinearOpMode {
 
     private DcMotor         leftFrontDriveWheel   = null;
     private DcMotor         rightFrontDriveWheel  = null;
     private DcMotor         leftBackDriveWheel = null;
     private DcMotor         rightBackDriveWheel = null;
-    
-    private DcMotor          armMotor   = null; 
-    private DcMotor          rotateMotor = null;
-    //private DcMotor          verticalMotor = null;
-    private Servo            clawServo = null;
-    
-    final double ARM_UP_POWER = 20;
-    final double ARM_DOWN_POWER = -20;
-    
-    final double ROTATE_UP_POWER = 0.05;
-    final double ROTATE_DOWN_POWER = 0.05;
-    
-    final int armDownPosition = 0;
-    final int armUpPosition = 1350;
-    
-    final int rotateDownPosition = 430;
-    final int rotateMidPosition = 200;
-    final int rotateUpPosition = 0;
-    
-    //public Rev2mDistanceSensor distanceSensor = null;
-
-    final float OPTIMAL_DISTANCE = 40;
-    double DISTANCE;
-    
     private ElapsedTime     runtime = new ElapsedTime();
     
     static final double     COUNTS_PER_MOTOR_REV    = 28;    // eg: TETRIX Motor Encoder
@@ -111,14 +73,8 @@ public class AutoLeftArm extends LinearOpMode {
         rightFrontDriveWheel = hardwareMap.get(DcMotor.class, "rightFrontDriveWheel");
         leftBackDriveWheel = hardwareMap.get(DcMotor.class, "leftBackDriveWheel");
         rightBackDriveWheel = hardwareMap.get(DcMotor.class, "rightBackDriveWheel");
-        
-        armMotor = hardwareMap.get(DcMotor.class, "armMotor");
-        rotateMotor = hardwareMap.get(DcMotor.class,"rotateMotor");
-        //verticalMotor = hardwareMap.get(DcMotor.class,"verticalMotor");
-        
         //distanceSensor = hardwareMap.get(Rev2mDistanceSensor.class, "distanceSensor");
-        
-        clawServo = hardwareMap.get(Servo.class,"clawServo");
+
         //rotateMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         //TEST
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
@@ -133,19 +89,11 @@ public class AutoLeftArm extends LinearOpMode {
         rightFrontDriveWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         leftBackDriveWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightBackDriveWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        
-        armMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        //verticalMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        rotateMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         leftFrontDriveWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rightFrontDriveWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         leftBackDriveWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rightBackDriveWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        
-        armMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        //verticalMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        rotateMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODERS);
 
         // Wait for the DS start button to be touched.
         telemetry.addData("DS preview on/off", "3 dots, Camera Stream");
@@ -154,21 +102,10 @@ public class AutoLeftArm extends LinearOpMode {
         waitForStart();
         
         while (opModeIsActive()) 
-        { 
-          
-          moveToBasket();
-          
-          armToBasket();
-          
-          encoderDrive(60, 20, 20, 30, "FORWARD");
-          
-          claw();
-          
-          encoderDrive(60, 20, 20, 30, "REVERSE");
-          
-          armDown();
-          
-          moveToSpecimen();
+        {
+            //put in auto path of choice here
+
+          encoderDrive(60, 20, 20, 30, "FORWARD"); //old code I'm keeping here as an example for later
           
         telemetry.update();
     }
@@ -182,67 +119,104 @@ public class AutoLeftArm extends LinearOpMode {
     //  *  3) Driver stops the OpMode running.
     //  */
     
-    public void moveToBasket()
+    public void blueInnerSidewaysLaunchClose() //used to be moveToBasket, old code reflects that - I just kept it as an example
           {
             encoderDrive(60, 65, 65, 30, "REVERSE"); //starts backwards so we gotta
             encoderDrive(60, 35, 35, 30, "TURNRIGHT"); //turn it around
             encoderDrive(60, 85, 85, 30, "FORWARD");
             
             encoderDrive(60,30,30,30,"RIGHT");
-            
+
+
+              //launch (vaguely to the left - maybe turn?), strafe left from start, get in the way
+              //of red alliance's launch zone (see Emily's diagrams), then straighten out
           }
-    
-    public void armToBasket()
-    {
-      rotateMotor.setTargetPosition(rotateMidPosition); //setting target
-      rotateMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION); //going to that target
-      rotateMotor.setPower(ROTATE_DOWN_POWER); //setting power to specific constant
-      
-      sleep(2000);
-      
-      armMotor.setTargetPosition(armUpPosition);
-      armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-      armMotor.setPower(ARM_UP_POWER);
-     
-      sleep(2000);
-     }
-     
-      public void claw()
+          public void redInnerSidewaysLaunchClose()
           {
-            //open the claw
-          clawServo.setPosition(0.0);
-          sleep(2000);
+              //launch (vaguely to the right - maybe turn? strafe right from start, get in the way
+              //of blue alliance's launch zone (see Emily's diagrams), then straighten out
           }
-          
-          
-    public void armDown()
-          {
-          armMotor.setTargetPosition(armDownPosition);
-          armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-          armMotor.setPower(ARM_DOWN_POWER);
-          
-          sleep(2000);
-          
-          rotateMotor.setTargetPosition(rotateUpPosition);
-          rotateMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-          rotateMotor.setPower(ROTATE_UP_POWER);
-          
-          sleep(2000);
-          }
-          
-          public void moveToSpecimen()
-          {
-            //get lined up w/ three specimen for driver section
-          encoderDrive(60, 50, 50, 30, "REVERSE");
-          encoderDrive(60, 70, 70, 30, "TURNRIGHT");
-          encoderDrive(60, 20, 20, 30, "FORWARD");
-          encoderDrive(60, 50, 50, 30, "LEFT");
-          
-        sleep(10000000);
-          }
+
+         public void blueInnerForwardLaunchClose()
+         {
+            //launch (vaguely to the left - maybe turn?, move forward from start
+         }
+
+        public void redInnerForwardLaunchClose()
+        {
+            //launch (vaguely to the right - maybe turn?, move forward from start
+        }
+
+        public void blueInnerSidewaysClose()
+        {
+            //strafe left from start, get in the way of other alliance's launch zone
+            //(see Emily's diagrams), then straighten out
+        }
+
+        public void redInnerSidewaysClose()
+        {
+            //strafe right from start, get in the way of other alliance's launch zone
+            //(see Emily's diagrams), then straighten out
+        }
+
+        public void blueInnerForwardClose()
+        {
+            //move forward from start - combine with red version?
+        }
+
+        public void redInnerForwardClose()
+        {
+            //move forward from start - combine with blue version?
+        }
+
+        public void blueOuterSidewaysLaunchClose()
+        {
+            //launch (vaguely to the left - maybe turn?, strafe left from start, avoid red
+            //(veer slightly right) alliance's base (see Emily's diagrams), then straighten out
+        }
+
+        public void redOuterSidewaysLaunchClose()
+        {
+            //launch (vaguely to the right - maybe turn?, strafe right from start, avoid blue
+            //(veer slightly left) alliance's base (see Emily's diagrams), then straighten out
+        }
+
+        public void blueOuterForwardLaunchClose()
+        {
+            //launch (vaguely to the left - maybe turn?, move forward from start, and avoid red
+            //(veer slightly right) alliance's base (see Emily's diagrams)
+        }
+
+        public void redOuterForwardLaunchClose()
+        {
+            //launch (vaguely to the right - maybe turn?, move forward from start, and avoid blue
+            //(veer slightly left) alliance's base (see Emily's diagrams)
+        }
+
+        public void blueOuterSidewaysClose()
+        {
+            //strafe left from start, avoid red (veer slightly right) alliance's base (see Emily's diagrams), then
+            //straighten out
+        }
+
+        public void redOuterSidewaysClose()
+        {
+            //strafe right from start, avoid (veer slightly left) blue alliance's base (see Emily's diagrams), then
+            //straighten out
+        }
+
+        public void blueOuterForwardClose()
+        {
+            //move forward from start and avoid (veer slightly right) red alliance's base (see Emily's diagrams)
+        }
+
+        public void redOuterForwardClose()
+        {
+            //move forward from start and avoid (veer slightly left) blue alliance's base (see Emily's diagrams)
+        }
           
 
-    public void encoderDrive(double speed, double leftInches, double rightInches, double timeoutS, String direction)
+    public void encoderDrive(double speed, double leftInches, double rightInches, double timeoutS, String direction) //seems super important so I will not be deleting
     {
       //target for the encoder (wheels turn yippee)
         int newLeftFrontTarget;
