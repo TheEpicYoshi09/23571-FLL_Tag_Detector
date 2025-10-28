@@ -2,7 +2,6 @@ package org.firstinspires.ftc.teamcode.Opmodes;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.teamcode.Helper.Chassis;
 import org.firstinspires.ftc.teamcode.Helper.DecodeAprilTag;
@@ -10,13 +9,10 @@ import org.firstinspires.ftc.teamcode.Helper.FlyWheel;
 import org.firstinspires.ftc.teamcode.Helper.Intake;
 import org.firstinspires.ftc.teamcode.Helper.Kicker;
 import org.firstinspires.ftc.teamcode.Helper.Util;
-import org.firstinspires.ftc.vision.apriltag.AprilTagPoseFtc;
-
-import java.util.Calendar;
 
 @Autonomous(name = "Auto Basket", group = "Autonomous")
 
-public class AutoBasket extends LinearOpMode {
+public class AutoBasketBlue extends LinearOpMode {
 
     Chassis chassis = new Chassis();
 
@@ -33,7 +29,8 @@ public class AutoBasket extends LinearOpMode {
     enum AutoStages {
         BACK_UP,
         ADJUST_POSITION,
-        SHOOT
+        SHOOT,
+        GET_MORE_BALLS,
     }
 
     @Override
@@ -41,7 +38,7 @@ public class AutoBasket extends LinearOpMode {
 
         chassis.init(this);
         flyWheel.init(this);
-        kicker.init(this);
+        kicker.init(hardwareMap);
         intake.init(this);
 
         DecodeAprilTag aprilTag = new DecodeAprilTag(this);
@@ -74,6 +71,8 @@ public class AutoBasket extends LinearOpMode {
                     flyWheel.stop();
                     intake.stopIntake();
 
+                case GET_MORE_BALLS:
+                    
 
             }
 
