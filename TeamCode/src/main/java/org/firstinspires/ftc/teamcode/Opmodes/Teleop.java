@@ -41,7 +41,7 @@ public class Teleop extends LinearOpMode {
         intake.init(this);
 
         Kicker kicker = new Kicker();
-        kicker.init(this);
+        kicker.init(hardwareMap);
 
         DecodeAprilTag aprilTag  = new DecodeAprilTag(this);
         aprilTag.initCamera();
