@@ -46,54 +46,13 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 //USING THIS ONE. ARM
 
 public class Auto extends LinearOpMode {
+    HardwarePushbot robot       = new HardwarePushbot(); // use the class created to define a Pushbot's hardware
 
-    private DcMotor         leftFrontDriveWheel   = null;
-    private DcMotor         rightFrontDriveWheel  = null;
-    private DcMotor         leftBackDriveWheel = null;
-    private DcMotor         rightBackDriveWheel = null;
-    private ElapsedTime     runtime = new ElapsedTime();
-    
-    static final double     COUNTS_PER_MOTOR_REV    = 28;    // eg: TETRIX Motor Encoder
-    static final double     DRIVE_GEAR_REDUCTION    = 13.1;     // No External Gearing. TEST AS WE GO
-    static final double     WHEEL_DIAMETER_INCHES   = 2.3622;     // For figuring circumference:
-    static final double     COUNTS_PER_INCH         = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
-                                                      (WHEEL_DIAMETER_INCHES * 3.1415);
-    static final double     DRIVE_SPEED             = -8;
-    static final double     TURN_SPEED              = 0.5;
-
-    static final double MID_SERVO = 0.0;
-    
-    static public double          clawOffset = 0.2;
-    
     @Override
-    public void runOpMode() {
-        
-        // Initialize the drive system variables.
-        leftFrontDriveWheel  = hardwareMap.get(DcMotor.class, "leftFrontDriveWheel");
-        rightFrontDriveWheel = hardwareMap.get(DcMotor.class, "rightFrontDriveWheel");
-        leftBackDriveWheel = hardwareMap.get(DcMotor.class, "leftBackDriveWheel");
-        rightBackDriveWheel = hardwareMap.get(DcMotor.class, "rightBackDriveWheel");
-        //distanceSensor = hardwareMap.get(Rev2mDistanceSensor.class, "distanceSensor");
-
-        //rotateMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        //TEST
-        // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
-        // When run, this OpMode should start both motors driving forward. So adjust these two lines based on your first test drive.
-        // Note: The settings here assume direct drive on left and right wheels.  Gear Reduction or 90 Deg drives may require direction flips
-        leftFrontDriveWheel.setDirection(DcMotor.Direction.FORWARD);
-        rightFrontDriveWheel.setDirection(DcMotor.Direction.REVERSE);
-        leftBackDriveWheel.setDirection(DcMotor.Direction.FORWARD);
-        rightBackDriveWheel.setDirection(DcMotor.Direction.REVERSE);
-
-        leftFrontDriveWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        rightFrontDriveWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        leftBackDriveWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        rightBackDriveWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        leftFrontDriveWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        rightFrontDriveWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        leftBackDriveWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        rightBackDriveWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    public void runOpMode()
+    {
+        robot.init(hardwareMap);
+        robot.driveTrain.runWithEncoders(); //switch to running with encoders
 
         // Wait for the DS start button to be touched.
         telemetry.addData("DS preview on/off", "3 dots, Camera Stream");
@@ -104,8 +63,8 @@ public class Auto extends LinearOpMode {
         while (opModeIsActive()) 
         {
             //put in auto path of choice here
+            test();
 
-          encoderDrive(60, 20, 20, 30, "FORWARD"); //old code I'm keeping here as an example for later
           
         telemetry.update();
     }
@@ -119,18 +78,23 @@ public class Auto extends LinearOpMode {
     //  *  3) Driver stops the OpMode running.
     //  */
     
-    public void blueInnerSidewaysLaunchClose() //used to be moveToBasket, old code reflects that - I just kept it as an example
+    public void test() //used to be moveToBasket, old code reflects that - I just kept it as an example
           {
-            encoderDrive(60, 65, 65, 30, "REVERSE"); //starts backwards so we gotta
-            encoderDrive(60, 35, 35, 30, "TURNRIGHT"); //turn it around
-            encoderDrive(60, 85, 85, 30, "FORWARD");
-            
-            encoderDrive(60,30,30,30,"RIGHT");
-
-
-              //launch (vaguely to the left - maybe turn?), strafe left from start, get in the way
-              //of red alliance's launch zone (see Emily's diagrams), then straighten out
+            robot.driveTrain.encoderDrive(opModeIsActive(), 60, 65, 65, 30, "REVERSE"); //starts backwards so we gotta
+            sleep(250);   // optional pause after each move.
+            robot.driveTrain.encoderDrive(opModeIsActive(),60, 35, 35, 30, "TURNRIGHT"); //turn it around
+            sleep(250);   // optional pause after each move.
+            robot.driveTrain.encoderDrive(opModeIsActive(),60, 85, 85, 30, "FORWARD");
+            sleep(250);   // optional pause after each move.
+            robot.driveTrain. encoderDrive(opModeIsActive(),60,30,30,30,"RIGHT");
+            sleep(250);   // optional pause after each move.
           }
+
+        public void blueInnerSidewaysLaunchClose()
+        {
+            //launch (vaguely to the left - maybe turn?), strafe left from start, get in the way
+            //of red alliance's launch zone (see Emily's diagrams), then straighten out
+        }
           public void redInnerSidewaysLaunchClose()
           {
               //launch (vaguely to the right - maybe turn? strafe right from start, get in the way
@@ -214,123 +178,5 @@ public class Auto extends LinearOpMode {
         {
             //move forward from start and avoid (veer slightly left) blue alliance's base (see Emily's diagrams)
         }
-          
-
-    public void encoderDrive(double speed, double leftInches, double rightInches, double timeoutS, String direction) //seems super important so I will not be deleting
-    {
-      //target for the encoder (wheels turn yippee)
-        int newLeftFrontTarget;
-        int newRightFrontTarget;
-        int newLeftBackTarget;
-        int newRightBackTarget;
-        
-        int lbDirection;
-        int rbDirection;
-        int lfDirection;
-        int rfDirection;
-        
-        
-      if (direction.equals("FORWARD"))
-      {
-        lbDirection = 1;
-        rbDirection = 1;
-        lfDirection = 1; 
-        rfDirection = 1; //-1
-      }
-      else if (direction.equals("REVERSE"))
-      {
-        lbDirection = -1;
-        rbDirection = -1;
-        lfDirection = -1;
-        rfDirection = -1; //1
-      }
-      else if (direction.equals("LEFT"))
-      {
-        lbDirection = 1; //1
-        rbDirection =  -1; //-1
-        lfDirection =  -1; //-1
-        rfDirection = 1;
-      }
-      else if (direction.equals("RIGHT"))
-      {
-        lbDirection = -1;
-        rbDirection = 1;
-        lfDirection = 1;
-        rfDirection = -1;
-      }
-      else if (direction.equals("TURNRIGHT"))
-      {
-        lbDirection = 1;
-        rbDirection = -1;
-        lfDirection = 1;
-        rfDirection = -1;
-      }
-      else // (direction.equals("TURNLEFT"))
-      {
-        lbDirection = -1;
-        rbDirection = 1;
-        lfDirection = -1;
-        rfDirection = 1;
-      }
-
-        // Ensure that the OpMode is still active
-      if (opModeIsActive()) 
-      {
-            // Determine new target position, and pass to motor controller
-            newLeftFrontTarget = leftFrontDriveWheel.getCurrentPosition() + (int)(leftInches * COUNTS_PER_INCH)* lfDirection;
-            newRightFrontTarget = rightFrontDriveWheel.getCurrentPosition() + (int)(rightInches * COUNTS_PER_INCH)* rfDirection;
-            newLeftBackTarget = leftBackDriveWheel.getCurrentPosition() + (int)(leftInches * COUNTS_PER_INCH)* lbDirection;
-            newRightBackTarget = rightBackDriveWheel.getCurrentPosition() + (int)(rightInches * COUNTS_PER_INCH)* rbDirection;
-            
-            leftFrontDriveWheel.setTargetPosition(newLeftFrontTarget);
-            rightFrontDriveWheel.setTargetPosition(newRightFrontTarget);
-            leftBackDriveWheel.setTargetPosition(newLeftBackTarget);
-            rightBackDriveWheel.setTargetPosition(newRightBackTarget);
-
-            // Turn On RUN_TO_POSITION
-            leftFrontDriveWheel.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            rightFrontDriveWheel.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            leftBackDriveWheel.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            rightBackDriveWheel.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-            // reset the timeout time and start motion.
-            runtime.reset();
-            leftFrontDriveWheel.setPower(Math.abs(speed));
-            rightFrontDriveWheel.setPower(Math.abs(speed));
-            leftBackDriveWheel.setPower(Math.abs(speed));
-            rightBackDriveWheel.setPower(Math.abs(speed));
-
-            // keep looping while we are still active, and there is time left, and both motors are running.
-            // Note: We use (isBusy() && isBusy()) in the loop test, which means that when EITHER motor hits
-            // its target position, the motion will stop.  This is "safer" in the event that the robot will
-            // always end the motion as soon as possible.
-            // However, if you require that BOTH motors have finished their moves before the robot continues
-            // onto the next step, use (isBusy() || isBusy()) in the loop test.
-            while (opModeIsActive() &&
-                  (runtime.seconds() < timeoutS) &&
-                  (leftFrontDriveWheel.isBusy() && rightFrontDriveWheel.isBusy()) && (leftBackDriveWheel.isBusy() && rightBackDriveWheel.isBusy())){
-
-                // Display it for the driver.
-                telemetry.addData("Running to",  " %7d :%7d", newLeftFrontTarget,  newRightFrontTarget, newLeftBackTarget, newRightBackTarget);
-                telemetry.addData("Currently at",  " at %7d :%7d",
-                                            leftFrontDriveWheel.getCurrentPosition(), rightFrontDriveWheel.getCurrentPosition() ,leftBackDriveWheel.getCurrentPosition(), rightBackDriveWheel.getCurrentPosition());
-                telemetry.update();
-            }
-
-            // Stop all motion;
-            leftFrontDriveWheel.setPower(0);
-            rightFrontDriveWheel.setPower(0);
-            leftBackDriveWheel.setPower(0);
-            rightBackDriveWheel.setPower(0);
-
-            // Turn off RUN_TO_POSITION
-            leftFrontDriveWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            rightFrontDriveWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            leftBackDriveWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            rightBackDriveWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-            sleep(250);   // optional pause after each move.
-        }
-    }
   }
 // end class
