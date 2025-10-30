@@ -8,14 +8,18 @@ import org.firstinspires.ftc.teamcode.directives.DefaultDrivebase;
 import org.firstinspires.ftc.teamcode.stellarstructure.Subsystem;
 
 public final class Drivebase extends Subsystem {
-    private final double cardinalSpeed;
-    private final double turnSpeed;
-    private DcMotorEx leftFrontDrive, leftBackDrive, rightFrontDrive, rightBackDrive;
+    private static final Drivebase drivebase = new Drivebase();
 
-    public Drivebase(double cardinalSpeed, double turnSpeed) {
-        this.cardinalSpeed = cardinalSpeed;
-        this.turnSpeed = turnSpeed;
+    public static Drivebase getInstance() {
+        return drivebase;
     }
+
+    private Drivebase() {}
+
+    private final static double CARDINAL_SPEED = 1.00;
+    private final static double TURN_SPEED = 1.00;
+
+    private DcMotorEx leftFrontDrive, leftBackDrive, rightFrontDrive, rightBackDrive;
 
     @Override
     public void init(HardwareMap hardwareMap) {
@@ -38,7 +42,7 @@ public final class Drivebase extends Subsystem {
 
     @Override
     public void setGamepads(Gamepad gamepad1, Gamepad gamepad2) {
-        setDefaultDirective(new DefaultDrivebase(this, gamepad1, cardinalSpeed, turnSpeed));
+        setDefaultDirective(new DefaultDrivebase(this, gamepad1, CARDINAL_SPEED, TURN_SPEED));
     }
 
     @Override

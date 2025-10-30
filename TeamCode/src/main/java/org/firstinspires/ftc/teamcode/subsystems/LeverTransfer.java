@@ -9,18 +9,24 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 import org.firstinspires.ftc.teamcode.stellarstructure.Subsystem;
 
 public final class LeverTransfer extends Subsystem {
-	private StellarServo leverTransfer;
-	private final double leverDownPosition, leverUpPosition;
-	private boolean isLeverTargetUp = false;
+	private static final LeverTransfer leverTransfer = new LeverTransfer();
 
-    public LeverTransfer(double leverDownPosition, double leverUpPosition) {
-		this.leverDownPosition = leverDownPosition;
-		this.leverUpPosition = leverUpPosition;
+	public static LeverTransfer getInstance() {
+		return leverTransfer;
 	}
+
+	private LeverTransfer() {}
+
+	private StellarServo leverTransferServo;
+
+	private final static double LEVER_DOWN_POSITION = 0.28;
+	private final static double LEVER_UP_POSITION = 0.0;
+
+	private boolean isLeverTargetUp = false;
 
 	@Override
 	public void init(HardwareMap hardwareMap) {
-		leverTransfer = new StellarServo(hardwareMap, "leverTransfer");
+		leverTransferServo = new StellarServo(hardwareMap, "leverTransfer");
 	}
 
 	@Override
@@ -40,11 +46,19 @@ public final class LeverTransfer extends Subsystem {
 	}
 
 	public void updateServoPosition() {
-		leverTransfer.setPosition(isLeverTargetUp ? leverUpPosition : leverDownPosition);
+		if (Spindexer.getInstance().getIsIntakePosition()) {
+			leverTransferServo.setPosition(isLeverTargetUp ? LEVER_UP_POSITION : LEVER_DOWN_POSITION);
+		} else {
+			leverTransferServo.setPosition(LEVER_DOWN_POSITION);
+		}
+	}
+
+	public boolean getIsLeverUp() {
+		return !isLeverTargetUp;
 	}
 
 	@Override
 	public String getTelemetryData() {
-		return String.format("Lever Up Position: %f\nLever Is Up: %b", leverUpPosition, isLeverTargetUp);
+		return String.format("Lever Up Position: %f\nLever Is Up: %b", LEVER_UP_POSITION, isLeverTargetUp);
 	}
 }

@@ -7,23 +7,35 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 
 import org.firstinspires.ftc.teamcode.directives.DefaultSpindexer;
 import org.firstinspires.ftc.teamcode.stellarstructure.Subsystem;
+
 import org.firstinspires.ftc.teamcode.stellarstructure.hardwaremapwrappers.StellarServo;
 
 public final class Spindexer extends Subsystem {
-	private final static double DEGREES_TO_SERVO = 1.0 / 360.0;
+	private static final Spindexer spindexer = new Spindexer();
+
+	public static Spindexer getInstance() {
+		return spindexer;
+	}
+
+	private Spindexer() {}
+
+	private final static double DEGREES_TO_SERVO = 1.0 / 315.0;
 	private int selectedSegment = 0;
 	private boolean isIntakePosition = true;
+	private final static double SPINDEXER_OFFSET = 20.0;
 	private final static double[] INTAKE_DEGREE_POSITIONS = {0.0, 240.0, 120.0};
 	private final static double[] TRANSFER_DEGREE_POSITIONS = {180.0, 60.0, 300.0};
 
-	private StellarServo spindexer;
+	private StellarServo spindexerServo;
 	private DigitalChannel beamBreak;
 	private ColorSensor colorSensor;
 
 	@Override
 	public void init(HardwareMap hardwareMap) {
-		spindexer = new StellarServo(hardwareMap, "spindexer");
+		spindexerServo = new StellarServo(hardwareMap, "spindexer");
 		beamBreak = hardwareMap.get(DigitalChannel.class, "beamBreak"); //unused
+		beamBreak.setMode(DigitalChannel.Mode.INPUT);
+
 		colorSensor = hardwareMap.get(ColorSensor.class, "colorSensor");
 	}
 
@@ -44,10 +56,20 @@ public final class Spindexer extends Subsystem {
 	}
 
 	public void updateServoPosition() {
-		spindexer.setPosition(
-				isIntakePosition ?
-						INTAKE_DEGREE_POSITIONS[selectedSegment] * DEGREES_TO_SERVO :
-						TRANSFER_DEGREE_POSITIONS[selectedSegment] * DEGREES_TO_SERVO
+		LeverTransfer leverTransfer = LeverTransfer.getInstance();
+		if (leverTransfer.getIsLeverUp()) {
+			// lower lever
+			leverTransfer.setLeverPositionIsUp(false);
+			leverTransfer.updateServoPosition();
+
+			leverTransfer.updateServoPosition();
+		}
+
+		spindexerServo.setPosition(
+				((isIntakePosition ?
+						INTAKE_DEGREE_POSITIONS[selectedSegment] :
+						TRANSFER_DEGREE_POSITIONS[selectedSegment]
+				) + SPINDEXER_OFFSET) * DEGREES_TO_SERVO
 		);
 	}
 
@@ -59,6 +81,15 @@ public final class Spindexer extends Subsystem {
 				"beamBreak: %b\n" +
 				"colorSensorRGB: %d, %d, %d",
 				selectedSegment, isIntakePosition, beamBreak.getState(),
-				colorSensor.red(), colorSensor.green(), colorSensor.blue());
+				colorSensor.red(), colorSensor.green(), colorSensor.blue()
+		);
+	}
+
+	public boolean getIsIntakePosition() {
+		return isIntakePosition;
+	}
+
+	public int getSelectedSegment() {
+		return selectedSegment;
 	}
 }

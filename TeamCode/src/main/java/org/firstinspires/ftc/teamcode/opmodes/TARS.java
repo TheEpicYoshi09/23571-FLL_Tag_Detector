@@ -5,7 +5,7 @@ import org.firstinspires.ftc.teamcode.core.TarsBase;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-@TeleOp(name = "TARS -JetEngine", group = "Robot")
+@TeleOp(name = "TARS -Ethan's Approval", group = "Robot")
 public class TARS extends LinearOpMode {
 	final TarsBase tars = new TarsBase();
 

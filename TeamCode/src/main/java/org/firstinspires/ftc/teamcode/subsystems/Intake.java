@@ -11,12 +11,20 @@ import org.firstinspires.ftc.teamcode.stellarstructure.Subsystem;
 
 
 public final class Intake extends Subsystem {
-	private StellarDcMotor intake;
+	private static final Intake intake = new Intake();
+
+	public static Intake getInstance() {
+		return intake;
+	}
+
+	private Intake() {}
+
+	private StellarDcMotor intakeMotor;
 	private double intakeSpeed = 0;
 
 	@Override
 	public void init(HardwareMap hardwareMap) {
-		intake = new StellarDcMotor(hardwareMap, "intake");
+		intakeMotor = new StellarDcMotor(hardwareMap, "intake");
 	}
 
 	@Override
@@ -32,7 +40,7 @@ public final class Intake extends Subsystem {
 	}
 
 	public void setMotorSpeed() {
-		intake.setPower(intakeSpeed);
+		intakeMotor.setPower(intakeSpeed);
 	}
 
 	@Override
