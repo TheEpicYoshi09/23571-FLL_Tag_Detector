@@ -16,7 +16,7 @@ import java.util.ArrayList;
 
 
 @Config
-@TeleOp(name = "Angle Tuner", group = "Tuning")
+@TeleOp(name = "Angle PID Tuner", group = "Tuning")
 public class AnglePIDTuner extends LinearOpMode {
 
     Robot robot;
@@ -24,6 +24,7 @@ public class AnglePIDTuner extends LinearOpMode {
 
     boolean hasrun = false;
     public static boolean align = false;
+    boolean alignDebounce = false;
     public static double kp = 0, ki = 0, kd = 0;
     public static double error = 0;
     private Telemetry t = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
@@ -33,31 +34,31 @@ public class AnglePIDTuner extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         robot = new Robot(hardwareMap);
 
-        hasrun = false;
-        align = false;
         boolean prevAlign = false;
 
-        double kp = 0, ki = 0, kd = 0;
         anglePID = new PIDController(kp, ki, kd);
 
-        double prevHeading = robot.getDrivetrain().getRobotHeading(AngleUnit.DEGREES);
+        double prevHeading = 0;
 
         waitForStart();
         if (isStopRequested()) return;
 
-        while(opModeIsActive()){
-            if (gamepad1.a || align) {
+        while(opModeIsActive()) {
+            if (gamepad1.a && !alignDebounce) {
                 align = true;
+                alignDebounce = true;
+                prevHeading = robot.getDrivetrain().getRobotHeading(AngleUnit.DEGREES);
             }
             if (gamepad1.b) {
                 align = false;
+                alignDebounce = false;
             }
 
             if(prevAlign != align) {
                 anglePID.setPID(kp, ki, kd);
             }
 
-            fieldCentricDrive();
+            fieldCentricDrive(prevHeading);
             prevAlign = align;
         }
     }
@@ -70,17 +71,17 @@ public class AnglePIDTuner extends LinearOpMode {
         return anglePID.calculate(0, angle);
     }
 
-    private void fieldCentricDrive() {
+    private void fieldCentricDrive(double prevHeading) {
         double slowdown = gamepad1.right_trigger > 0 ? 0.25 : 1;
         double y = -gamepad1.left_stick_y * slowdown;
         double x = gamepad1.left_stick_x * 1.1 * slowdown;
-        double alignVal = turnPowerAngle(error+prevHeading-robot.getDrivetrain().getRobotHeading(AngleUnit.DEGREES));
-        if(alignVal == 0) { align = false; }
-        t.addData("Turn Power Lock on Tag: ", alignVal);
-        double rx = (alignVal != 0 && align) ? alignVal : gamepad1.right_stick_x * slowdown;
+        error -= prevHeading - robot.getDrivetrain().getRobotHeading(AngleUnit.DEGREES);
+        double alignVal = turnPowerAngle(error);
+        if(alignVal == 0) { align = false; alignDebounce = false;}
+        t.addData("Turn Power: ", alignVal);
+        double rx = align ? alignVal : gamepad1.right_stick_x * slowdown;
 
         double heading = robot.getDrivetrain().getRobotHeading(AngleUnit.RADIANS);
-
 
         double rotX = x * Math.cos(-heading) - y * Math.sin(-heading);
         double rotY = x * Math.sin(-heading) + y * Math.cos(-heading);
