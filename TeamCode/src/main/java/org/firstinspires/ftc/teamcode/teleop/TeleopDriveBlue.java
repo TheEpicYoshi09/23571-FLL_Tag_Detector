@@ -17,7 +17,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import java.util.function.Supplier;
 
 @Configurable
-@TeleOp
+@TeleOp(name = "TeleopBlue", group = "Teleop")
 public class TeleopDriveBlue extends OpMode {
     private Follower follower;
     private final Pose startingPose = new Pose(58, 90, Math.toRadians(135));

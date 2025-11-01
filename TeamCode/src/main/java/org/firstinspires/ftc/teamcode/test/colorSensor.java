@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
-@TeleOp(name = "HSV Color Detect (Purple/Green)", group = "Test")
+@TeleOp(name = "Color Detect (Purple/Green)", group = "Test")
 public class colorSensor extends LinearOpMode {
     private RevColorSensorV3 colorSensor;
 
