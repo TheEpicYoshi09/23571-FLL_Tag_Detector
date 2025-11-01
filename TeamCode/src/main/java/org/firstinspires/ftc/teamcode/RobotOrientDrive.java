@@ -63,7 +63,7 @@ public class RobotOrientDrive extends OpMode {
 
     @Override
     public void stop() {
-        bar.pushBall(0.5, 0.5);
+        bar.pushBall(0.7, 1.0);
         telemetry.addData("Stop", bar.getBarPosition());
         telemetry.update();
     }
