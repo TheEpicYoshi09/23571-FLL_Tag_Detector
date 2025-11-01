@@ -8,7 +8,7 @@ import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-
+import org.firstinspires.ftc.teamcode.field.Red;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 @Autonomous(name = "AutoRed", group = "Auto")
@@ -19,14 +19,14 @@ public class AutoRed extends OpMode {
 
     private int pathState;
 
-    private final Pose startPose = new Pose(80.6, 9, Math.toRadians(90));
-    private final Pose scorePose = new Pose(86, 90, Math.toRadians(45));
-    private final Pose align1Pose = new Pose(102.5, 84, Math.toRadians(180));
-    private final Pose pickup1Pose = new Pose(117.5, 84, Math.toRadians(180));
-    private final Pose align2Pose = new Pose(102.5, 60, Math.toRadians(180));
-    private final Pose pickup2Pose = new Pose(117.5, 60, Math.toRadians(180));
-    private final Pose align3Pose = new Pose(102.5, 36, Math.toRadians(180));
-    private final Pose pickup3Pose = new Pose(117.5, 36, Math.toRadians(180));
+    private final Pose startPose = Red.START_POSE;
+    private final Pose scorePose = Red.SCORE_POSE;
+    private final Pose align1Pose = Red.ALIGN1_POSE;
+    private final Pose pickup1Pose = Red.PICKUP1_POSE;
+    private final Pose align2Pose = Red.ALIGN2_POSE;
+    private final Pose pickup2Pose = Red.PICKUP2_POSE;
+    private final Pose align3Pose = Red.ALIGN3_POSE;
+    private final Pose pickup3Pose = Red.PICKUP3_POSE;
 
     private Path scorePreload;
     private PathChain alignPickup1, grabPickup1, scorePickup1,

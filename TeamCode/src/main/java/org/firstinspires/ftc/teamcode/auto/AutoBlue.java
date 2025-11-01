@@ -7,8 +7,8 @@ import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import  com.qualcomm.robotcore.eventloop.opmode.OpMode;
-
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import org.firstinspires.ftc.teamcode.field.Blue;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 @Autonomous(name = "AutoBlue", group = "Auto")
@@ -19,14 +19,14 @@ public class AutoBlue extends OpMode {
 
     private int pathState;
 
-    private final Pose startPose = new Pose(63.4, 9, Math.toRadians(90)); // Start Pose of our robot.
-    private final Pose scorePose = new Pose(58, 90, Math.toRadians(135)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
-    private final Pose align1Pose = new Pose(41.5, 84, Math.toRadians(0)); // Highest (First Set) of Artifacts from the Spike Mark.
-    private final Pose pickup1Pose = new Pose(26.5, 84, Math.toRadians(0));
-    private final Pose align2Pose = new Pose(41.5, 60, Math.toRadians(0)); //Middle (Second Set) of Artifacts from the Spike Mark.
-    private final Pose pickup2Pose = new Pose(26.5, 60, Math.toRadians(0));
-    private final Pose align3Pose = new Pose(41.5, 36, Math.toRadians(0)); // Lowest (Last Set) of Artifacts from the Spike Mark.
-    private final Pose pickup3Pose = new Pose(26.5, 36, Math.toRadians(0));
+    private final Pose startPose = Blue.START_POSE;
+    private final Pose scorePose = Blue.SCORE_POSE;
+    private final Pose align1Pose = Blue.ALIGN1_POSE;
+    private final Pose pickup1Pose = Blue.PICKUP1_POSE;
+    private final Pose align2Pose = Blue.ALIGN2_POSE;
+    private final Pose pickup2Pose = Blue.PICKUP2_POSE;
+    private final Pose align3Pose = Blue.ALIGN3_POSE;
+    private final Pose pickup3Pose = Blue.PICKUP3_POSE;
 
     private Path scorePreload;
     private PathChain alignPickup1, grabPickup1, scorePickup1, alignPickup2, grabPickup2, scorePickup2, alignPickup3, grabPickup3, scorePickup3;

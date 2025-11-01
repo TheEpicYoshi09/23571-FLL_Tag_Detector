@@ -12,6 +12,7 @@ import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.teamcode.field.Blue;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import java.util.function.Supplier;
@@ -20,11 +21,11 @@ import java.util.function.Supplier;
 @TeleOp(name = "TeleopBlue", group = "Teleop")
 public class TeleopDriveBlue extends OpMode {
     private Follower follower;
-    private final Pose startingPose = new Pose(58, 90, Math.toRadians(135));
-    private final Pose scorePose = new Pose(58, 90, Math.toRadians(135));
-    private final Pose endgamePose = new Pose(106, 33, Math.toRadians(90));
-    private final Pose gateStartPose = new Pose(18, 72, Math.toRadians(90));
-    private final Pose gateEndPose = new Pose(15, 72, Math.toRadians(90));
+    private final Pose startingPose = Blue.SCORE_POSE;
+    private final Pose scorePose = Blue.SCORE_POSE;
+    private final Pose endgamePose = Blue.ENDGAME_POSE;
+    private final Pose gateStartPose = Blue.GATE_START_POSE;
+    private final Pose gateEndPose = Blue.GATE_END_POSE;
     private boolean automatedDrive;
     private Supplier<PathChain> pathChain;
     private TelemetryManager telemetryM;
