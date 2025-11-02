@@ -182,6 +182,14 @@ public class MecanumCommand {
         telemetry.addData("PID ex (global)", ex);
         telemetry.addData("PID ey (global)", ey);
         telemetry.addData("PID etheta", etheta);
+    public double getX(){
+        return pinPointOdoSubsystem.getX();
+    }
+    public double getY(){
+        return pinPointOdoSubsystem.getY();
+    }
+    public double getTheta(){
+        return pinPointOdoSubsystem.getY();
     }
 }
 
