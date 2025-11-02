@@ -22,6 +22,8 @@ public class LinearOpMode_Harish extends com.qualcomm.robotcore.eventloop.opmode
         //Wait for start/play button to be pressed on the driver hub
         waitForStart();
 
+        //test
+
         double drive, turn, strafe = 0;
 
         while(opModeIsActive()){
