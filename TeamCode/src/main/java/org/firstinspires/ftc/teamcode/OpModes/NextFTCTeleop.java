@@ -211,6 +211,7 @@ public class NextFTCTeleop extends NextFTCOpMode {
 //        telemetry.addData("Slot Left Red ", colorSensors.get(2).red());
 //        telemetry.addData("Slot Left Blue ", colorSensors.get(2).blue());
 //        telemetry.addData("Slot Left Alpha ", colorSensors.get(2).alpha());
+        telemetry.addData("Obelisk Perfect Pattern ", pattern);
         telemetry.addLine();
         telemetry.addData("Launcher Target Velo ", launcherTargetVelo);
         telemetry.addData("Launcher Target Angle (Deg) ", turretTargetAngle);

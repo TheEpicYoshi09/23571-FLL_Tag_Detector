@@ -13,6 +13,7 @@ public class UniConstants {
     //CHM1 = TURR
     //CHM2 = FLM
     //CHM3 = BLM
+
     //CHI2C0 = imu
     //CHI2C1 = CSF
     //CHI2C2 = CSL
@@ -23,7 +24,9 @@ public class UniConstants {
     //EHM1 = BR
     //EHM2 = ROTA
     //EHM3 = LAUNCH
+
     //EHI2C0 = CSR
+
     //EHS5 = BS
 
 
