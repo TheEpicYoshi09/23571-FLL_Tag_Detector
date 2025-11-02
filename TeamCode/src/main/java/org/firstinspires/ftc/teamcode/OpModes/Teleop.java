@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.OpModes;
 
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.follower.Follower;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
@@ -25,6 +26,7 @@ import java.util.ArrayList;
 
 @TeleOp(name = "TeleOp", group = "Driver") //The name and group
 @Configurable
+@Disabled
 public class Teleop extends OpMode {
 
     public static int obeliskApriltagID = 21;
@@ -81,9 +83,9 @@ public class Teleop extends OpMode {
 
         colorSensors.addAll(
                 List.of(
-                        (hardwareMap.get(ColorSensor.class, UniConstants.COLOR_SENSOR_SLOT_1_STRING)),
-                        (hardwareMap.get(ColorSensor.class, UniConstants.COLOR_SENSOR_SLOT_2_STRING)),
-                        (hardwareMap.get(ColorSensor.class, UniConstants.COLOR_SENSOR_SLOT_3_STRING))
+                        (hardwareMap.get(ColorSensor.class, UniConstants.COLOR_SENSOR_SLOT_FRONT_STRING)),
+                        (hardwareMap.get(ColorSensor.class, UniConstants.COLOR_SENSOR_SLOT_RIGHT_STRING)),
+                        (hardwareMap.get(ColorSensor.class, UniConstants.COLOR_SENSOR_SLOT_LEFT_STRING))
                 )
         );
 

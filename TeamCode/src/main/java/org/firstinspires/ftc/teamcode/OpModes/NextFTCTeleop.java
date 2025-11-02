@@ -3,10 +3,13 @@ package org.firstinspires.ftc.teamcode.OpModes;
 
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.sun.tools.javac.util.List;
 
 import org.firstinspires.ftc.teamcode.Util.PDFLController;
@@ -42,6 +45,7 @@ public class NextFTCTeleop extends NextFTCOpMode {
     DcMotorEx active;
     DcMotorEx launcher;
     DcMotorEx rotary;
+    DcMotorEx turret;
 
     int rotaryCurrentPosition = 0;
     int rotaryTargetPosition = 0;
@@ -53,16 +57,25 @@ public class NextFTCTeleop extends NextFTCOpMode {
     PDFLController launcherController = new PDFLController(pL, dL, fL, lL);
     public static double launcherTargetVelo = 0;
 
-    double turretTargetAngle = 0;
+    public static double pT, dT, lT, fT;
+    PDFLController turretController = new PDFLController(pT, dT, fT, lT);
+    public static double turretTargetPosition = 0;
+
+    public static double turretTargetAngle = 0;
+    public static double rotaryPower = 0;
+    public static double turretPower = 0;
+
 
 
     ArrayList<UniConstants.slotState> slots = new ArrayList<>(List.of(UniConstants.slotState.EMPTY, UniConstants.slotState.EMPTY, UniConstants.slotState.EMPTY));
     ArrayList<UniConstants.slotState> pattern = new ArrayList<>();
     ArrayList<ColorSensor> colorSensors = new ArrayList<>();
 
+    Servo ballServo;
+    public static double servoPos = 0;
 
 
-
+    DcMotorSimple.Direction ACTIVE_DIRECTION = DcMotorSimple.Direction.REVERSE;
     @Override
     public void onInit() {
 
@@ -70,19 +83,25 @@ public class NextFTCTeleop extends NextFTCOpMode {
 
         active = hardwareMap.get(DcMotorEx.class, UniConstants.ACTIVE_INTAKE_STRING);
         active.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        active.setDirection(ACTIVE_DIRECTION);
 
         launcher = hardwareMap.get(DcMotorEx.class, UniConstants.LAUNCHER_STRING);
         launcher.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+
+        turret = hardwareMap.get(DcMotorEx.class, UniConstants.TURRET_ROTATION_STRING);
+        turret.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         rotary = hardwareMap.get(DcMotorEx.class, UniConstants.ROTARY_STRING);
         rotary.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rotary.setDirection(UniConstants.ROTARY_DIRECTION);
 
+        ballServo = hardwareMap.get(Servo.class, UniConstants.BALL_SERVO_STRING);
+
         colorSensors.addAll(
                 List.of(
-                        (hardwareMap.get(ColorSensor.class, UniConstants.COLOR_SENSOR_SLOT_1_STRING)),
-                        (hardwareMap.get(ColorSensor.class, UniConstants.COLOR_SENSOR_SLOT_2_STRING)),
-                        (hardwareMap.get(ColorSensor.class, UniConstants.COLOR_SENSOR_SLOT_3_STRING))
+                        (hardwareMap.get(ColorSensor.class, UniConstants.COLOR_SENSOR_SLOT_FRONT_STRING)),
+                        (hardwareMap.get(ColorSensor.class, UniConstants.COLOR_SENSOR_SLOT_RIGHT_STRING)),
+                        (hardwareMap.get(ColorSensor.class, UniConstants.COLOR_SENSOR_SLOT_LEFT_STRING))
                 )
         );
 
@@ -95,8 +114,12 @@ public class NextFTCTeleop extends NextFTCOpMode {
         telemetry.addLine("CHANGE THIS IF NEED BE!!!! ");
         telemetry.addLine("B for Blue, A for Red ");
         telemetry.addData("Color ", color);
+        telemetry.addData("Follower X ", follower.getPose().getX());
+        telemetry.addData("Follower Heading ", follower.getPose().getHeading());
         telemetry.update();
 
+        follower.setStartingPose(new Pose());
+        follower.update();
 
 
         obeliskTargetPattern(obeliskApriltagID);
@@ -108,7 +131,8 @@ public class NextFTCTeleop extends NextFTCOpMode {
             sensor.enableLed(true);
         }
 
-
+        follower.startTeleopDrive();
+        follower.update();
 
 
     }
@@ -116,14 +140,19 @@ public class NextFTCTeleop extends NextFTCOpMode {
     @Override
     public void onUpdate() {
 
+        isSlowed = gamepad1.right_bumper;
+
         if (gamepad1.a && !allFull()) {
-            active.setPower(.5);
+            active.setPower((isSlowed ? .5 : 1));
             if (isFull(slots.get(0))) {
-                rotaryTargetPosition += UniConstants.SPACE_BETWEEN_ROTARY_SLOTS;
+                if (!((Math.abs(rotaryTargetPosition - rotaryCurrentPosition)) > 50)) {
+                    rotaryTargetPosition += UniConstants.SPACE_BETWEEN_ROTARY_SLOTS;
+                }
             }
+        } else {
+            active.setPower(0);
         }
 
-        isSlowed = gamepad1.right_bumper;
 
 
 
@@ -142,6 +171,7 @@ public class NextFTCTeleop extends NextFTCOpMode {
         //Exit velocity will be a function of the power put into the motor (PDFL)
 
 
+
         //Slot numbers are already known, 0 is ready to transfer into launcher, 1 is to the right, 2 is the last one.
         //So for obelisk PPG, 0 = P, 1 = P, 2 = G
         //If that is good, bool readyToLaunch = true
@@ -149,34 +179,53 @@ public class NextFTCTeleop extends NextFTCOpMode {
         rotaryController.setTarget(rotaryTargetPosition);
         rotaryCurrentPosition = rotary.getCurrentPosition();
         rotaryController.update(rotaryCurrentPosition);
-        rotary.setPower(rotaryController.runPDFL(5));
+        rotary.setPower(rotaryPower);
 
+        turretController.setTarget(turretTargetPosition);
+        turretController.update(turret.getCurrentPosition());
+        turret.setPower(turretPower);
 
         launcherController.setTarget(launcherTargetVelo);
         launcherController.update(launcher.getVelocity());
         launcher.setPower(launcherController.runPDFL(.05));
 
         distanceToGoalInMeters = getDistanceToGoalInMeters();
-        turretTargetAngle = 0; //Vision.getTargetAngle
+//        turretTargetAngle = 0; //Vision.getTargetAngle
 
+        ballServo.setPosition(servoPos);
+
+        telemetry.addData("Rotary Current Pos ", rotaryCurrentPosition);
+        telemetry.addData("Rotary Target Pos ", rotaryTargetPosition);
+        telemetry.addData("Slot Front State ", slots.get(0));
+//        telemetry.addData("Slot Front Green ", colorSensors.get(0).green());
+//        telemetry.addData("Slot Front Red ", colorSensors.get(0).red());
+//        telemetry.addData("Slot Front Blue ", colorSensors.get(0).blue());
+//        telemetry.addData("Slot Front Alpha ", colorSensors.get(0).alpha());
+        telemetry.addData("Slot Right State ", slots.get(1));
+//        telemetry.addData("Slot Right Green ", colorSensors.get(1).green());
+//        telemetry.addData("Slot Right Red ", colorSensors.get(1).red());
+//        telemetry.addData("Slot Right Blue ", colorSensors.get(1).blue());
+//        telemetry.addData("Slot Right Alpha ", colorSensors.get(1).alpha());
+        telemetry.addData("Slot Left State ", slots.get(2));
+//        telemetry.addData("Slot Left Green ", colorSensors.get(2).green());
+//        telemetry.addData("Slot Left Red ", colorSensors.get(2).red());
+//        telemetry.addData("Slot Left Blue ", colorSensors.get(2).blue());
+//        telemetry.addData("Slot Left Alpha ", colorSensors.get(2).alpha());
+        telemetry.addLine();
+        telemetry.addData("Launcher Target Velo ", launcherTargetVelo);
+        telemetry.addData("Launcher Target Angle (Deg) ", turretTargetAngle);
+        //telemetry.addData("Calculated Launch Velocity ", getTargetVelocity(distanceToGoalInMeters));
+        //telemetry.addData("Distance To Goal In Meters ", distanceToGoalInMeters);
+        telemetry.addLine();
+        telemetry.addData("Turret Target Pos ", getTurretTargetPosition(turretTargetAngle));
+        telemetry.addData("Turret Target Angle ", turretTargetAngle);
+
+        follower.update();
         follower.setTeleOpDrive(
                 gamepad1.left_stick_y * (isSlowed ? .5 : 1), //Forward/Backward
                 gamepad1.left_stick_x * (isSlowed ? .5 : 1), //Left/Right Rotation
                 gamepad1.right_stick_x * (isSlowed ? .5 : 1), //Left/Right Strafe
                 true);
-
-        telemetry.addData("Rotary Current Pos ", rotaryCurrentPosition);
-        telemetry.addData("Slot 0 State ", slots.get(0));
-        telemetry.addData("Slot 1 State ", slots.get(1));
-        telemetry.addData("Slot 2 State ", slots.get(2));
-        telemetry.addLine();
-        telemetry.addData("Launcher Target Velo ", launcherTargetVelo);
-        telemetry.addData("Launcher Target Angle (Deg) ", turretTargetAngle);
-        telemetry.addData("Calculated Launch Velocity ", getTargetVelocity(distanceToGoalInMeters));
-        telemetry.addData("Distance To Goal In Meters ", distanceToGoalInMeters);
-        telemetry.addLine();
-
-
 
         telemetry.update();
 
@@ -185,11 +234,16 @@ public class NextFTCTeleop extends NextFTCOpMode {
 
     public void readSlots() {
         for (int i = 0; i < 3; i++) {
-            double hue = colorSensors.get(i).argb();
-            if ((UniConstants.PURPLE_ARTIFACT_LOWER_HUE < hue) && (hue < UniConstants.PURPLE_ARTIFACT_UPPER_HUE)) {
-                slots.set(i, UniConstants.slotState.PURPLE);
-            } else if ((UniConstants.GREEN_ARTIFACT_LOWER_HUE < hue) && (hue < UniConstants.GREEN_ARTIFACT_UPPER_HUE)) {
+            double red = colorSensors.get(i).red();
+            double green = colorSensors.get(i).green();
+            double blue = colorSensors.get(i).blue();
+            double alpha = colorSensors.get(i).alpha();
+            if (((green > red) && (blue > red)) && (alpha < 5000)) {
                 slots.set(i, UniConstants.slotState.GREEN);
+            } else if (((red > green) && (blue > green)) && (alpha < 5000)) {
+                slots.set(i, UniConstants.slotState.PURPLE);
+            } else if (alpha > 5000){
+                slots.set(i, UniConstants.slotState.BETWEEN);
             } else {
                 slots.set(i, UniConstants.slotState.EMPTY);
             }
@@ -251,7 +305,7 @@ public class NextFTCTeleop extends NextFTCOpMode {
 
         //Ratio given in terms of motor/turret
 
-        return turretTargetAngle * UniConstants.MOTOR_TO_TURRET_RATIO * UniConstants.TURRET_TICKS_PER_DEGREE;
+        return (turretTargetAngle / UniConstants.MOTOR_TO_TURRET_RATIO) * UniConstants.TURRET_TICKS_PER_DEGREE;
 
     }
 
