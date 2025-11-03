@@ -4,6 +4,7 @@ import android.util.Size;
 
 import com.bylazar.telemetry.JoinedTelemetry;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.sun.tools.javac.util.List;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
@@ -14,6 +15,7 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import org.firstinspires.ftc.vision.opencv.ColorBlobLocatorProcessor;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 import dev.nextftc.core.subsystems.Subsystem;
@@ -23,6 +25,9 @@ public class BetterVisionTM implements Subsystem {
     private final VisionPortal visionPortal;
     private final JoinedTelemetry telemetry;
     private UniConstants.loggingState state;
+    private ArrayList<AprilTagDetection> detections = new ArrayList<>();
+    private ArrayList<Integer> detectionIDs = new ArrayList<>();
+    private ArrayList<UniConstants.slotState> pattern = new ArrayList<>();
 
     private Timer timer = new Timer();
 
@@ -94,7 +99,7 @@ public class BetterVisionTM implements Subsystem {
                     telemetry.addData("Y: ", y);
                     telemetry.update();
                 }
-                if (state == UniConstants.loggingState.EXTREME) {
+                else if (state == UniConstants.loggingState.EXTREME) {
                     telemetry.addData("Tag ID: ", tagData.id);
                     telemetry.addData("X: ", x);
                     telemetry.addData("Y: ", y);
@@ -110,6 +115,30 @@ public class BetterVisionTM implements Subsystem {
         }
     }
 
+    public ArrayList<Integer> getDetectionIDs(){
+        ArrayList<Integer> ids = new ArrayList<>();
+        for (AprilTagDetection detection : detections){
+            ids.add(detection.id);
+        }
+        return ids;
+    }
+
+    public int getObeliskID() {
+        if(detectionIDs.contains(23) || detectionIDs.contains(21) || detectionIDs.contains(22)){
+            for(int id : detectionIDs){
+                if ((id == 21) || (id == 22) || (id == 23)){
+                    return id;
+                }
+            }
+        }
+        return -1;
+    }
+
+    public ArrayList<UniConstants.slotState> getPattern(){
+        obeliskTargetPattern(getObeliskID());
+        return pattern;
+    }
+
     /** Stops the vision portal */
     public void stop() {
         visionPortal.close();
@@ -118,8 +147,26 @@ public class BetterVisionTM implements Subsystem {
     @Override
     public void periodic() {
         if (timer.getTimeSeconds() == 1) {
-            findPosition();
+            detections = getDetections();
+            detectionIDs = getDetectionIDs();
             timer.reset();
         }
+    }
+
+    public void obeliskTargetPattern(int ID){
+        switch(ID){
+            case -1:
+                pattern = new ArrayList<>(List.of(null, null, null));
+            case 21:
+                pattern = new ArrayList<>(List.of(UniConstants.slotState.GREEN, UniConstants.slotState.PURPLE, UniConstants.slotState.PURPLE));
+                break;
+            case 22:
+                pattern = new ArrayList<>(List.of(UniConstants.slotState.PURPLE, UniConstants.slotState.GREEN, UniConstants.slotState.PURPLE));
+                break;
+            case 23:
+                pattern = new ArrayList<>(List.of(UniConstants.slotState.PURPLE, UniConstants.slotState.PURPLE, UniConstants.slotState.GREEN));
+                break;
+        }
+
     }
 }
