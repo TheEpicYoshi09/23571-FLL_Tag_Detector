@@ -14,6 +14,23 @@ public class GamepadDriveTeleOp extends OpMode {
 
     YeeterKing yeeter = new YeeterKing();
 
+    final double FULL_SPEED = 1.0;
+    final double NORMAL_SPEED = 0.5;
+
+    boolean turboEnabled = false;
+
+
+    double getSpeed() {
+        if (turboEnabled == true)
+        {
+            return FULL_SPEED;
+        }
+        else{
+            return NORMAL_SPEED;
+        }
+
+    }
+
     @Override
     public void init() {
         drive.init(hardwareMap);
@@ -32,12 +49,22 @@ public class GamepadDriveTeleOp extends OpMode {
         if (gamepad2.leftBumperWasPressed()) {
             yeeter.launch(gamepad2.leftBumperWasReleased(), 67);
         }
+
+        if (gamepad1.left_bumper) {
+            turboEnabled = true;
+        }
+
+        if (gamepad1.right_bumper) {
+            turboEnabled = false;
+        }
+
         double forward = -gamepad1.left_stick_y;
         double right = -gamepad1.left_stick_x;
         double rotate = gamepad1.right_stick_x;
 
-        drive.drive(forward, right, rotate);
+        drive.drive(forward, right, rotate, getSpeed());
         telemetry.update();
+
 
 
 

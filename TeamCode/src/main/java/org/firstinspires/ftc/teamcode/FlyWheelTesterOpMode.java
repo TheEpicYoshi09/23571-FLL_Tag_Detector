@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
 /**
@@ -88,6 +89,8 @@ public class FlyWheelTesterOpMode extends OpMode {
         flyWheelLeft.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         flyWheelRight.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
 
+        flyWheelRight.setDirection(DcMotorSimple.Direction.REVERSE);
+
         PIDFCoefficients coefficients = new PIDFCoefficients(300, 0, 0, 10);
         flyWheelLeft.setPIDFCoefficients(DcMotorEx.RunMode.RUN_USING_ENCODER, coefficients);
         flyWheelRight.setPIDFCoefficients(DcMotorEx.RunMode.RUN_USING_ENCODER, coefficients);
@@ -151,8 +154,8 @@ public class FlyWheelTesterOpMode extends OpMode {
                 flyWheelRight.setVelocity(shootVelocity);
                 // For now, if velocity drops on either flyWheel, we probably fired...
                 // go back to SPIN_UP
-                if (flyWheelLeft.getVelocity() < (shootVelocity + tolerance) ||
-                        flyWheelRight.getVelocity() < (shootVelocity + tolerance)) {
+                if (flyWheelLeft.getVelocity() < (shootVelocity - tolerance) ||
+                        flyWheelRight.getVelocity() < (shootVelocity - tolerance)) {
                     launchState = LaunchState.SPIN_UP;
                 }
                 break;
