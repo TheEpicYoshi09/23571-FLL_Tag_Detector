@@ -1,14 +1,20 @@
 package org.firstinspires.ftc.teamcode.Util;
 
 
+import android.graphics.Color;
+
 import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
+import org.firstinspires.ftc.vision.opencv.ColorBlobLocatorProcessor;
+import org.firstinspires.ftc.vision.opencv.ColorRange;
+import org.firstinspires.ftc.vision.opencv.ImageRegion;
+
 @Configurable
 public class UniConstants {
 
-//CONFIG
+/*CONFIG
     //CHM0 = ACTIVE
     //CHM1 = TURR
     //CHM2 = FLM
@@ -29,7 +35,7 @@ public class UniConstants {
 
     //EHS5 = BS
 
-
+*/
 
     //Drive
     public static final String DRIVE_FRONT_LEFT_STRING = "FLM";
@@ -69,15 +75,9 @@ public class UniConstants {
     public static final DcMotorSimple.Direction ROTARY_DIRECTION = DcMotorSimple.Direction.REVERSE;
 
 
-    public static int PURPLE_ARTIFACT_UPPER_HUE = 350;
-    public static int PURPLE_ARTIFACT_LOWER_HUE = 275;
-
-    public static int GREEN_ARTIFACT_UPPER_HUE = 150;
-    public static int GREEN_ARTIFACT_LOWER_HUE = 100;
-
     public static final int SPACE_BETWEEN_ROTARY_SLOTS = 300;
 
-
+    //Turret Speed Calculation variables
     public static final double ANGLE_OF_LAUNCHER_IN_DEGREES = 35;
     public static  final double HEIGHT_OF_ROBOT_IN_METERS = 0.35;
     public static  final double HEIGHT_TO_GOAL_WITH_CLEARANCE_METERS = (1.11125) - (HEIGHT_OF_ROBOT_IN_METERS);
@@ -88,6 +88,37 @@ public class UniConstants {
 
     public static final String TURRET_ROTATION_STRING = "TURR";
 
+    public static final ColorBlobLocatorProcessor colorLocatorGreen = new ColorBlobLocatorProcessor.Builder()
+            .setTargetColorRange(ColorRange.ARTIFACT_GREEN)   // Use a predefined color match
+            .setContourMode(ColorBlobLocatorProcessor.ContourMode.EXTERNAL_ONLY)
+            .setRoi(ImageRegion.asUnityCenterCoordinates(-0.75, 0.75, 0.75, -0.75))
+            .setDrawContours(true)   // Show contours on the Stream Preview
+            .setBoxFitColor(0)       // Disable the drawing of rectangles
+            .setCircleFitColor(Color.rgb(255, 255, 0)) // Draw a circle
+            .setBlurSize(5)          // Smooth the transitions between different colors in image
+
+            // the following options have been added to fill in perimeter holes.
+            .setDilateSize(15)       // Expand blobs to fill any divots on the edges
+            .setErodeSize(15)        // Shrink blobs back to original size
+            .setMorphOperationType(ColorBlobLocatorProcessor.MorphOperationType.CLOSING)
+
+            .build();
+
+    public static final ColorBlobLocatorProcessor colorLocatorPurple = new ColorBlobLocatorProcessor.Builder()
+            .setTargetColorRange(ColorRange.ARTIFACT_PURPLE)   // Use a predefined color match
+            .setContourMode(ColorBlobLocatorProcessor.ContourMode.EXTERNAL_ONLY)
+            .setRoi(ImageRegion.asUnityCenterCoordinates(-0.75, 0.75, 0.75, -0.75))
+            .setDrawContours(true)   // Show contours on the Stream Preview
+            .setBoxFitColor(0)       // Disable the drawing of rectangles
+            .setCircleFitColor(Color.rgb(255, 255, 0)) // Draw a circle
+            .setBlurSize(5)          // Smooth the transitions between different colors in image
+
+            // the following options have been added to fill in perimeter holes.
+            .setDilateSize(15)       // Expand blobs to fill any divots on the edges
+            .setErodeSize(15)        // Shrink blobs back to original size
+            .setMorphOperationType(ColorBlobLocatorProcessor.MorphOperationType.CLOSING)
+
+            .build();
 
 
 

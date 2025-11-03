@@ -2,6 +2,9 @@ package org.firstinspires.ftc.teamcode.OpModes;
 
 
 import com.bylazar.configurables.annotations.Configurable;
+
+import com.bylazar.telemetry.JoinedTelemetry;
+import com.bylazar.telemetry.PanelsTelemetry;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -14,11 +17,13 @@ import com.sun.tools.javac.util.List;
 
 import org.firstinspires.ftc.teamcode.Util.PDFLController;
 import org.firstinspires.ftc.teamcode.Util.Poses;
+import org.firstinspires.ftc.teamcode.Util.Subsystems.BetterVisionTM;
 import org.firstinspires.ftc.teamcode.Util.UniConstants;
 import org.firstinspires.ftc.teamcode.pedroPathing.constants.Constants;
 
 import java.util.ArrayList;
 
+import dev.nextftc.core.components.SubsystemComponent;
 import dev.nextftc.ftc.NextFTCOpMode;
 
 
@@ -31,6 +36,8 @@ public class NextFTCTeleop extends NextFTCOpMode {
     {
         addComponents(); //Subsystems
     }
+
+
 
     UniConstants.teamColor color = UniConstants.teamColor.BLUE;
 
@@ -50,14 +57,14 @@ public class NextFTCTeleop extends NextFTCOpMode {
     int rotaryCurrentPosition = 0;
     int rotaryTargetPosition = 0;
 
-    public static double pR, dR, lR, fR;
+    public static double pR = 0, dR = 0, lR = 0, fR = 0;
     PDFLController rotaryController = new PDFLController(pR, dR, fR, lR);
 
-    public static double pL, dL, lL, fL;
+    public static double pL = 0, dL = 0, lL = 0, fL = 0;
     PDFLController launcherController = new PDFLController(pL, dL, fL, lL);
     public static double launcherTargetVelo = 0;
 
-    public static double pT, dT, lT, fT;
+    public static double pT = 0, dT = 0, lT = 0, fT = 0;
     PDFLController turretController = new PDFLController(pT, dT, fT, lT);
     public static double turretTargetPosition = 0;
 
@@ -65,7 +72,7 @@ public class NextFTCTeleop extends NextFTCOpMode {
     public static double rotaryPower = 0;
     public static double turretPower = 0;
 
-
+    public static UniConstants.loggingState logState = UniConstants.loggingState.ENABLED;
 
     ArrayList<UniConstants.slotState> slots = new ArrayList<>(List.of(UniConstants.slotState.EMPTY, UniConstants.slotState.EMPTY, UniConstants.slotState.EMPTY));
     ArrayList<UniConstants.slotState> pattern = new ArrayList<>();
@@ -74,10 +81,17 @@ public class NextFTCTeleop extends NextFTCOpMode {
     Servo ballServo;
     public static double servoPos = 0;
 
-
     DcMotorSimple.Direction ACTIVE_DIRECTION = DcMotorSimple.Direction.REVERSE;
+
+    BetterVisionTM vision;
+
     @Override
     public void onInit() {
+
+        JoinedTelemetry joinedTelemetry = new JoinedTelemetry(telemetry, PanelsTelemetry.INSTANCE.getFtcTelemetry());
+        vision = new BetterVisionTM(hardwareMap, joinedTelemetry, logState);
+        vision.initialize();
+
 
         follower = Constants.createFollower(hardwareMap);
 
@@ -111,12 +125,10 @@ public class NextFTCTeleop extends NextFTCOpMode {
             color = UniConstants.teamColor.BLUE;
         }
 
-        telemetry.addLine("CHANGE THIS IF NEED BE!!!! ");
-        telemetry.addLine("B for Blue, A for Red ");
-        telemetry.addData("Color ", color);
-        telemetry.addData("Follower X ", follower.getPose().getX());
-        telemetry.addData("Follower Heading ", follower.getPose().getHeading());
-        telemetry.update();
+        joinedTelemetry.addLine("CHANGE THIS IF NEED BE!!!! ");
+        joinedTelemetry.addLine("B for Blue, A for Red ");
+        joinedTelemetry.addData("Team Color ", color);
+        joinedTelemetry.update();
 
         follower.setStartingPose(new Pose());
         follower.update();
@@ -147,8 +159,7 @@ public class NextFTCTeleop extends NextFTCOpMode {
             if (isFull(slots.get(0))) {
                 if (!((Math.abs(rotaryTargetPosition - rotaryCurrentPosition)) > 50)) {
                     rotaryTargetPosition += UniConstants.SPACE_BETWEEN_ROTARY_SLOTS;
-                }
-            }
+                }           }
         } else {
             active.setPower(0);
         }
@@ -190,46 +201,22 @@ public class NextFTCTeleop extends NextFTCOpMode {
         launcher.setPower(launcherController.runPDFL(.05));
 
         distanceToGoalInMeters = getDistanceToGoalInMeters();
-//        turretTargetAngle = 0; //Vision.getTargetAngle
+        turretTargetAngle = 0; //Vision.getTargetAngle
 
         ballServo.setPosition(servoPos);
 
-        telemetry.addData("Rotary Current Pos ", rotaryCurrentPosition);
-        telemetry.addData("Rotary Target Pos ", rotaryTargetPosition);
-        telemetry.addData("Slot Front State ", slots.get(0));
-//        telemetry.addData("Slot Front Green ", colorSensors.get(0).green());
-//        telemetry.addData("Slot Front Red ", colorSensors.get(0).red());
-//        telemetry.addData("Slot Front Blue ", colorSensors.get(0).blue());
-//        telemetry.addData("Slot Front Alpha ", colorSensors.get(0).alpha());
-        telemetry.addData("Slot Right State ", slots.get(1));
-//        telemetry.addData("Slot Right Green ", colorSensors.get(1).green());
-//        telemetry.addData("Slot Right Red ", colorSensors.get(1).red());
-//        telemetry.addData("Slot Right Blue ", colorSensors.get(1).blue());
-//        telemetry.addData("Slot Right Alpha ", colorSensors.get(1).alpha());
-        telemetry.addData("Slot Left State ", slots.get(2));
-//        telemetry.addData("Slot Left Green ", colorSensors.get(2).green());
-//        telemetry.addData("Slot Left Red ", colorSensors.get(2).red());
-//        telemetry.addData("Slot Left Blue ", colorSensors.get(2).blue());
-//        telemetry.addData("Slot Left Alpha ", colorSensors.get(2).alpha());
-        telemetry.addData("Obelisk Perfect Pattern ", pattern);
-        telemetry.addLine();
-        telemetry.addData("Launcher Target Velo ", launcherTargetVelo);
-        telemetry.addData("Launcher Target Angle (Deg) ", turretTargetAngle);
-        //telemetry.addData("Calculated Launch Velocity ", getTargetVelocity(distanceToGoalInMeters));
-        //telemetry.addData("Distance To Goal In Meters ", distanceToGoalInMeters);
-        telemetry.addLine();
-        telemetry.addData("Turret Target Pos ", getTurretTargetPosition(turretTargetAngle));
-        telemetry.addData("Turret Target Angle ", turretTargetAngle);
 
-        follower.update();
         follower.setTeleOpDrive(
                 gamepad1.left_stick_y * (isSlowed ? .5 : 1), //Forward/Backward
                 gamepad1.left_stick_x * (isSlowed ? .5 : 1), //Left/Right Rotation
                 gamepad1.right_stick_x * (isSlowed ? .5 : 1), //Left/Right Strafe
                 true);
+        follower.update();
 
+
+        vision.periodic();
+        sendTelemetry(logState);
         telemetry.update();
-
 
     }
 
@@ -296,11 +283,14 @@ public class NextFTCTeleop extends NextFTCOpMode {
 
         double x = follower.getPose().getX() - Poses.blueGoal.getX();
         double y = follower.getPose().getY() - Poses.blueGoal.getY();
+        turretTargetAngle = Math.toDegrees(Math.atan(x / y));
         return (Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2))) / 39.37;
 
 
 
     }
+
+
 
     public double getTurretTargetPosition(double turretTargetAngle){
 
@@ -308,6 +298,69 @@ public class NextFTCTeleop extends NextFTCOpMode {
 
         return (turretTargetAngle / UniConstants.MOTOR_TO_TURRET_RATIO) * UniConstants.TURRET_TICKS_PER_DEGREE;
 
+    }
+
+    public void sendTelemetry(UniConstants.loggingState state){
+        switch(state){
+
+            case DISABLED:
+                break;
+            case ENABLED:
+                telemetry.addData("Rotary Current Pos ", rotaryCurrentPosition);
+                telemetry.addData("Rotary Target Pos ", rotaryTargetPosition);
+                telemetry.addLine();
+                telemetry.addData("Slot Front State ", slots.get(0));
+                telemetry.addData("Slot Right State ", slots.get(1));
+                telemetry.addData("Slot Left State ", slots.get(2));
+                telemetry.addLine();
+                telemetry.addData("Turret Target Pos ", getTurretTargetPosition(turretTargetAngle));
+                telemetry.addData("Turret Target Angle ", turretTargetAngle);
+                telemetry.addLine();
+                telemetry.addData("Launcher Target Velo ", launcherTargetVelo);
+                telemetry.addData("Calculated Launch Velocity ", getTargetVelocity(distanceToGoalInMeters));
+                telemetry.addData("Distance To Goal In Meters ", distanceToGoalInMeters);
+                telemetry.addLine();
+                telemetry.addData("Pose X ", follower.getPose().getX());
+                telemetry.addData("Pose Y ", follower.getPose().getY());
+                telemetry.addData("Pose Heading ", follower.getPose().getHeading());
+                break;
+            case EXTREME:
+                telemetry.addData("Rotary Current Pos ", rotaryCurrentPosition);
+                telemetry.addData("Rotary Target Pos ", rotaryTargetPosition);
+                telemetry.addLine();
+                telemetry.addData("Slot Front State ", slots.get(0));
+                telemetry.addData("Slot Front Green ", colorSensors.get(0).green());
+                telemetry.addData("Slot Front Red ", colorSensors.get(0).red());
+                telemetry.addData("Slot Front Blue ", colorSensors.get(0).blue());
+                telemetry.addData("Slot Front Alpha ", colorSensors.get(0).alpha());
+                telemetry.addLine();
+                telemetry.addData("Slot Right State ", slots.get(1));
+                telemetry.addData("Slot Right Green ", colorSensors.get(1).green());
+                telemetry.addData("Slot Right Red ", colorSensors.get(1).red());
+                telemetry.addData("Slot Right Blue ", colorSensors.get(1).blue());
+                telemetry.addData("Slot Right Alpha ", colorSensors.get(1).alpha());
+                telemetry.addLine();
+                telemetry.addData("Slot Left State ", slots.get(2));
+                telemetry.addData("Slot Left Green ", colorSensors.get(2).green());
+                telemetry.addData("Slot Left Red ", colorSensors.get(2).red());
+                telemetry.addData("Slot Left Blue ", colorSensors.get(2).blue());
+                telemetry.addData("Slot Left Alpha ", colorSensors.get(2).alpha());
+                telemetry.addLine();
+                telemetry.addData("Obelisk Perfect Pattern ", pattern);
+                telemetry.addLine();
+                telemetry.addData("Launcher Target Velo ", launcherTargetVelo);
+                telemetry.addData("Calculated Launch Velocity ", getTargetVelocity(distanceToGoalInMeters));
+                telemetry.addData("Distance To Goal In Meters ", distanceToGoalInMeters);
+                telemetry.addLine();
+                telemetry.addData("Turret Target Pos ", getTurretTargetPosition(turretTargetAngle));
+                telemetry.addData("Turret Target Angle ", turretTargetAngle);
+                telemetry.addLine();
+                telemetry.addData("Pose X ", follower.getPose().getX());
+                telemetry.addData("Pose Y ", follower.getPose().getY());
+                telemetry.addData("Pose Heading ", follower.getPose().getHeading());
+
+                break;
+        }
     }
 
 }
