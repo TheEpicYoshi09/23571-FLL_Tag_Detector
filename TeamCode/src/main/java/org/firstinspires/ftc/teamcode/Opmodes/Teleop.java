@@ -9,7 +9,7 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagPoseFtc;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 
-@TeleOp(name = "DecodeTeleopV3.78 Alaqmar", group = "TeleOp")
+@TeleOp(name = "DecodeTeleopV3.82 Alaqmar", group = "TeleOp")
 
 public class Teleop extends LinearOpMode {
 
@@ -39,10 +39,6 @@ public class Teleop extends LinearOpMode {
 
         Kicker kicker = new Kicker();
         kicker.init(hardwareMap);
-        //kicker.setPosition(Kicker.gateIntake);
-        //Util.addKickerTelemetry(kicker,telemetry);
-
-
 
         DecodeAprilTag aprilTag  = new DecodeAprilTag(this);
         aprilTag.initCamera();
@@ -65,19 +61,28 @@ public class Teleop extends LinearOpMode {
         // Run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
 
-            chassis.odo.update();
-
-            AprilTagPoseFtc aprilTagPoseFtc = aprilTag.getCoordinate(DecodeAprilTag.BLUE_APRIL_TAG);
+            AprilTagPoseFtc aprilTagPoseFtc = null;
             Double robotDistanceFromAprilTagUsingCamera = 0.0;
-            if(aprilTagPoseFtc !=null) {
-                robotDistanceFromAprilTagUsingCamera = aprilTagPoseFtc.range;
-            }
-            double robotDistanceFromAprilTagUsingFrontDistanceSensor = frontDistanceSensor.getDistance(DistanceUnit.CM);
-            telemetry.addData("Distance From Camera: ", String.valueOf(robotDistanceFromAprilTagUsingCamera));
-            telemetry.addData("Distance From Front Sensor: ", String.valueOf(robotDistanceFromAprilTagUsingFrontDistanceSensor));
+            Double robotDistanceUsingFrontDistanceSensor = 0.0;
+            Double distanceSensor = 0.0;
+            Integer flyWheelVelocityRequired =  FlyWheel.FLYWHEEL_SHOOTING_VELOCITY;
 
-            double distanceSensor = Util.getDistance(channelSensor, telemetry);
-            telemetry.addData("Channel Distance Sensor - ",distanceSensor);
+            if(aprilTag.findAprilTag(DecodeAprilTag.BLUE_APRIL_TAG)){
+                aprilTagPoseFtc = aprilTag.getCoordinate(DecodeAprilTag.BLUE_APRIL_TAG);
+                if(aprilTagPoseFtc !=null) {
+                    robotDistanceFromAprilTagUsingCamera = aprilTagPoseFtc.range;
+                }
+            }
+
+            flyWheelVelocityRequired = Util.getFlyWheelVelocityRequiredForDistance(robotDistanceFromAprilTagUsingCamera);
+            robotDistanceUsingFrontDistanceSensor = frontDistanceSensor.getDistance(DistanceUnit.INCH);
+
+            telemetry.addData("Distance From Camera - ", String.valueOf(robotDistanceFromAprilTagUsingCamera));
+            telemetry.addData("Distance From Front Sensor - ", String.valueOf(robotDistanceUsingFrontDistanceSensor));
+            telemetry.addData("flyWheelVelocityRequired - ", flyWheelVelocityRequired);
+
+            distanceSensor = Util.getDistance(channelSensor, telemetry);
+            telemetry.addData("Distance From Channel Sensor - ",distanceSensor);
             telemetry.update();
 
             // Kicker
@@ -109,22 +114,16 @@ public class Teleop extends LinearOpMode {
             //Shooting
             if (gamepad2.right_bumper) {
 
-                 aprilTagPoseFtc = aprilTag.getCoordinate(DecodeAprilTag.BLUE_APRIL_TAG);
-                 robotDistanceFromAprilTagUsingCamera = aprilTagPoseFtc.range;
-                 robotDistanceFromAprilTagUsingFrontDistanceSensor = frontDistanceSensor.getDistance(DistanceUnit.INCH);
-
-                 int flyWheelVelocityRequired = Util.getFlyWheelVelocityRequiredForDistance(robotDistanceFromAprilTagUsingCamera);
-
                 Util.prepareFlyWheelToShoot(flyWheel, kicker, intake, channelSensor, flyWheelVelocityRequired, telemetry);
 
                 intake.setIntakePower(0.4);
 
                 while(!gamepad2.left_bumper) {
-                    Util.startShooting(flyWheel, kicker, intake, channelSensor, telemetry);
-                    sleep(300);
+                    Util.startShooting(flyWheel, kicker, intake, channelSensor, flyWheelVelocityRequired, telemetry);
+                    sleep(200);
                 }
 
-                intake.stopIntake();
+                intake.startIntake();
                 Util.prepareFlyWheelToIntake(flyWheel,kicker,intake, channelSensor,telemetry);
 
 

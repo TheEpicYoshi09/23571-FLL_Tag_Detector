@@ -177,7 +177,7 @@ public class Util {
         flyWheel.stop();
     }
 
-    public static void waitForFlyWheelShootingVelocity(FlyWheel flyWheel, long velocity, double maxWaitTime){
+    public static Long waitForFlyWheelShootingVelocity(FlyWheel flyWheel, long velocity, double maxWaitTime){
         long startTime = System.currentTimeMillis();
         long intermidiateTime =  System.currentTimeMillis();
         long durationInMillis = intermidiateTime - startTime;
@@ -187,9 +187,10 @@ public class Util {
             durationInMillis = intermidiateTime - startTime;
             sleepThread(250);
             if(durationInMillis > maxWaitTime){
-                return;
+                return durationInMillis;
             }
         }
+        return durationInMillis;
     }
 
     public static long waitForFlyWheelStopVelocity(FlyWheel flyWheel, long velocity, double maxWaitTime, Telemetry telemetry){
@@ -314,16 +315,26 @@ public class Util {
     }
 
     public static void startShooting(FlyWheel flyWheel, Kicker kicker, Intake intake, DistanceSensor channelDistanceSensor, int requiredFlyWheelVelocity, Telemetry telemetry){
-        Util.waitForFlyWheelShootingVelocity(flyWheel,requiredFlyWheelVelocity,3000);
+        Long timeForFlyWheelVelocity = Util.waitForFlyWheelShootingVelocity(flyWheel,requiredFlyWheelVelocity,3000);
+        telemetry.addData("timeForFlyWheelVelocity - ",timeForFlyWheelVelocity);
         kicker.setPosition(Kicker.gateShoot);
         boolean isObjectDetected = isObjectDetected(channelDistanceSensor, telemetry);
         if (isObjectDetected) {
+            sleepThread(200);
             kicker.setPosition(Kicker.gateClose);
         }
     }
 
     public static int getFlyWheelVelocityRequiredForDistance(double distanceInInchFromAprilTag){
         int desiredFlyWheelVelocity = FlyWheel.FLYWHEEL_SHOOTING_VELOCITY;
+
+        Double doubleDesiredFlyWheelVelocity = 0.004*(distanceInInchFromAprilTag)+0.399;
+
+         desiredFlyWheelVelocity = doubleDesiredFlyWheelVelocity.intValue();
+
+         if (desiredFlyWheelVelocity<1000){
+             desiredFlyWheelVelocity = FlyWheel.FLYWHEEL_SHOOTING_VELOCITY;
+         }
 
         return desiredFlyWheelVelocity;
     }
