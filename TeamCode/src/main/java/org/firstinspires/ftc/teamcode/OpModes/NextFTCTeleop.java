@@ -3,13 +3,13 @@ package org.firstinspires.ftc.teamcode.OpModes;
 
 import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.follower.Follower;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.sun.tools.javac.util.List;
 
 import org.firstinspires.ftc.teamcode.Util.PDFLController;
@@ -19,23 +19,24 @@ import org.firstinspires.ftc.teamcode.pedroPathing.constants.Constants;
 
 import java.util.ArrayList;
 
-
+import dev.nextftc.ftc.NextFTCOpMode;
 
 
 //Written by Noah Nottingham - 6566 Circuit Breakers
 
-@TeleOp(name = "TeleOp", group = "Driver") //The name and group
+@TeleOp(name = "Functional Teleop", group = "Driver") //The name and group
 @Configurable
-@Disabled
-public class Teleop extends OpMode {
+public class NextFTCTeleop extends NextFTCOpMode {
+
+    {
+        addComponents(); //Subsystems
+    }
+
+    UniConstants.teamColor color = UniConstants.teamColor.BLUE;
 
     public static int obeliskApriltagID = 21;
 
-    final double angleOfLauncherInDegrees = 35;
-    final double heightOfRobotInMeters = 0.35;
-    final double heightToGoalWithClearance = (1.11125) - (heightOfRobotInMeters);
-    final double turretPulleyRatio = (double) 24 /155; //Motor to Turret
-    final double turretTicksPerDegree = 537.7/360;
+    boolean isSlowed = false;
 
     double distanceToGoalInMeters = 0.0;
 
@@ -44,6 +45,7 @@ public class Teleop extends OpMode {
     DcMotorEx active;
     DcMotorEx launcher;
     DcMotorEx rotary;
+    DcMotorEx turret;
 
     int rotaryCurrentPosition = 0;
     int rotaryTargetPosition = 0;
@@ -53,33 +55,47 @@ public class Teleop extends OpMode {
 
     public static double pL, dL, lL, fL;
     PDFLController launcherController = new PDFLController(pL, dL, fL, lL);
-    public static double launcherTargetPosition = 0;
+    public static double launcherTargetVelo = 0;
 
-    double turretTargetAngle = 0;
+    public static double pT, dT, lT, fT;
+    PDFLController turretController = new PDFLController(pT, dT, fT, lT);
+    public static double turretTargetPosition = 0;
+
+    public static double turretTargetAngle = 0;
+    public static double rotaryPower = 0;
+    public static double turretPower = 0;
+
 
 
     ArrayList<UniConstants.slotState> slots = new ArrayList<>(List.of(UniConstants.slotState.EMPTY, UniConstants.slotState.EMPTY, UniConstants.slotState.EMPTY));
     ArrayList<UniConstants.slotState> pattern = new ArrayList<>();
     ArrayList<ColorSensor> colorSensors = new ArrayList<>();
 
+    Servo ballServo;
+    public static double servoPos = 0;
 
-    CRServo stupidServo;
 
+    DcMotorSimple.Direction ACTIVE_DIRECTION = DcMotorSimple.Direction.REVERSE;
     @Override
-    public void init() {
+    public void onInit() {
 
         follower = Constants.createFollower(hardwareMap);
 
         active = hardwareMap.get(DcMotorEx.class, UniConstants.ACTIVE_INTAKE_STRING);
         active.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        active.setDirection(ACTIVE_DIRECTION);
 
         launcher = hardwareMap.get(DcMotorEx.class, UniConstants.LAUNCHER_STRING);
         launcher.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 
-        rotary = hardwareMap.get(DcMotorEx.class, UniConstants.ROTARY_STRING);
+        turret = hardwareMap.get(DcMotorEx.class, UniConstants.TURRET_ROTATION_STRING);
+        turret.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
+        rotary = hardwareMap.get(DcMotorEx.class, UniConstants.ROTARY_STRING);
         rotary.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rotary.setDirection(UniConstants.ROTARY_DIRECTION);
+
+        ballServo = hardwareMap.get(Servo.class, UniConstants.BALL_SERVO_STRING);
 
         colorSensors.addAll(
                 List.of(
@@ -89,33 +105,55 @@ public class Teleop extends OpMode {
                 )
         );
 
+        if(gamepad1.a){
+            color = UniConstants.teamColor.RED;
+        }else if (gamepad1.b){
+            color = UniConstants.teamColor.BLUE;
+        }
 
+        telemetry.addLine("CHANGE THIS IF NEED BE!!!! ");
+        telemetry.addLine("B for Blue, A for Red ");
+        telemetry.addData("Color ", color);
+        telemetry.addData("Follower X ", follower.getPose().getX());
+        telemetry.addData("Follower Heading ", follower.getPose().getHeading());
+        telemetry.update();
+
+        follower.setStartingPose(new Pose());
+        follower.update();
 
 
         obeliskTargetPattern(obeliskApriltagID);
     }
 
     @Override
-    public void start() {
+    public void onStartButtonPressed() {
         for (ColorSensor sensor : colorSensors) {
             sensor.enableLed(true);
         }
 
-
+        follower.startTeleopDrive();
+        follower.update();
 
 
     }
 
     @Override
-    public void loop() {
+    public void onUpdate() {
 
+        isSlowed = gamepad1.right_bumper;
 
         if (gamepad1.a && !allFull()) {
-            active.setPower(.5);
+            active.setPower((isSlowed ? .5 : 1));
             if (isFull(slots.get(0))) {
-                rotaryTargetPosition += UniConstants.SPACE_BETWEEN_ROTARY_SLOTS;
+                if (!((Math.abs(rotaryTargetPosition - rotaryCurrentPosition)) > 50)) {
+                    rotaryTargetPosition += UniConstants.SPACE_BETWEEN_ROTARY_SLOTS;
+                }
             }
+        } else {
+            active.setPower(0);
         }
+
+
 
 
         readSlots();
@@ -133,6 +171,7 @@ public class Teleop extends OpMode {
         //Exit velocity will be a function of the power put into the motor (PDFL)
 
 
+
         //Slot numbers are already known, 0 is ready to transfer into launcher, 1 is to the right, 2 is the last one.
         //So for obelisk PPG, 0 = P, 1 = P, 2 = G
         //If that is good, bool readyToLaunch = true
@@ -140,30 +179,54 @@ public class Teleop extends OpMode {
         rotaryController.setTarget(rotaryTargetPosition);
         rotaryCurrentPosition = rotary.getCurrentPosition();
         rotaryController.update(rotaryCurrentPosition);
-        rotary.setPower(rotaryController.runPDFL(5));
+        rotary.setPower(rotaryPower);
 
+        turretController.setTarget(turretTargetPosition);
+        turretController.update(turret.getCurrentPosition());
+        turret.setPower(turretPower);
 
-        launcherController.setTarget(launcherTargetPosition);
-        launcherController.update(launcher.getCurrentPosition());
-        launcher.setPower(launcherController.runPDFL(5));
+        launcherController.setTarget(launcherTargetVelo);
+        launcherController.update(launcher.getVelocity());
+        launcher.setPower(launcherController.runPDFL(.05));
 
         distanceToGoalInMeters = getDistanceToGoalInMeters();
-        turretTargetAngle = 0; //Vision.getTargetAngle
+//        turretTargetAngle = 0; //Vision.getTargetAngle
 
-        follower.setTeleOpDrive(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x, true);
+        ballServo.setPosition(servoPos);
 
         telemetry.addData("Rotary Current Pos ", rotaryCurrentPosition);
-        telemetry.addData("Slot 0 State ", slots.get(0));
-        telemetry.addData("Slot 1 State ", slots.get(1));
-        telemetry.addData("Slot 2 State ", slots.get(2));
+        telemetry.addData("Rotary Target Pos ", rotaryTargetPosition);
+        telemetry.addData("Slot Front State ", slots.get(0));
+//        telemetry.addData("Slot Front Green ", colorSensors.get(0).green());
+//        telemetry.addData("Slot Front Red ", colorSensors.get(0).red());
+//        telemetry.addData("Slot Front Blue ", colorSensors.get(0).blue());
+//        telemetry.addData("Slot Front Alpha ", colorSensors.get(0).alpha());
+        telemetry.addData("Slot Right State ", slots.get(1));
+//        telemetry.addData("Slot Right Green ", colorSensors.get(1).green());
+//        telemetry.addData("Slot Right Red ", colorSensors.get(1).red());
+//        telemetry.addData("Slot Right Blue ", colorSensors.get(1).blue());
+//        telemetry.addData("Slot Right Alpha ", colorSensors.get(1).alpha());
+        telemetry.addData("Slot Left State ", slots.get(2));
+//        telemetry.addData("Slot Left Green ", colorSensors.get(2).green());
+//        telemetry.addData("Slot Left Red ", colorSensors.get(2).red());
+//        telemetry.addData("Slot Left Blue ", colorSensors.get(2).blue());
+//        telemetry.addData("Slot Left Alpha ", colorSensors.get(2).alpha());
+        telemetry.addData("Obelisk Perfect Pattern ", pattern);
         telemetry.addLine();
-        telemetry.addData("Launcher Target Position ", launcherTargetPosition);
+        telemetry.addData("Launcher Target Velo ", launcherTargetVelo);
         telemetry.addData("Launcher Target Angle (Deg) ", turretTargetAngle);
-        telemetry.addData("Calculated Launch Velocity ", getTargetVelocity(distanceToGoalInMeters));
-        telemetry.addData("Distance To Goal In Meters ", distanceToGoalInMeters);
+        //telemetry.addData("Calculated Launch Velocity ", getTargetVelocity(distanceToGoalInMeters));
+        //telemetry.addData("Distance To Goal In Meters ", distanceToGoalInMeters);
         telemetry.addLine();
+        telemetry.addData("Turret Target Pos ", getTurretTargetPosition(turretTargetAngle));
+        telemetry.addData("Turret Target Angle ", turretTargetAngle);
 
-
+        follower.update();
+        follower.setTeleOpDrive(
+                gamepad1.left_stick_y * (isSlowed ? .5 : 1), //Forward/Backward
+                gamepad1.left_stick_x * (isSlowed ? .5 : 1), //Left/Right Rotation
+                gamepad1.right_stick_x * (isSlowed ? .5 : 1), //Left/Right Strafe
+                true);
 
         telemetry.update();
 
@@ -172,11 +235,16 @@ public class Teleop extends OpMode {
 
     public void readSlots() {
         for (int i = 0; i < 3; i++) {
-            double hue = colorSensors.get(i).argb();
-            if ((UniConstants.PURPLE_ARTIFACT_LOWER_HUE < hue) && (hue < UniConstants.PURPLE_ARTIFACT_UPPER_HUE)) {
-                slots.set(i, UniConstants.slotState.PURPLE);
-            } else if ((UniConstants.GREEN_ARTIFACT_LOWER_HUE < hue) && (hue < UniConstants.GREEN_ARTIFACT_UPPER_HUE)) {
+            double red = colorSensors.get(i).red();
+            double green = colorSensors.get(i).green();
+            double blue = colorSensors.get(i).blue();
+            double alpha = colorSensors.get(i).alpha();
+            if (((green > red) && (blue > red)) && (alpha < 5000)) {
                 slots.set(i, UniConstants.slotState.GREEN);
+            } else if (((red > green) && (blue > green)) && (alpha < 5000)) {
+                slots.set(i, UniConstants.slotState.PURPLE);
+            } else if (alpha > 5000){
+                slots.set(i, UniConstants.slotState.BETWEEN);
             } else {
                 slots.set(i, UniConstants.slotState.EMPTY);
             }
@@ -190,7 +258,7 @@ public class Teleop extends OpMode {
         return Math.sqrt(
                 ((9.81) * (Math.pow(distanceToGoalInMeters, 2)))
                         /
-                        (Math.pow(2 * (Math.cos(Math.toRadians(angleOfLauncherInDegrees))), 2) * ((distanceToGoalInMeters * Math.tan(Math.toRadians(angleOfLauncherInDegrees))) - heightToGoalWithClearance))
+                        (Math.pow(2 * (Math.cos(Math.toRadians(UniConstants.ANGLE_OF_LAUNCHER_IN_DEGREES))), 2) * ((distanceToGoalInMeters * Math.tan(Math.toRadians(UniConstants.ANGLE_OF_LAUNCHER_IN_DEGREES))) - UniConstants.HEIGHT_TO_GOAL_WITH_CLEARANCE_METERS))
         );
     }
 
@@ -234,11 +302,11 @@ public class Teleop extends OpMode {
 
     }
 
-    public double getTurretTargetPosition(double turretTargetAngle, double ratio, double ticksPerDegree){
+    public double getTurretTargetPosition(double turretTargetAngle){
 
         //Ratio given in terms of motor/turret
 
-        return turretTargetAngle * ratio * ticksPerDegree;
+        return (turretTargetAngle / UniConstants.MOTOR_TO_TURRET_RATIO) * UniConstants.TURRET_TICKS_PER_DEGREE;
 
     }
 

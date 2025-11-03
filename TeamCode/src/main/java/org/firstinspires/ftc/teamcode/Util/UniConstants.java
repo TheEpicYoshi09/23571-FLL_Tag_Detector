@@ -1,32 +1,45 @@
 package org.firstinspires.ftc.teamcode.Util;
 
-import android.graphics.Color;
 
-import com.acmerobotics.dashboard.config.Config;
+import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
-import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
-import org.firstinspires.ftc.vision.opencv.ColorBlobLocatorProcessor;
-import org.firstinspires.ftc.vision.opencv.ColorRange;
-import org.firstinspires.ftc.vision.opencv.ImageRegion;
-
-import java.util.HashMap;
-
-@Config
+@Configurable
 public class UniConstants {
+
+//CONFIG
+    //CHM0 = ACTIVE
+    //CHM1 = TURR
+    //CHM2 = FLM
+    //CHM3 = BLM
+
+    //CHI2C0 = imu
+    //CHI2C1 = CSF
+    //CHI2C2 = CSL
+    //CHI2C3 = pp
+
+
+    //EHM0 = FR
+    //EHM1 = BR
+    //EHM2 = ROTA
+    //EHM3 = LAUNCH
+
+    //EHI2C0 = CSR
+
+    //EHS5 = BS
 
 
 
     //Drive
-    public static final String DRIVE_FRONT_LEFT_STRING = "LFM";
-    public static final String DRIVE_FRONT_RIGHT_STRING = "RFM";
-    public static final String DRIVE_BACK_LEFT_STRING = "LRM";
-    public static final String DRIVE_BACK_RIGHT_STRING = "RRM";
+    public static final String DRIVE_FRONT_LEFT_STRING = "FLM";
+    public static final String DRIVE_FRONT_RIGHT_STRING = "FRM";
+    public static final String DRIVE_BACK_LEFT_STRING = "BLM";
+    public static final String DRIVE_BACK_RIGHT_STRING = "BRM";
     public static final DcMotorEx.Direction DRIVE_FRONT_LEFT_DIRECTION = DcMotorEx.Direction.FORWARD;
-    public static final DcMotorEx.Direction DRIVE_FRONT_RIGHT_DIRECTION = DcMotorEx.Direction.REVERSE;
-    public static final DcMotorEx.Direction DRIVE_BACK_LEFT_DIRECTION = DcMotorEx.Direction.FORWARD;
-    public static final DcMotorEx.Direction DRIVE_BACK_RIGHT_DIRECTION = DcMotorEx.Direction.REVERSE;
+    public static final DcMotorEx.Direction DRIVE_FRONT_RIGHT_DIRECTION = DcMotorEx.Direction.FORWARD;
+    public static final DcMotorEx.Direction DRIVE_BACK_LEFT_DIRECTION = DcMotorEx.Direction.REVERSE;
+    public static final DcMotorEx.Direction DRIVE_BACK_RIGHT_DIRECTION = DcMotorEx.Direction.FORWARD;
 
     public enum loggingState{
         DISABLED,
@@ -37,17 +50,23 @@ public class UniConstants {
     public enum slotState{
         PURPLE,
         GREEN,
-        EMPTY
+        EMPTY,
+        BETWEEN
     }
 
-    public static final String COLOR_SENSOR_SLOT_1_STRING = "COLOR0";
-    public static final String COLOR_SENSOR_SLOT_2_STRING = "COLOR1";
-    public static final String COLOR_SENSOR_SLOT_3_STRING = "COLOR2";
+    public enum teamColor {
+        RED,
+        BLUE
+    }
+
+    public static final String COLOR_SENSOR_SLOT_FRONT_STRING = "CSF";
+    public static final String COLOR_SENSOR_SLOT_RIGHT_STRING = "CSR";
+    public static final String COLOR_SENSOR_SLOT_LEFT_STRING = "CSL";
 
     public static final String ACTIVE_INTAKE_STRING = "ACTIVE";
     public static final String LAUNCHER_STRING  = "LAUNCHER";
     public static final String ROTARY_STRING = "ROTARY";
-    public static final DcMotorSimple.Direction ROTARY_DIRECTION = DcMotorSimple.Direction.FORWARD; //TODO: Ensure this is correct direction
+    public static final DcMotorSimple.Direction ROTARY_DIRECTION = DcMotorSimple.Direction.REVERSE;
 
 
     public static int PURPLE_ARTIFACT_UPPER_HUE = 350;
@@ -59,55 +78,17 @@ public class UniConstants {
     public static final int SPACE_BETWEEN_ROTARY_SLOTS = 300;
 
 
-    public static final AprilTagProcessor aprilTagProcessor = new AprilTagProcessor.Builder()
-            .setDrawTagID(true)
-            .setDrawAxes(true)
-            .setDrawCubeProjection(true)
-            .build();
-    public static final ColorBlobLocatorProcessor colorLocatorPurple = new ColorBlobLocatorProcessor.Builder()
-            .setTargetColorRange(ColorRange.ARTIFACT_PURPLE)   // Use a predefined color match
-            .setContourMode(ColorBlobLocatorProcessor.ContourMode.EXTERNAL_ONLY)
-            .setRoi(ImageRegion.asUnityCenterCoordinates(-0.75, 0.75, 0.75, -0.75))
-            .setDrawContours(true)   // Show contours on the Stream Preview
-            .setBoxFitColor(0)       // Disable the drawing of rectangles
-            .setCircleFitColor(Color.rgb(255, 255, 0)) // Draw a circle
-            .setBlurSize(5)          // Smooth the transitions between different colors in image
+    public static final double ANGLE_OF_LAUNCHER_IN_DEGREES = 35;
+    public static  final double HEIGHT_OF_ROBOT_IN_METERS = 0.35;
+    public static  final double HEIGHT_TO_GOAL_WITH_CLEARANCE_METERS = (1.11125) - (HEIGHT_OF_ROBOT_IN_METERS);
+    public static  final double MOTOR_TO_TURRET_RATIO = (double) 24 /155; //Motor to Turret
+    public static  final double TURRET_TICKS_PER_DEGREE = 537.7/360;
 
-            // the following options have been added to fill in perimeter holes.
-            .setDilateSize(15)       // Expand blobs to fill any divots on the edges
-            .setErodeSize(15)        // Shrink blobs back to original size
-            .setMorphOperationType(ColorBlobLocatorProcessor.MorphOperationType.CLOSING)
+    public static final String BALL_SERVO_STRING = "BS";
 
-            .build();
+    public static final String TURRET_ROTATION_STRING = "TURR";
 
-    public static final ColorBlobLocatorProcessor colorLocatorGreen = new ColorBlobLocatorProcessor.Builder()
-            .setTargetColorRange(ColorRange.ARTIFACT_GREEN)   // Use a predefined color match
-            .setContourMode(ColorBlobLocatorProcessor.ContourMode.EXTERNAL_ONLY)
-            .setRoi(ImageRegion.asUnityCenterCoordinates(-0.75, 0.75, 0.75, -0.75))
-            .setDrawContours(true)   // Show contours on the Stream Preview
-            .setBoxFitColor(0)       // Disable the drawing of rectangles
-            .setCircleFitColor(Color.rgb(255, 255, 0)) // Draw a circle
-            .setBlurSize(5)          // Smooth the transitions between different colors in image
 
-            // the following options have been added to fill in perimeter holes.
-            .setDilateSize(15)       // Expand blobs to fill any divots on the edges
-            .setErodeSize(15)        // Shrink blobs back to original size
-            .setMorphOperationType(ColorBlobLocatorProcessor.MorphOperationType.CLOSING)
-
-            .build();
-
-    public static int obeliskID = 0;
-
-    public enum TeamColor{
-        BLUE,
-        RED
-    }
-
-    //TODO:In auto this should be implemented to change
-    public static TeamColor robotColor = null;
-
-    public static final int BLUE_GOAL_ID = 20;
-    public static final int RED_GOAL_ID = 24;
 
 
 }
