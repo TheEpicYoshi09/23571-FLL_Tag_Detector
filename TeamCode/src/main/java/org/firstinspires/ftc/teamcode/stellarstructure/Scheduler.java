@@ -151,6 +151,8 @@ public class Scheduler {
 		checkScheduleQueue();
 
 		// run triggers
+		// [mike] Why do you need to create a new ArrayList here? Would it work to just
+		// iterate over activeTriggers directly?
 		for (Trigger trigger : new ArrayList<>(this.activeTriggers)) {
 			if (trigger.check()) {
 				trigger.run();
@@ -158,6 +160,7 @@ public class Scheduler {
 		}
 
 		// update runnables
+		// [mike] Same question here about the new ArrayList.
 		for (Runnable runnable : new ArrayList<>(this.activeRunnables)) {
 			if (runnable.getFinished()) {
 				if (!runnablesToRemove.contains(runnable)) {
@@ -181,6 +184,8 @@ public class Scheduler {
 		// add runnables to be added
 		for (Runnable runnable : runnablesToAdd) {
 			this.activeRunnables.add(runnable);
+			// [mike] Based on the name "schedulerStart" it sounds like you're starting
+			// the scheduler here, which is confusing. Would "startInScheduler" work?
 			runnable.schedulerStart();
 
 			// add the runnable's triggers
@@ -189,6 +194,8 @@ public class Scheduler {
 		runnablesToAdd.clear();
 
 		// if subsystem is not being used, run default directive
+		// [mike] Would the term "idleDirective" be clearer than "defaultDirective",
+		// or do the default directives actually do something besides idling?
 		for (Subsystem subsystem : this.subsystems) {
 			Runnable defaultDirective = subsystem.getDefaultDirective();
 

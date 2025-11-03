@@ -11,6 +11,10 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 @TeleOp(name = "TARS +Ethan's Approval", group = "Robot")
 public class TarsTele extends LinearOpMode {
+	// [mike] I think it would be simpler if this was just new StellarBot() (no
+	// parameters) and then remove those imports from this file. Sometimes you might
+	// do itthe current way for "dependency injection" reasons but I don't think that's
+	// necessary here.
 	final StellarBot tars = new StellarBot(
 			Drivebase.getInstance(),
 			Intake.getInstance(),
@@ -28,6 +32,8 @@ public class TarsTele extends LinearOpMode {
 
 		waitForStart();
 
+		// [mike] should this "stop requested" check be inside the loop below instead?
+		// I can't tell how isStopRequested() and opModeIsActive() are different.
 		if (isStopRequested()) return;
 
 		while (opModeIsActive()) {

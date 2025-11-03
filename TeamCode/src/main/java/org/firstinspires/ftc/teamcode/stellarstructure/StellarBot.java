@@ -33,6 +33,9 @@ public class StellarBot {
 
 	public final void update() {
 		//update triggers and directives
+		// [mike] Is it possible for StellarBot to own its own Scheduler instance instead
+		// of relying on the singleton pattern? This should work as-is, but people
+		// generally frown on singleton overuse.
 		Scheduler.getInstance().run();
 
 		//update subsystems

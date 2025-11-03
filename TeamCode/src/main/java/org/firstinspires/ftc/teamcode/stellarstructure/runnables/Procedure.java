@@ -19,6 +19,7 @@ public class Procedure extends Runnable {
 
     @Override
     public final void start(boolean hadToInterruptToStart) {
+        // [mike] Are you guaranteed that runnables isn't empty? (otherwise can throw)
         runnables[0].schedule();
     }
 
