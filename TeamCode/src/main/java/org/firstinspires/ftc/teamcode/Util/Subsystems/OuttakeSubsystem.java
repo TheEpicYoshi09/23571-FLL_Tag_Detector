@@ -79,7 +79,7 @@ public class OuttakeSubsystem implements Subsystem {
         launcher.setPower(debug ? launcherPowerDebug : (launcherPower += launcherController.runPDFL(.05)));
     }
 
-    public static double getTurretTargetPosition(double turretTargetAngle){
+    public  double getTurretTargetPosition(double turretTargetAngle){
 
         //Ratio given in terms of motor/turret
 
@@ -87,7 +87,7 @@ public class OuttakeSubsystem implements Subsystem {
 
     }
 
-    public static double getTurretCurrentAngle(double turretCurrentPositon){
+    public  double getTurretCurrentAngle(double turretCurrentPositon){
 
         //Ratio given in terms of motor/turret
 
@@ -95,11 +95,11 @@ public class OuttakeSubsystem implements Subsystem {
 
     }
 
-    public static void setTurretTargetAngle(double target){
+    public  void setTurretTargetAngle(double target){
         turretTargetAngle = target;
     }
 
-    public static double getTargetVelocity(double distanceToGoalInMeters) {
+    public  double getTargetVelocity(double distanceToGoalInMeters) {
         //https://www.desmos.com/calculator/yw7iis7m3w
         //https://medium.com/@vikramaditya.nishant/programming-a-decode-shooter-4ab114dac01f
         return Math.sqrt(
@@ -109,7 +109,7 @@ public class OuttakeSubsystem implements Subsystem {
         );
     }
 
-    public static void setLauncherTargetVelo(double target){
+    public  void setLauncherTargetVelo(double target){
         launcherTargetVelo = target;
     }
 
