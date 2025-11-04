@@ -64,6 +64,7 @@ public class AprilTagTester extends LinearOpMode {
                 continuousAprilTagLock = true;
 
                 telemetry.addData("Continuously locked in on", "apriltag");
+                telemetry.addData("Last detected tag ID", aprilTag.getCurrentId());
                 telemetry.addData("Goal tag bearing", aprilTag.getBearing());
                 telemetry.addData("Goal tag elevation", aprilTag.getElevation());
                 telemetry.addData("Goal tag range", aprilTag.getRange());
