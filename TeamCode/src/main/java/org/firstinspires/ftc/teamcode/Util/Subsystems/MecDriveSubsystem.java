@@ -19,7 +19,7 @@ public class MecDriveSubsystem implements Subsystem {
     private Follower follower;
 
     //For calculated turret angle
-    private static double turretTargetAngle = 0;
+    private static double changeInTurretAngle = 0;
 
 
     public MecDriveSubsystem(HardwareMap hardwareMap, JoinedTelemetry telemetry, UniConstants.teamColor color){
@@ -61,13 +61,13 @@ public class MecDriveSubsystem implements Subsystem {
                 y = follower.getPose().getY() - Poses.redGoal.getY();
         }
 
-        turretTargetAngle = (Math.toDegrees(Math.atan(x / y)));
-        return (Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2))) / 39.37;
+        changeInTurretAngle = (Math.toDegrees(Math.atan2(x,y))) + follower.getHeading();
+        return Math.hypot(x,y) / 39.37;
 
     }
 
     public double getCalculatedTurretAngle(){
-        return turretTargetAngle;
+        return changeInTurretAngle;
     }
 
     public void sendTelemetry(UniConstants.loggingState state){

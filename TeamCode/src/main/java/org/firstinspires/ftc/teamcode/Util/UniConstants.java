@@ -16,7 +16,7 @@ public class UniConstants {
 
 /*CONFIG
     //CHM0 = ACTIVE
-    //CHM1 = TURR
+    //CHM1 = ROTA
     //CHM2 = FLM
     //CHM3 = BLM
 
@@ -28,7 +28,7 @@ public class UniConstants {
 
     //EHM0 = FR
     //EHM1 = BR
-    //EHM2 = ROTA
+    //EHM2 = TURR
     //EHM3 = LAUNCH
 
     //EHI2C0 = CSR

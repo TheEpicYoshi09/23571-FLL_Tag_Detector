@@ -105,11 +105,6 @@ public class NextFTCTeleop extends NextFTCOpMode {
         //Exit velocity will be a function of the power put into the motor (PDFL)
 
 
-
-
-
-
-
         outtake.setLauncherTargetVelo(outtake.getTargetVelocity(mecDrive.updateDistanceAndAngle(color)));
         outtake.setTurretTargetAngle(mecDrive.getCalculatedTurretAngle());
         distanceToGoalInMeters = mecDrive.updateDistanceAndAngle(color);
