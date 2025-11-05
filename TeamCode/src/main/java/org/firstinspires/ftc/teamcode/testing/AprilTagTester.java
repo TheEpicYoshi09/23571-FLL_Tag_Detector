@@ -14,6 +14,10 @@ import org.openftc.easyopencv.*;
 @TeleOp(name = "AprilTagTester", group = "AA_main")
 public class AprilTagTester extends LinearOpMode {
     OpenCvCamera camera;
+    private long lastAimUpdateTime = 0;
+    private double lastTurnCorrection = 0;
+    private static final long AIM_UPDATE_INTERVAL_MS = 50;  // update every 50 ms (~20 Hz)
+
     @Override
     public void runOpMode() throws InterruptedException {
         AprilTag aprilTag = new AprilTag(hardwareMap);
@@ -37,21 +41,25 @@ public class AprilTagTester extends LinearOpMode {
 
             double turnCorrection;
             if (continuousAprilTagLock) {
-                aprilTag.scanGoalTag();
-                double bearing = aprilTag.getBearing();
-                if (Double.isNaN(bearing)) {
-                    turnCorrection = 0;
-                } else {
-                    turnCorrection = aprilAimer.calculateTurnPowerToBearing(bearing);
+                long currentTime = System.currentTimeMillis();
+
+                // Run scan + PID only every AIM_UPDATE_INTERVAL_MS
+                if (currentTime - lastAimUpdateTime >= AIM_UPDATE_INTERVAL_MS) {
+                    lastAimUpdateTime = currentTime;
+
+                    aprilTag.scanGoalTag();
+                    double bearing = aprilTag.getBearing();
+
+                    if (Double.isNaN(bearing)) {
+                        lastTurnCorrection = 0;
+                    } else {
+                        lastTurnCorrection = aprilAimer.calculateTurnPowerToBearing(bearing);
+                    }
                 }
-                telemetry.addData("Continuously locked in on", "apriltag");
-                telemetry.addData("Last detected tag ID", aprilTag.getCurrentId());
-                telemetry.addData("Goal tag bearing", aprilTag.getBearing());
-                telemetry.addData("Goal tag elevation", aprilTag.getElevation());
-                telemetry.addData("Goal tag range", aprilTag.getRange());
-                aprilTag.setCurrentCameraScannedId(0);
-            }
-            else {
+
+                // Use the last computed correction between updates, but slowly decay it
+                turnCorrection = 0.9 * lastTurnCorrection;
+            } else {
                 turnCorrection = 0;
             }
 
@@ -65,6 +73,14 @@ public class AprilTagTester extends LinearOpMode {
 
             if (gamePadTwo.wasJustPressed(GamepadKeys.Button.A)) {
                 continuousAprilTagLock = true;
+
+                telemetry.addData("Button A to update", "telemetry");
+                telemetry.addData("Continuously locked in on", "apriltag");
+                telemetry.addData("Last detected tag ID", aprilTag.getCurrentId());
+                telemetry.addData("Goal tag bearing", aprilTag.getBearing());
+                telemetry.addData("Goal tag elevation", aprilTag.getElevation());
+                telemetry.addData("Goal tag range", aprilTag.getRange());
+                aprilTag.setCurrentCameraScannedId(0);
             }
 
             if (gamePadTwo.wasJustPressed(GamepadKeys.Button.B)) {
