@@ -319,7 +319,7 @@ public class Util {
 
 
     public static void startShooting(FlyWheel flyWheel, Kicker kicker, Flipper flipper, Intake intake, DistanceSensor channelDistanceSensor, int requiredFlyWheelVelocity, Telemetry telemetry){
-        Long timeForFlyWheelVelocity = Util.waitForFlyWheelShootingVelocity(flyWheel,requiredFlyWheelVelocity,3000);
+        Long timeForFlyWheelVelocity = Util.waitForFlyWheelShootingVelocity(flyWheel,requiredFlyWheelVelocity,3000, telemetry);
 
         telemetry.addData("timeForFlyWheelVelocity - ",timeForFlyWheelVelocity);
         kicker.setPosition(Kicker.gateShoot);
