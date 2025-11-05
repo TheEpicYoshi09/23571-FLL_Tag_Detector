@@ -35,8 +35,12 @@ public class SampleTeleOpMode extends LinearOpMode {
 
     // --- Pusher pulse state ---
     private final ElapsedTime pusherTimer = new ElapsedTime();
+
     private boolean isPusherUp = false;
 
+    // --- sorter state ---
+    private final ElapsedTime sorterTimer = new ElapsedTime();
+    int sorterpos = 0;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -44,6 +48,8 @@ public class SampleTeleOpMode extends LinearOpMode {
         mecanumCommand = new MecanumCommand(hw);
         resetTimer = new ElapsedTime();
         hw.pusher.setPosition(PUSHER_DOWN);
+        hw.sorter.setPosition(0);
+
 
         // Wait for start button to be pressed
         waitForStart();
@@ -98,6 +104,21 @@ public class SampleTeleOpMode extends LinearOpMode {
             }
             previousXState = currentXState;
 
+
+            if (gamepad1.b && sorterTimer.milliseconds() > 1000){
+                sorterTimer.reset();
+                if (sorterpos == 0) {
+                    hw.sorter.setPosition(0);//60 degrees
+                }
+                else if (sorterpos == 1) {
+                    hw.sorter.setPosition(0.5);//60 degrees
+                }
+                else if (sorterpos == 2) {
+                    hw.sorter.setPosition(1);//60 degrees
+                }
+                sorterpos = (sorterpos+1)%3;
+            }
+
         }
 
     }
@@ -108,6 +129,7 @@ public class SampleTeleOpMode extends LinearOpMode {
         telemetry.addData("X", mecanumCommand.getX());
         telemetry.addData("Y", mecanumCommand.getY());
         telemetry.addData("Pusher ON", isPusherUp);
+        telemetry.addData("sorterpos", sorterpos);
         telemetry.update();
     }
 }
