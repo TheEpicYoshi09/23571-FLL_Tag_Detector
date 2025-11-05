@@ -5,13 +5,10 @@ import com.arcrobotics.ftclib.gamepad.GamepadKeys;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.subsystems.AprilTag;
 import org.firstinspires.ftc.teamcode.subsystems.AprilTagAimer;
 import org.firstinspires.ftc.teamcode.subsystems.Movement;
 
-import org.opencv.core.Mat;
-import org.opencv.imgproc.Imgproc;
 import org.openftc.easyopencv.*;
 
 @TeleOp(name = "AprilTagTester", group = "AA_main")
@@ -47,6 +44,12 @@ public class AprilTagTester extends LinearOpMode {
                 } else {
                     turnCorrection = aprilAimer.calculateTurnPowerToBearing(bearing);
                 }
+                telemetry.addData("Continuously locked in on", "apriltag");
+                telemetry.addData("Last detected tag ID", aprilTag.getCurrentId());
+                telemetry.addData("Goal tag bearing", aprilTag.getBearing());
+                telemetry.addData("Goal tag elevation", aprilTag.getElevation());
+                telemetry.addData("Goal tag range", aprilTag.getRange());
+                aprilTag.setCurrentCameraScannedId(0);
             }
             else {
                 turnCorrection = 0;
@@ -62,12 +65,6 @@ public class AprilTagTester extends LinearOpMode {
 
             if (gamePadTwo.wasJustPressed(GamepadKeys.Button.A)) {
                 continuousAprilTagLock = true;
-
-                telemetry.addData("Continuously locked in on", "apriltag");
-                telemetry.addData("Last detected tag ID", aprilTag.getCurrentId());
-                telemetry.addData("Goal tag bearing", aprilTag.getBearing());
-                telemetry.addData("Goal tag elevation", aprilTag.getElevation());
-                telemetry.addData("Goal tag range", aprilTag.getRange());
             }
 
             if (gamePadTwo.wasJustPressed(GamepadKeys.Button.B)) {
@@ -87,6 +84,7 @@ public class AprilTagTester extends LinearOpMode {
 
             telemetry.update();
         }
+        /*
         //vibe code stuff for the camera stream
         // Get webcam from config
         WebcamName webcamName = hardwareMap.get(WebcamName.class, "webcam");
@@ -135,6 +133,7 @@ public class AprilTagTester extends LinearOpMode {
         }
 
         camera.stopStreaming();
+    */
     }
 }
 

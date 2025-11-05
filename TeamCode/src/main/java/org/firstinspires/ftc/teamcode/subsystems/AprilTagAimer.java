@@ -2,14 +2,10 @@ package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
-
 public class AprilTagAimer {
-    private final double kP = 0.01;
+    private final double kP = 0.03;
     private final double kI = 0.001;
-    private final double kD = 0.005;
+    private final double kD = 0.0025;
     private final double kF = 0.05;
     private final double maxIntegral = 1.0;
 
