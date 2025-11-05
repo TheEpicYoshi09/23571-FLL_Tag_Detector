@@ -40,6 +40,9 @@ public class Teleop extends LinearOpMode {
         Kicker kicker = new Kicker();
         kicker.init(hardwareMap);
 
+        Flipper flipper = new Flipper();
+        flipper.init(hardwareMap);
+
         DecodeAprilTag aprilTag  = new DecodeAprilTag(this);
         aprilTag.initCamera();
 
@@ -119,10 +122,11 @@ public class Teleop extends LinearOpMode {
                 intake.setIntakePower(0.4);
 
                 while(!gamepad2.left_bumper) {
-                    Util.startShooting(flyWheel, kicker, intake, channelSensor, flyWheelVelocityRequired, telemetry);
+                    Util.startShooting(flyWheel, kicker, flipper, intake, channelSensor, flyWheelVelocityRequired, telemetry);
                     sleep(200);
                 }
 
+                flipper.resetFlipper();
                 intake.startIntake();
                 Util.prepareFlyWheelToIntake(flyWheel,kicker,intake, channelSensor,telemetry);
 
@@ -139,6 +143,7 @@ public class Teleop extends LinearOpMode {
 
             if (gamepad2.a){
                 // = Util.getFlyWheelVelocityRequiredForDistance();
+                intake.setIntakePower(0.4);
                 Util.prepareFlyWheelToShoot(flyWheel,kicker, intake, channelSensor, FlyWheel.FLYWHEEL_SHOOTING_VELOCITY, telemetry);
             }
 
