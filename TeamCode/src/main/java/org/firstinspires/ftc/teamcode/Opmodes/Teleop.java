@@ -54,17 +54,8 @@ public class Teleop extends LinearOpMode {
         Kicker kicker = new Kicker();
         kicker.init(hardwareMap);
 
-/*
-        limelight = hardwareMap.get(Limelight3A.class, "limelight");
-        telemetry.setMsTransmissionInterval(11);
-        limelight.pipelineSwitch(0);
-        limelight.start();
- */
-
-        //webcamName = hardwareMap.get(WebcamName.class, "Webcam 1");
-        //DecodeAprilTag aprilTag  = new DecodeAprilTag(this);
-        //aprilTag.initCamera();
-
+        DecodeAprilTag aprilTag  = new DecodeAprilTag(this);
+        aprilTag.initCamera();
 
         channelSensor = hardwareMap.get(DistanceSensor.class, "channelSensor");
         frontDistanceSensor = hardwareMap.get(DistanceSensor.class, "front_distance_sensor");
@@ -123,10 +114,8 @@ public class Teleop extends LinearOpMode {
             telemetry.addData("Distance From Channel Sensor - ",distanceSensor);
             telemetry.update();
 
-
-
             // Kicker
-            /*if(gamepad2.dpad_up) {
+            if(gamepad2.dpad_up) {
                 kicker.setPosition(Kicker.gateClose);
                 Util.addKickerTelemetry(kicker,telemetry);
                 telemetry.update();
@@ -160,12 +149,13 @@ public class Teleop extends LinearOpMode {
 
                 int loopCounter = 0;
                 while(!gamepad2.left_bumper) {
-                    Util.startShooting(flyWheel, kicker, intake, channelSensor, flyWheelVelocityRequired, telemetry);
+                    Util.startShooting(flyWheel, kicker, flipper, intake, channelSensor, flyWheelVelocityRequired, telemetry);
                     sleep(200);
                 }
                 telemetry.addData("gamepad2.right_bumper - loopCounter - ",loopCounter);
                 telemetry.update();
 
+                flipper.resetFlipper();
                 intake.startIntake();
                 Util.prepareFlyWheelToIntake(flyWheel,kicker,intake, channelSensor,telemetry);
 

@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -316,12 +317,24 @@ public class Util {
         kicker.setPosition(Kicker.gateIntake);
     }
 
-    public static void startShooting(FlyWheel flyWheel, Kicker kicker, Intake intake, DistanceSensor channelDistanceSensor, int requiredFlyWheelVelocity, Telemetry telemetry){
+
+    public static void startShooting(FlyWheel flyWheel, Kicker kicker, Flipper flipper, Intake intake, DistanceSensor channelDistanceSensor, int requiredFlyWheelVelocity, Telemetry telemetry){
         Long timeForFlyWheelVelocity = Util.waitForFlyWheelShootingVelocity(flyWheel,requiredFlyWheelVelocity,3000, telemetry);
+
         telemetry.addData("timeForFlyWheelVelocity - ",timeForFlyWheelVelocity);
         kicker.setPosition(Kicker.gateShoot);
-        boolean isObjectDetected = isObjectDetected(channelDistanceSensor, telemetry);
-        if (isObjectDetected) {
+        flipper.turnFlipper();
+        //boolean isObjectDetected = isObjectDetected(channelDistanceSensor, telemetry);
+        ElapsedTime timer = new ElapsedTime();
+        timer.reset();
+        while ( !isObjectDetected(channelDistanceSensor, telemetry) ) {
+            sleepThread(100);
+            if (timer.milliseconds() > 1000) {
+                break;
+            }
+        }
+        //if (isObjectDetected) {
+        if ( isObjectDetected(channelDistanceSensor, telemetry) ) {
             sleepThread(200);
             kicker.setPosition(Kicker.gateClose);
         }
