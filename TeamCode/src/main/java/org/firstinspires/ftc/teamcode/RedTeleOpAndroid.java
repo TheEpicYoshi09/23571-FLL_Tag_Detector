@@ -72,6 +72,7 @@ public class RedTeleOpAndroid extends LinearOpMode {
     private boolean right_bumperPressed = false;
     @Override
     public void runOpMode() {
+        // Declares objects
         frontLeft  = hardwareMap.get(DcMotor.class, "frontLeft");
         frontRight = hardwareMap.get(DcMotor.class, "frontRight");
         backLeft   = hardwareMap.get(DcMotor.class, "backLeft");
@@ -81,6 +82,8 @@ public class RedTeleOpAndroid extends LinearOpMode {
         intake = hardwareMap.get(DcMotor.class, "intake");
         limelight = hardwareMap.get(Limelight3A.class, "LimeLight");
         servo = hardwareMap.get(Servo.class, "servo");
+        Toggle flywheelToggle = new Toggle(false);
+        ToggleManager toggleManager = new ToggleManager();
 
         // Establishing the direction and mode for the motors
         rightFlywheel.setDirection(DcMotor.Direction.REVERSE);
@@ -153,8 +156,9 @@ public class RedTeleOpAndroid extends LinearOpMode {
                 //Toggle for the shooter
                 servoAndIntakeToggle();
                 shooterToggle();
+                flywheelToggle.update(gamepad1.right_bumper);
                 telemetry.addData("FlywheelStatus", flywheelOn);
-                if(flywheelOn)
+                if(flywheelToggle.getState())
                 {
                     shoot();
                 }
