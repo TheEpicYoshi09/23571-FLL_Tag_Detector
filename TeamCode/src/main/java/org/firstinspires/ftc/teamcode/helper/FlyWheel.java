@@ -28,7 +28,7 @@ public class FlyWheel {
     public void start() {
         flyWheel.setPower(FLYWHEEL_SHOOTING_POWER);
     }
-    public void start(int flyWheelShootingPower) {
+    public void start(Double flyWheelShootingPower) {
         flyWheel.setPower(flyWheelShootingPower);
     }
     public void stop() {

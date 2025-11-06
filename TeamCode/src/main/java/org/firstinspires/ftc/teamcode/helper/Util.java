@@ -283,12 +283,12 @@ public class Util {
         return dDistance;
     }
 
-    public static void prepareFlyWheelToShoot(FlyWheel flyWheel, Kicker kicker, Intake intake, DistanceSensor frontDistanceSensor, int requiredFlyWheelVelocity, Telemetry telemetry){
+    public static void prepareFlyWheelToShoot(FlyWheel flyWheel, Kicker kicker, Intake intake, DistanceSensor frontDistanceSensor, Double distance, Telemetry telemetry){
         kicker.setPosition(Kicker.gateClose);
         threadSleep(1000);
         //Replace the timer with distance sensor
         //When the ball is moved out, start the flywheel
-        flyWheel.start();
+        flyWheel.start(Util.getRequiredFlyWheelPower(distance));
         threadSleep(800);
     }
 
@@ -318,10 +318,13 @@ public class Util {
     }
 
 
-    public static void startShooting(FlyWheel flyWheel, Kicker kicker, Flipper flipper, Intake intake, DistanceSensor channelDistanceSensor, int requiredFlyWheelVelocity, Telemetry telemetry){
-        Long timeForFlyWheelVelocity = Util.waitForFlyWheelShootingVelocity(flyWheel,requiredFlyWheelVelocity,3000, telemetry);
+    public static void startShooting(FlyWheel flyWheel, Kicker kicker, Flipper flipper, Intake intake, DistanceSensor channelDistanceSensor, Double distanceInInchFromAprilTag, Telemetry telemetry){
+        Double requiredFlyWheelPower = Util.getRequiredFlyWheelPower(distanceInInchFromAprilTag);
+        Integer requiredFlyWheelVelocity = Util.getRequiredFlyWheelVelocity(distanceInInchFromAprilTag);
 
-        telemetry.addData("timeForFlyWheelVelocity - ",timeForFlyWheelVelocity);
+        Long timeToReachRequiredFlyWheelVelocity = Util.waitForFlyWheelShootingVelocity(flyWheel,requiredFlyWheelVelocity,6000, telemetry);
+
+        telemetry.addData("timeToReachRequiredFlyWheelVelocity - ",timeToReachRequiredFlyWheelVelocity);
         kicker.setPosition(Kicker.gateShoot);
         flipper.turnFlipper();
         //boolean isObjectDetected = isObjectDetected(channelDistanceSensor, telemetry);
@@ -340,25 +343,57 @@ public class Util {
         }
     }
 
-    public static int getFlyWheelVelocityRequiredForDistance(double distanceInInchFromAprilTag){
+    public static Double getRequiredFlyWheelPower(double distanceInInchFromAprilTag){
+        Double doubleDesiredFlyWheelPower = 0.45;
+
+        if (distanceInInchFromAprilTag >= 25 && distanceInInchFromAprilTag <= 50){
+            doubleDesiredFlyWheelPower = 0.45;
+        }
+        else if (distanceInInchFromAprilTag>50 && distanceInInchFromAprilTag<=70){
+            doubleDesiredFlyWheelPower = 0.55;
+        }
+        else if (distanceInInchFromAprilTag>70 && distanceInInchFromAprilTag<=85){
+            doubleDesiredFlyWheelPower = 0.65;
+        }
+
+        return doubleDesiredFlyWheelPower;
+    }
+
+    public static Integer getRequiredFlyWheelVelocity(Double distanceInInchFromAprilTag){
+        Integer integerDesiredFlyWheelVelocity = 1200;
+
+        if (distanceInInchFromAprilTag >= 25 && distanceInInchFromAprilTag <= 50){
+            integerDesiredFlyWheelVelocity = 1200;
+        }
+        else if (distanceInInchFromAprilTag>50 && distanceInInchFromAprilTag<=70){
+            integerDesiredFlyWheelVelocity = 1300;
+        }
+        else if (distanceInInchFromAprilTag>70 && distanceInInchFromAprilTag<=85){
+            integerDesiredFlyWheelVelocity = 1500;
+        }
+
+        return integerDesiredFlyWheelVelocity;
+    }
+
+
+    /*
+    public static int getRequiredFlyWheelVelocityRequiredForDistance(Double distanceInInchFromAprilTag){
         int desiredFlyWheelVelocity = FlyWheel.FLYWHEEL_SHOOTING_VELOCITY;
 
         Double doubleDesiredFlyWheelPower = 0.004*(distanceInInchFromAprilTag)+0.399;
         Double doubleDesiredFlyWheelVelocity = (doubleDesiredFlyWheelPower * 1500)/0.65;
+        doubleDesiredFlyWheelPower.compareTo()
 
 
          desiredFlyWheelVelocity = doubleDesiredFlyWheelVelocity.intValue();
 
-         /*
-         if (desiredFlyWheelVelocity<1000){
-             desiredFlyWheelVelocity = FlyWheel.FLYWHEEL_SHOOTING_VELOCITY;
-         }
-          */
 
         return desiredFlyWheelVelocity;
     }
 
-    public static double getDistanceRequiredForFlyWheelVelocity(int flyWheelVelocity){
+     */
+
+    public static double getDistanceRequiredForFlyWheelVelocity(Integer flyWheelVelocity){
         double distanceInInchFromAprilTag = 53.0;
 
         return distanceInInchFromAprilTag;

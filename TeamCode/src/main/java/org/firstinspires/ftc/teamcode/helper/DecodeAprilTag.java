@@ -178,7 +178,7 @@ public class DecodeAprilTag {
                 telemetryMsgList.add(String.format("Bearing,%3.0f degrees", detection.ftcPose.bearing));
                 telemetryMsgList.add(String.format("Yaw, %3.0f degrees", detection.ftcPose.yaw));
                 telemetryMsgList.add(String.format("Elevation, %3.0f degrees", detection.ftcPose.elevation));
-                outTelemetry();
+                //outTelemetry();
 
                 retPose = detection.ftcPose;
             }
