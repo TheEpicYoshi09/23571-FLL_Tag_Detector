@@ -10,6 +10,16 @@ public class Constants {
 
     ///AUTONOMOUS SETPOINTS
 
+    /// TURRET HOOD POSITIONS
+    public static final double hoodMinimum = 0.0;
+    public static final double hoodMaximum = 1.0;
+
+    ///  TURRET POSITIONS
+    public static final double turretHome = 0.0;
+
+    ///  KICKER POSITIONS
+    public static final double kickerDown = 0.0;
+    public static final double kickerUp = 1.0;
 
     /// INTAKE COLOR SENSOR
     public static final int intakeColorRed = 4000;

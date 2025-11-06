@@ -10,6 +10,7 @@ import com.qualcomm.robotcore.hardware.DigitalChannel;
 //import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.drivers.GoBildaPinpointDriver;
 import org.firstinspires.ftc.teamcode.drivers.rgbIndicator;
 import org.firstinspires.ftc.teamcode.drivers.rgbIndicator.LEDColors;
@@ -26,6 +27,10 @@ public class RobotHardware {
     public DcMotor rightBack = null;
     public DcMotorEx intake = null;
     public DcMotorEx launcher = null;
+    public Servo spindexer = null;
+    public Servo turret = null;
+    public Servo hood = null;
+    public Servo kicker = null;
     public boolean allianceColorRed = false;
     public boolean allianceColorBlue = false;
 
@@ -62,7 +67,8 @@ public class RobotHardware {
         ///GoBilda Odometry Pod Setup
         //Deploy to Control Hub to make Odometry Pod show in hardware selection list
         odo = myOpMode.hardwareMap.get(GoBildaPinpointDriver.class, "odo");
-        odo.setOffsets(-100.0, -65.0);
+        odo.setOffsets(-100, -65, DistanceUnit.MM);
+        //odo.setOffsets(-100.0, -65.0);
         odo.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
         odo.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.REVERSED);
         odo.resetPosAndIMU();
@@ -106,13 +112,17 @@ public class RobotHardware {
         launcher.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         // Define and initialize ALL installed servos.
-        ///Intake Servos
-        /*
-        intakePincher = myOpMode.hardwareMap.get(Servo.class, "intakePincher");
-        intakePincher.setPosition(Constants.intakePincherClosed);
 
-         */
+        spindexer = myOpMode.hardwareMap.get(Servo.class, "spindexer");
 
+        turret = myOpMode.hardwareMap.get(Servo.class, "turret");
+        turret.setPosition(Constants.turretHome);
+
+        hood = myOpMode.hardwareMap.get(Servo.class, "hood");
+        hood.setPosition(Constants.hoodMinimum);
+
+        kicker = myOpMode.hardwareMap.get(Servo.class, "kicker");
+        kicker.setPosition(Constants.kickerDown);
 
         //Limelight Setup
         limelight = myOpMode.hardwareMap.get(Limelight3A.class, "limelight");
