@@ -10,6 +10,7 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.arcrobotics.ftclib.util.InterpLUT;
@@ -21,7 +22,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 @TeleOp
 public class Test extends OpMode {
     public static Follower follower;
-    private PIDController controller;
+    private PIDController controller, controllerTurret;
     private TelemetryManager telemetryM;
     public static double p = 0.2, i = 0.05, d = 0;
     public static double f = 0.0265;
@@ -38,12 +39,19 @@ public class Test extends OpMode {
     private final int shooterX = 135;
     private final int shooterY = 135;
     Servo latch;
+    double turretOffset = 0;
+    private static final int TICKS_MIN = -330;
+    private static final int TICKS_MAX = 990;
+    private static final double TICKS_PER_DEGREE = 1320.0 / 360.0;
 
     @Override
     public void init() {
         controller = new PIDController(p, i, d);
+        controllerTurret = new PIDController(0.028, 0, 0);
         shooterb = hardwareMap.get(DcMotorEx.class, "sb");
         turret = hardwareMap.get(DcMotorEx.class, "turret");
+        turret.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        turret.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         shootert = hardwareMap.get(DcMotorEx.class, "st");
         intake = hardwareMap.get(DcMotorEx.class, "intake");
         hood = hardwareMap.get(Servo.class, "hood");
@@ -89,27 +97,27 @@ public class Test extends OpMode {
         follower.setTeleOpDrive(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x, true);
         follower.update();
 
-        if (gamepad1.y) {
-            latch.setPosition(1);
-        } else {
-            latch.setPosition(0);
-        }
+        latch.setPosition(gamepad1.y ? 1 : 0);
 
         double robotX = follower.getPose().getX();
         double robotY = follower.getPose().getY();
         double robotHeading = follower.getPose().getHeading();
-        double distance = Math.sqrt(Math.pow(Math.abs(shooterX - robotX), 2) + Math.pow(Math.abs(shooterY - robotY), 2));
-        double theta = Math.atan(Math.abs(shooterY - robotY) / Math.abs(shooterX - robotX)); // radians
-        double turretAngle = theta - robotHeading;
-        double turretDegrees = Math.toDegrees(turretAngle);
-        turretDegrees = (turretDegrees + tangle) % 360 / 360.0;
-//        targetTurret = turretDegrees * 1640 - 450;
-        controller.setPID(0.025, 0, 0);
-        int pos = turret.getCurrentPosition();
-        telemetry.addData("Turret angle", turretDegrees);
-        telemetry.addData("Position", turretDegrees * 1640 - 450);
-        double pidturret = controller.calculate(pos, turretDegrees * 1640 - 450);
-        turret.setPower(pidturret);
+
+        double dx = shooterX - robotX;
+        double dy = shooterY - robotY;
+        double distance = Math.sqrt(dx*dx + dy*dy);
+        double targetAngleRad = Math.atan2(dy, dx);
+        double targetAngleDeg = Math.toDegrees(targetAngleRad) - Math.toDegrees(robotHeading);
+        int targetTicks = (int)Math.round(targetAngleDeg * TICKS_PER_DEGREE);
+        targetTicks = Math.max(TICKS_MIN, Math.min(TICKS_MAX, targetTicks));
+        turretOffset += (gamepad2.right_trigger - gamepad2.left_trigger) * 5;
+        int offsetTicks = (int)(turretOffset * TICKS_PER_DEGREE);
+        int finalTargetTicks = targetTicks + offsetTicks;
+
+        turret.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        turret.setTargetPosition(finalTargetTicks);
+        double turretPower = controllerTurret.calculate(turret.getCurrentPosition(), finalTargetTicks);
+        turret.setPower(Math.max(-1, Math.min(1, turretPower)));
 
         intake.setPower(gamepad1.right_trigger);
         target = RPM.get(distance);
