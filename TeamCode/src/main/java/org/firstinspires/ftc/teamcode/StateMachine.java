@@ -71,7 +71,7 @@ public class StateMachine {
     private void updatePositions() {
         switch (currentState) {
             case HOME: //Set all positions to home
-                robot.rgbIndicator.setColor(rgbIndicator.LEDColors.GREEN);
+                robot.rgbIndicatorMain.setColor(rgbIndicator.LEDColors.GREEN);
                 //robot.elevatorPivot.setPosition(Constants.elevatorPivotHome);
                 //robot.setElevator(Constants.elevatorHome);
                 //intakeAllHome();

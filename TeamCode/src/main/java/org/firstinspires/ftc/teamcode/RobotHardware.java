@@ -40,11 +40,9 @@ public class RobotHardware {
         STOP
     }
 
-    private IntakeDirection currentIntakeDirectionState = IntakeDirection.STOP;
-
     Limelight3A limelight = null;
     GoBildaPinpointDriver odo = null; // Declare OpMode member for the Odometry Computer
-    rgbIndicator rgbIndicator = null;
+    rgbIndicator rgbIndicatorMain = null;
     private DigitalChannel allianceButton = null;
 
     // Define a constructor that allows the OpMode to pass a reference to itself.
@@ -60,16 +58,16 @@ public class RobotHardware {
      */
     public void init()    {
 
-        rgbIndicator = new rgbIndicator(myOpMode.hardwareMap, "rgbLight");
-        //rgbIndicator.setColor(LEDColors.YELLOW);
+        rgbIndicatorMain = new rgbIndicator(myOpMode.hardwareMap, "rgbLight");
+        rgbIndicatorMain.setColor(LEDColors.YELLOW);
 
         allianceButton = myOpMode.hardwareMap.get(DigitalChannel.class, "allianceButton");
         if (allianceButton.getState()){
             allianceColorRed = true;
-            rgbIndicator.setColor(LEDColors.RED);
+            rgbIndicatorMain.setColor(LEDColors.RED);
         } else {
             allianceColorBlue = true;
-            rgbIndicator.setColor(LEDColors.BLUE);
+            rgbIndicatorMain.setColor(LEDColors.BLUE);
         }
 
         ///GoBilda Odometry Pod Setup
@@ -110,7 +108,6 @@ public class RobotHardware {
         intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         intake.setTargetPositionTolerance(5);
         intake.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        //intake.setTargetPosition(Constants.intakeSlideHome);
         intake.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
         //LAUNCHER
@@ -213,9 +210,6 @@ public class RobotHardware {
     }
 
     public void runIntake(IntakeDirection Direction) {
-        if (Direction != currentIntakeDirectionState) { //Only send commands if the state changes
-            currentIntakeDirectionState = Direction; // Update the current state
-
             if (Direction == IntakeDirection.OUT) {
                 intake.setPower(Constants.intakeReversePower);
             } else if (Direction == IntakeDirection.IN){
@@ -225,4 +219,4 @@ public class RobotHardware {
             }
         }
     }
-}
+

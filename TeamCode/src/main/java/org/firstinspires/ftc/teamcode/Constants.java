@@ -7,7 +7,6 @@ public class Constants {
     public static final double intakeForwardPower = 0.75;
     public static final double intakeReversePower = -0.75;
 
-
     ///AUTONOMOUS SETPOINTS
 
     /// TURRET HOOD POSITIONS
@@ -25,6 +24,5 @@ public class Constants {
     public static final int intakeColorRed = 4000;
     public static final int intakeColorGreen = 4000;
     public static final int intakeColorBlue = 4000;
-
 
 }
