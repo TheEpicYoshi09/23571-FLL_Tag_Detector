@@ -42,7 +42,7 @@ public class Teleop extends LinearOpMode {
         DcMotor turret = hardwareMap.dcMotor.get("turret");
         DcMotor shooterb = hardwareMap.dcMotor.get("sb");
         DcMotor shootert = hardwareMap.dcMotor.get("st");
-//        CRServo transfer = hardwareMap.crservo.get("transfer");
+//      CRServo transfer = hardwareMap.crservo.get("transfer");
         Servo hood = hardwareMap.servo.get("hood");
         Servo latch = hardwareMap.servo.get("latch");
 
@@ -65,8 +65,8 @@ public class Teleop extends LinearOpMode {
         while (opModeIsActive() && !isStopRequested()) {
             time1.reset();
             intake.setPower(gamepad1.left_stick_x);
-//            follower.setTeleOpDrive(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x, true);
-//            follower.update();
+            follower.setTeleOpDrive(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x, true);
+            follower.update();
 //
 //            double robotX = follower.getPose().getX();
 //            double robotY = follower.getPose().getY();
