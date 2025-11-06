@@ -18,7 +18,7 @@ import org.firstinspires.ftc.teamcode.drivers.rgbIndicator.LEDColors;
 public class RobotHardware {
 
     /* Declare OpMode members. */
-    private LinearOpMode myOpMode = null;   // gain access to methods in the calling OpMode.
+    private LinearOpMode myOpMode;   // gain access to methods in the calling OpMode.
 
     // Define Motor and Servo objects  (Make them private so they can't be accessed externally)
     public DcMotor leftFront = null;
@@ -33,6 +33,14 @@ public class RobotHardware {
     public Servo kicker = null;
     public boolean allianceColorRed = false;
     public boolean allianceColorBlue = false;
+
+    public enum IntakeDirection {
+        IN,
+        OUT,
+        STOP
+    }
+
+    private IntakeDirection currentIntakeDirectionState = IntakeDirection.STOP;
 
     Limelight3A limelight = null;
     GoBildaPinpointDriver odo = null; // Declare OpMode member for the Odometry Computer
@@ -204,4 +212,17 @@ public class RobotHardware {
         rightBack.setPower(rightBackPower);
     }
 
+    public void runIntake(IntakeDirection Direction) {
+        if (Direction != currentIntakeDirectionState) { //Only send commands if the state changes
+            currentIntakeDirectionState = Direction; // Update the current state
+
+            if (Direction == IntakeDirection.OUT) {
+                intake.setPower(Constants.intakeReversePower);
+            } else if (Direction == IntakeDirection.IN){
+                intake.setPower(Constants.intakeForwardPower);
+            } else if (Direction == IntakeDirection.STOP) {
+                intake.setPower(0.0);
+            }
+        }
+    }
 }

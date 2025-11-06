@@ -88,7 +88,7 @@ public class StateMachine {
     private void IntakeColorCheck(){
         System.out.println("Color Check Substep:" + ColorCheckSubstep);
         switch (ColorCheckSubstep){
-            case 0:  // Intake Until Button Pressed or Timeout
+            case 0:  // IntakeDirection Until Button Pressed or Timeout
                 if (!isIntakeTimerReset) {
                     IntakeTimer.reset();  // Reset the timer only once upon entering case 0
                     isIntakeTimerReset = true;
@@ -99,10 +99,10 @@ public class StateMachine {
                     } else {
                         robot.rgbIndicator.setColor(rgbIndicator.LEDColors.BLUE);
                     }
-                    //robot.runIntake(RobotHardware.ActiveIntake.IN); //Run intake
+                    //robot.runIntake(RobotHardware.IntakeDirection.IN); //Run intake
 
                 } else {
-                    robot.runIntake(RobotHardware.ActiveIntake.STOP); // Stop intake
+                    robot.runIntake(RobotHardware.IntakeDirection.STOP); // Stop intake
                     isIntakeRunning = false;
                     if (!robot.intakeTouch.getState() || robot.intakeDistance.getDistance(DistanceUnit.MM) < Constants.intakeProx) {
                         System.out.println("Limit switch triggered, moving to next step.");
@@ -115,7 +115,7 @@ public class StateMachine {
                 }
                 break;
             case 1: //Check the color and set the LED
-                System.out.println(String.format("Intake RGB: %d, %d, %d", robot.intakeColor.red(), robot.intakeColor.green(), robot.intakeColor.blue()));
+                System.out.println(String.format("IntakeDirection RGB: %d, %d, %d", robot.intakeColor.red(), robot.intakeColor.green(), robot.intakeColor.blue()));
 
                 if (robot.intakeColor.red() > Constants.intakeColorRed && robot.intakeColor.green() > Constants.intakeColorGreen){
                     //YELLOW
@@ -157,9 +157,9 @@ public class StateMachine {
                     break;
                 } else {
                     //Got a color we don't want, spit it out and restart this case
-                    robot.runIntake(RobotHardware.ActiveIntake.OUT);
+                    robot.runIntake(RobotHardware.IntakeDirection.OUT);
                     if (ColorCheckEjectTimer.seconds() > 0.50){
-                        robot.runIntake(RobotHardware.ActiveIntake.STOP);
+                        robot.runIntake(RobotHardware.IntakeDirection.STOP);
                         detectedColor = DetectedColor.NONE;
                         isEjectTimerReset = false;
                         isIntakeTimerReset = false;  // Ensure timer resets when restarting case 0

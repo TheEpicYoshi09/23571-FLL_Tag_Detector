@@ -21,7 +21,7 @@ public class Constants {
     public static final double kickerDown = 0.0;
     public static final double kickerUp = 1.0;
 
-    /// INTAKE COLOR SENSOR
+    /// COLOR SENSOR
     public static final int intakeColorRed = 4000;
     public static final int intakeColorGreen = 4000;
     public static final int intakeColorBlue = 4000;

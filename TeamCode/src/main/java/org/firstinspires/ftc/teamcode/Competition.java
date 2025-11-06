@@ -38,18 +38,10 @@ public class Competition extends LinearOpMode {
         double y;
         double rotation;
 
-        //Elevator
-        boolean manualControl = false; // Default to position-based control
-        boolean backButtonPreviouslyPressed = false; // To track toggle state
-        double elevatorPower = 0;
-
-        //Intake
-        //boolean IntakeClosed = true;
-        //boolean IntakeButtonWasPressed = false;
+        //IntakeDirection
         boolean RightBumperPressed = false;
         boolean aPressed = false;
         boolean leftBumperPressed = false;
-        //double PosChange = 0.0;
 
         robot.init();  //Hardware configuration in RobotHardware.java
 
@@ -88,43 +80,32 @@ public class Competition extends LinearOpMode {
             ///MECANUM DRIVE
 
             // Get joystick inputs
-            y = -gamepad1.left_stick_y * 0.80; // Forward/backward - multiply by 0.75 to scale speed down
-            x = gamepad1.left_stick_x * 0.80;  // Strafe - multiply by 0.75 to scale speed down
+            y = -gamepad1.left_stick_y * 0.90; // Forward/backward - multiply by 0.90 to scale speed down
+            x = gamepad1.left_stick_x * 0.90;  // Strafe - multiply by 0.90 to scale speed down
             if (gamepad1.right_stick_button) {
-                rotation = gamepad1.right_stick_x * 0.45; //Slow rotation mode when button pressed in
+                rotation = gamepad1.right_stick_x * 0.50; //Slow rotation mode when button pressed in
             } else {
                 rotation = gamepad1.right_stick_x * 0.75; // Rotation - multiply by 0.75 to scale speed down
             }
 
             robot.mecanumDrive(x, y, rotation);
 
+            /// BUTTON MAPPING
+            // D-Pad left/right = turret manual rotate
+            // Trigger left/right = (hold) intake forward/reverse
+
             ///INTAKE
+            //IntakeDirection
+            boolean IntakeForwardPressed = gamepad1.dpad_right; //Check if button pressed
+            boolean IntakeReversePressed = gamepad1.dpad_left; //Check if button pressed
 
-            //Intake Pincher
-            boolean IntakeButtonPressed = gamepad1.left_bumper; //Check if button pressed
-
-            /// Elevator Pincher Rotation Test
-            //TODO Remove this once State Machine handles this
-            if (gamepad2.a){
-                //robot.ElevatorPivot(0.01);
-            } else if (gamepad2.b) {
-                //robot.ElevatorPivot(-0.01);
+            if (IntakeForwardPressed){
+                robot.runIntake(RobotHardware.IntakeDirection.IN);
+            } else if (IntakeReversePressed) {
+                robot.runIntake(RobotHardware.IntakeDirection.OUT);
             } else {
-                //robot.ElevatorPivot(0);
+                robot.runIntake(RobotHardware.IntakeDirection.STOP);
             }
-
-            //TODO Remove this once State Machine handles this
-            if (gamepad2.x){
-                //robot.setElevatorPincher(0.01);
-            } else if (gamepad2.y) {
-                //robot.setElevatorPincher(-0.01);
-            } else {
-                //robot.setElevatorPincher(0);
-            }
-
-            //telemetry.addData("Elev Pivot", robot.elevatorPivot.getPosition());
-            //telemetry.addData("Elev Pinch Rotate", robot.elevatorPincherRotate.getPosition());
-            //telemetry.addData("Elev Pinch Pos", robot.elevatorPincher.getPosition());
 
             ///STATE CHANGE BUTTON SETUP
             //TODO Maybe rearrange this
