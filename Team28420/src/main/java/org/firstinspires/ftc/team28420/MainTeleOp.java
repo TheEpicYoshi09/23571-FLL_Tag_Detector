@@ -22,12 +22,17 @@ public class MainTeleOp extends LinearOpMode {
 
         waitForStart();
         while (opModeIsActive()) {
-            mov.setMotorsVelocities(mov.vectorToRatios(PolarVector.fromPos(
-                new Position(
-                    Math.abs(gamepad1.left_stick_x) > Config.GAMEPAD_LEFT_DEAD_ZONE ? gamepad1.left_stick_x * Config.GAMEPAD_COEFFICIENT: 0,
-                    Math.abs(gamepad1.left_stick_y) > Config.GAMEPAD_LEFT_DEAD_ZONE ? -gamepad1.left_stick_y * Config.GAMEPAD_COEFFICIENT : 0
-                )),  Math.abs(gamepad1.right_stick_x) > Config.GAMEPAD_RIGHT_DEAD_ZONE ? gamepad1.right_stick_x * Config.GAMEPAD_COEFFICIENT : 0)
+            Config.Etc.telemetry.addData("left stick", gamepad1.left_stick_x);
+
+            mov.setMotorsVelocityRatios(mov.vectorToRatios(PolarVector.fromPos(
+                    new Position(
+                        Math.abs(gamepad1.left_stick_x) > Config.GAMEPAD_LEFT_DEAD_ZONE ? gamepad1.left_stick_x * Config.GAMEPAD_COEFFICIENT : 0,
+                        Math.abs(gamepad1.left_stick_y) > Config.GAMEPAD_LEFT_DEAD_ZONE ? -gamepad1.left_stick_y * Config.GAMEPAD_COEFFICIENT : 0
+                    )).rotate(Math.PI / 2),
+                    Math.abs(gamepad1.right_stick_x) > Config.GAMEPAD_RIGHT_DEAD_ZONE ? gamepad1.right_stick_x * Config.GAMEPAD_COEFFICIENT : 0),
+                Config.VELOCITY_COEFFICIENT
             );
+            Config.Etc.telemetry.update();
         }
     }
 
@@ -41,6 +46,6 @@ public class MainTeleOp extends LinearOpMode {
     }
 
     private void setup() {
-        mov.setMotorsMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        mov.setup();
     }
 }

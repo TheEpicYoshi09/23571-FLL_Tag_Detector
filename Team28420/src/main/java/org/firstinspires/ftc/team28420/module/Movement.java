@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 import org.firstinspires.ftc.team28420.types.PolarVector;
 import org.firstinspires.ftc.team28420.types.WheelsRatio;
+import org.firstinspires.ftc.team28420.util.Config;
 
 public class Movement {
 
@@ -25,12 +26,26 @@ public class Movement {
         rightBack.setTargetPosition(wheelsRatioInteger.getRightBack());
     }
 
-    public void setMotorsVelocities(WheelsRatio<Double> wheelsRatio) {
+    public void setMotorsPowerRatios(WheelsRatio<Double> wheelsRatio) {
+        Config.Etc.telemetry.addData("left front", wheelsRatio.getLeftFront());
+        Config.Etc.telemetry.addData("right front", wheelsRatio.getRightFront());
+        Config.Etc.telemetry.addData("left bottom", wheelsRatio.getLeftBack());
+        Config.Etc.telemetry.addData("right bottom", wheelsRatio.getRightBack());
+
+
         leftFront.setVelocity(wheelsRatio.getLeftFront());
         rightFront.setVelocity(wheelsRatio.getRightFront());
         leftBack.setVelocity(wheelsRatio.getLeftBack());
         rightBack.setVelocity(wheelsRatio.getRightBack());
     }
+
+    public void setMotorsVelocityRatios(WheelsRatio<Double> wheelsRatio, int velocityMult) {
+        leftFront.setVelocity(wheelsRatio.getLeftBack() * velocityMult);
+        rightFront.setVelocity(wheelsRatio.getRightFront() * velocityMult);
+        leftBack.setVelocity(wheelsRatio.getLeftBack() * velocityMult);
+        rightBack.setVelocity(wheelsRatio.getRightBack() * velocityMult);
+    }
+
 
     public void setMotorsMode(DcMotor.RunMode mode) {
         leftFront.setMode(mode);
@@ -51,7 +66,7 @@ public class Movement {
     }
 
     public void brake() {
-        setMotorsVelocities(WheelsRatio.ZERO);
+        setMotorsPowerRatios(WheelsRatio.ZERO);
     }
 
     public void setup() {
@@ -77,7 +92,7 @@ public class Movement {
             lf /= vector.getAbs() + Math.abs(turn);
             rf /= vector.getAbs() + Math.abs(turn);
             lb /= vector.getAbs() + Math.abs(turn);
-            lb /= vector.getAbs() + Math.abs(turn);
+            rb /= vector.getAbs() + Math.abs(turn);
         }
 
         return new WheelsRatio<Double>(lf, rf, lb, rb);

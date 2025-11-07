@@ -2,7 +2,6 @@ package org.firstinspires.ftc.team28420;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -23,7 +22,7 @@ public class MainAuto extends LinearOpMode {
         ElapsedTime ep = new ElapsedTime();
 
         waitForStart();
-        mov.setMotorsVelocities(new WheelsRatio<>(
+        mov.setMotorsPowerRatios(new WheelsRatio<>(
                 100.0, 100.0, 100.0, 100.0
         ));
 

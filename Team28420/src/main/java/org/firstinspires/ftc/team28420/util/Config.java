@@ -7,6 +7,8 @@ public final class Config {
     public static double GAMEPAD_RIGHT_DEAD_ZONE = 0.6;
     public static double GAMEPAD_COEFFICIENT = 0.8;
 
+    public static int VELOCITY_COEFFICIENT = 3000;
+
     public static String LEFT_TOP_MOTOR = "motorLT";
     public static String RIGHT_TOP_MOTOR = "motorRT";
     public static String LEFT_BOTTOM_MOTOR = "motorLB";
