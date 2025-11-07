@@ -36,7 +36,7 @@ public class AutoBase extends LinearOpMode {
         waitForStart();
 
         while(opModeIsActive()) {
-            forward(0.5, 5000);
+            forward(0.3, 5000);
         }
     }
 
