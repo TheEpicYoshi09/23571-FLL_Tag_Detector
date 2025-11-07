@@ -149,6 +149,10 @@ public class Util {
         rightFront.setPower(0);
         rightBack.setPower(0);
     }
+    public static void addKickerTelemetry(Kicker kicker, Telemetry telemetry){
+        telemetry.addData("kicker.getPosition() - ",kicker.getPosition());
+        telemetry.addData("kicker.getGatePosition() - ",kicker.getGatePosition());
+    }
 
     public static void telemetryFlyWheelVelocity(FlyWheel flyWheel, double flyWheelPower, DistanceSensor frontDistanceSensor,  int runForMS, Telemetry telemetry){
 
@@ -267,11 +271,11 @@ public class Util {
         boolean ret = false;
 
         // Get distance reading from 2M sensor
-        double dDistance = channelSensor.getDistance(DistanceUnit.CM);
-        telemetry.addData("distanceSensor - ",dDistance);
-        telemetry.update();
+        double dDistance = channelSensor.getDistance(DistanceUnit.INCH);
+        //telemetry.addData("distanceSensor - ",dDistance);
+        //telemetry.update();
         // Check if distance is less than 10 cm
-        if (dDistance < 14 ) ret = true;
+        if (dDistance < 14/2.54 ) ret = true;
 
         return ret;
     }
@@ -283,38 +287,22 @@ public class Util {
         return dDistance;
     }
 
-    public static void prepareFlyWheelToShoot(FlyWheel flyWheel, Kicker kicker, Intake intake, DistanceSensor frontDistanceSensor, Double distance, Telemetry telemetry){
+    public static void prepareFlyWheelToShoot(FlyWheel flyWheel, Kicker kicker, Intake intake, Double distance, Telemetry telemetry){
         kicker.setPosition(Kicker.gateClose);
-        threadSleep(1000);
+        threadSleep(800);
         //Replace the timer with distance sensor
         //When the ball is moved out, start the flywheel
         flyWheel.start(Util.getRequiredFlyWheelPower(distance));
-        threadSleep(800);
+        //threadSleep(800);
     }
 
-    /*
-    public static long testFlyWheelStopTime(FlyWheel flyWheel){
-        long startTime = System.currentTimeMillis();
-        flyWheel.stop();
-        flyWheel.setPower(0.2);
-        Util.waitForFlyWheelStopVelocity(flyWheel,50,30000,);
-        long endTime =  System.currentTimeMillis();
-        long durationInMillis = endTime - startTime;
-        return durationInMillis;
-    }
-
-     */
-
-    public static void addKickerTelemetry(Kicker kicker, Telemetry telemetry){
-        telemetry.addData("kicker.getPosition() - ",kicker.getPosition());
-        telemetry.addData("kicker.getGatePosition() - ",kicker.getGatePosition());
-    }
-
-    public static void prepareFlyWheelToIntake(FlyWheel flyWheel, Kicker kicker, Intake intake, DistanceSensor channelDistanceSensor, Telemetry telemetry){
+    public static void prepareFlyWheelToIntake(FlyWheel flyWheel, Kicker kicker, Intake intake, Flipper flipper, Telemetry telemetry){
         flyWheel.stop();
         kicker.setGatePosition(Kicker.GATE_CLOSE);
+        flipper.resetFlipper();
         Util.waitForFlyWheelStopVelocity(flyWheel,100,5000, telemetry);
         kicker.setPosition(Kicker.gateIntake);
+        intake.startIntake();
     }
 
 
@@ -326,8 +314,21 @@ public class Util {
 
         telemetry.addData("timeToReachRequiredFlyWheelVelocity - ",timeToReachRequiredFlyWheelVelocity);
         kicker.setPosition(Kicker.gateShoot);
-        flipper.turnFlipper();
+        //sleepThread(100);
+        if(!isObjectDetected(channelDistanceSensor, telemetry)){
+            flipper.turnFlipper();
+            sleepThread(100);
+        }
+
+        if ( isObjectDetected(channelDistanceSensor, telemetry) ) {
+            kicker.setPosition(Kicker.gateClose);
+        }
+
+
+
         //boolean isObjectDetected = isObjectDetected(channelDistanceSensor, telemetry);
+
+        /*
         ElapsedTime timer = new ElapsedTime();
         timer.reset();
         while ( !isObjectDetected(channelDistanceSensor, telemetry) ) {
@@ -336,11 +337,12 @@ public class Util {
                 break;
             }
         }
+
+         */
         //if (isObjectDetected) {
-        if ( isObjectDetected(channelDistanceSensor, telemetry) ) {
-            sleepThread(200);
-            kicker.setPosition(Kicker.gateClose);
-        }
+
+
+
     }
 
     public static Double getRequiredFlyWheelPower(double distanceInInchFromAprilTag){
