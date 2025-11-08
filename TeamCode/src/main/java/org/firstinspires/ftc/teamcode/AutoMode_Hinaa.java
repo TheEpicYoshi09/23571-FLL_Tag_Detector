@@ -156,6 +156,7 @@ public class AutoMode_Hinaa extends LinearOpMode {
 
         // Wait for the game to start (driver presses START)
         waitForStart();
+        encoderDrive(DRIVE_SPEED,  5,  5, 3.0);
 
         belt.setPosition(1.0);
         telemetry.addLine("Running conveyor..."); //move ball up with conveyor belt
