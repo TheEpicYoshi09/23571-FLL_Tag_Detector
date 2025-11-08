@@ -48,8 +48,6 @@ public class OldRevTeleOp extends OpMode {
     public void Movement() {
         float gamePadY = -gamepad1.left_stick_y;
         float gamePadX = gamepad1.right_stick_x;
-        float gamePadX = -gamepad1.left_stick_y;
-        float gamePadY = gamepad1.right_stick_x;
 
         //Range.clip clamps the value
         rightFront.setPower(Range.clip(gamePadY - gamePadX, -1, 1));
