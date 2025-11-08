@@ -23,6 +23,7 @@ public class RotaryIntakeSubsystem implements Subsystem {
     UniConstants.teamColor color;
     public static boolean debug = false;
     public static boolean isEnabled = false;
+    public static boolean isReversed = false;
 
     //Arraylists
     public ArrayList<ColorSensor> colorSensors = new ArrayList<>();
@@ -78,9 +79,7 @@ public class RotaryIntakeSubsystem implements Subsystem {
     @Override
     public void periodic() {
 
-        if(debug){
-            rotaryController.setPDFL(pR, dR, fR, lR);
-        }
+        rotaryController.setPDFL(pR, dR, fR, lR);
 
         readSlots();
         rotaryCurrentPosition = rotary.getCurrentPosition();
@@ -91,7 +90,7 @@ public class RotaryIntakeSubsystem implements Subsystem {
         rotaryController.update(rotaryCurrentPosition);
         rotary.setPower(debug ? rotaryPower : rotaryController.runPDFL(5));
 
-        active.setPower(isEnabled ? 1 : 0);
+        active.setPower(isEnabled ? (isReversed ? -1 : 1) : 0);
 
         ballServo.setPosition(debug ? testServoPos : servoTarget);
 
@@ -103,6 +102,13 @@ public class RotaryIntakeSubsystem implements Subsystem {
 
     public void enableActive(){
         isEnabled = true;
+    }
+
+    public void reverseIntake(){
+        isReversed = true;
+    }
+    public void forwardIntake(){
+        isReversed = false;
     }
 
     public void setRotaryTargetPosition(int target){
@@ -152,6 +158,10 @@ public class RotaryIntakeSubsystem implements Subsystem {
         return (slot == UniConstants.slotState.PURPLE) || (slot == UniConstants.slotState.GREEN);
     }
 
+    public void setColor(UniConstants.teamColor color){
+        this.color = color;
+    }
+
     public boolean allFull() {
 
         for (UniConstants.slotState slot : slots) {
@@ -170,6 +180,10 @@ public class RotaryIntakeSubsystem implements Subsystem {
                 telemetry.addLine("START OF ROTARY LOG");
                 telemetry.addData("Rotary Current Pos ", rotaryCurrentPosition);
                 telemetry.addData("Rotary Target Pos ", rotaryTargetPosition);
+                telemetry.addLine();
+                telemetry.addData("Slot Front State ", slots.get(0));
+                telemetry.addData("Slot Right State ", slots.get(1));
+                telemetry.addData("Slot Left State ", slots.get(2));
                 telemetry.addLine("END OF ROTARY LOG");
                 telemetry.addLine();
                 break;

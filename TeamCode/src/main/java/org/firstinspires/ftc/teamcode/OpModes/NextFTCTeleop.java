@@ -5,9 +5,8 @@ import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.JoinedTelemetry;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.ColorSensor;
 
-//import org.firstinspires.ftc.teamcode.Util.Subsystems.BetterVisionTM;
+import org.firstinspires.ftc.teamcode.Util.Subsystems.BetterVisionTM;
 import org.firstinspires.ftc.teamcode.Util.Subsystems.MecDriveSubsystem;
 import org.firstinspires.ftc.teamcode.Util.Subsystems.OuttakeSubsystem;
 import org.firstinspires.ftc.teamcode.Util.Subsystems.RotaryIntakeSubsystem;
@@ -38,7 +37,7 @@ public class NextFTCTeleop extends NextFTCOpMode {
 
 
     //All different subsystems
-//    private static BetterVisionTM vision;
+    private static BetterVisionTM vision;
     private static RotaryIntakeSubsystem rotaryIntake;
     private static OuttakeSubsystem outtake;
     private static MecDriveSubsystem mecDrive;
@@ -47,6 +46,11 @@ public class NextFTCTeleop extends NextFTCOpMode {
     public void onInit() {
         joinedTelemetry = new JoinedTelemetry(telemetry, PanelsTelemetry.INSTANCE.getFtcTelemetry());
 //        vision = new BetterVisionTM(hardwareMap, joinedTelemetry, logState);
+        rotaryIntake = new RotaryIntakeSubsystem(hardwareMap, joinedTelemetry, color);
+        outtake = new OuttakeSubsystem(hardwareMap, joinedTelemetry, color);
+        mecDrive = new MecDriveSubsystem(hardwareMap, joinedTelemetry, color);
+        mecDrive.resetPinpoint();
+        outtake.resetMotors();
     }
 
     @Override public void onWaitForStart() {
@@ -66,16 +70,9 @@ public class NextFTCTeleop extends NextFTCOpMode {
     @Override
     public void onStartButtonPressed() {
 
-
-        rotaryIntake = new RotaryIntakeSubsystem(hardwareMap, joinedTelemetry, color);
-        outtake = new OuttakeSubsystem(hardwareMap, joinedTelemetry, color);
-        mecDrive = new MecDriveSubsystem(hardwareMap, joinedTelemetry, color);
-        mecDrive.resetPinpoint();
-
-        for (ColorSensor sensor : rotaryIntake.colorSensors) {
-            sensor.enableLed(true);
-        }
-        outtake.resetMotors();
+        rotaryIntake.setColor(color);
+        outtake.setColor(color);
+        mecDrive.setColor(color);
         mecDrive.startTele();
 
 
@@ -86,7 +83,9 @@ public class NextFTCTeleop extends NextFTCOpMode {
 
         isSlowed = gamepad1.right_bumper;
 
+        //Spin active forward, if the front slot is full, move to the next one.
         if (gamepad1.a && !rotaryIntake.allFull()) {
+            rotaryIntake.forwardIntake();
             rotaryIntake.enableActive();
             if (rotaryIntake.isFull(rotaryIntake.slots.get(0))) {
                 if (!(rotaryIntake.getError() > 50)) {
@@ -97,15 +96,21 @@ public class NextFTCTeleop extends NextFTCOpMode {
             rotaryIntake.disableActive();
         }
 
+        //Reverse Active and Spin
+        if(gamepad1.b){
+            rotaryIntake.reverseIntake();
+            rotaryIntake.enableActive();
+        }
+
+
         //Velocity should be constantly interpolated via apriltag localization data right? Heavy comp power
         //Velocity should only be queried when ready to shoot.
         //TODO: Generate linear regression to determine velocity for given positions
         //Exit velocity will be a function of the power put into the motor (PDFL)
 
-
-        outtake.setLauncherTargetVelo(outtake.getTargetVelocity(mecDrive.updateDistanceAndAngle(color)));
-//        outtake.setTurretTargetAngle(mecDrive.getCalculatedTurretAngle() );
-        distanceToGoalInMeters = mecDrive.updateDistanceAndAngle(color);
+        distanceToGoalInMeters = mecDrive.updateDistanceAndAngle();
+        outtake.setLauncherTargetVelo(outtake.getTargetVelocity(distanceToGoalInMeters));
+        outtake.setTurretTargetAngle(mecDrive.getCalculatedTurretAngle());
 
 
         mecDrive.updateTeleop(

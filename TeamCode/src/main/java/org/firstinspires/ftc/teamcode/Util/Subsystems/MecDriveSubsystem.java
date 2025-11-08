@@ -56,7 +56,7 @@ public class MecDriveSubsystem implements Subsystem {
         follower.update();
     }
 
-    public double updateDistanceAndAngle(UniConstants.teamColor color) {
+    public double updateDistanceAndAngle() {
         //Returns distance between goal in meters, it also updates the turretTargetAngle
         double x = 0,y = 1;
         switch (color){
@@ -80,6 +80,10 @@ public class MecDriveSubsystem implements Subsystem {
 
     public void resetPinpoint(){
         pinpoint.resetPosAndIMU();
+    }
+
+    public void setColor(UniConstants.teamColor color){
+        this.color = color;
     }
 
     public void sendTelemetry(UniConstants.loggingState state){

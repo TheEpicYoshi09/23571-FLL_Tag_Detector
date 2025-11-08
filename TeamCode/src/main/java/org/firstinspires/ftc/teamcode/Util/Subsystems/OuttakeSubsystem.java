@@ -66,6 +66,7 @@ public class OuttakeSubsystem implements Subsystem {
         if(debug) {
             setTurretTargetAngle(turretTargetAngleDebug);
         }
+        turretTargetPosition = getTurretTargetPosition(turretTargetAngle);
         launcherCurrentVelo = launcher.getVelocity();
 
         turretCurrentPositon = turret.getCurrentPosition();
@@ -85,7 +86,6 @@ public class OuttakeSubsystem implements Subsystem {
 
 
 
-        turretTargetPosition = getTurretTargetPosition(turretTargetAngle);
 
 
     }
@@ -125,6 +125,10 @@ public class OuttakeSubsystem implements Subsystem {
                         /
                         (Math.pow(2 * (Math.cos(Math.toRadians(UniConstants.ANGLE_OF_LAUNCHER_IN_DEGREES))), 2) * ((distanceToGoalInMeters * Math.tan(Math.toRadians(UniConstants.ANGLE_OF_LAUNCHER_IN_DEGREES))) - UniConstants.HEIGHT_TO_GOAL_WITH_CLEARANCE_METERS))
         );
+    }
+
+    public void setColor(UniConstants.teamColor color){
+        this.color = color;
     }
 
     public  void setLauncherTargetVelo(double target){
