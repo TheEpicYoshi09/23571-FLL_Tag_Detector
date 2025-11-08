@@ -175,7 +175,7 @@ public class AutoMode_Hinaa extends LinearOpMode {
         strafeDrive(DRIVE_SPEED, -12, 2.0);  // Strafe left 12 inches
 
 
-
+//Hi
 
         telemetry.addData("Path", "Complete");
         telemetry.update();
