@@ -49,8 +49,13 @@ public class OldRevTeleOp extends OpMode {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         float gamePadX = gamepad1.left_stick_y;
         float gamePadY = -gamepad1.right_stick_x;
+=======
+        float gamePadY = -gamepad1.left_stick_y;
+        float gamePadX = gamepad1.right_stick_x;
+>>>>>>> parent of 4045e93 (Update OldRevTeleOp.java)
 =======
         float gamePadY = -gamepad1.left_stick_y;
         float gamePadX = gamepad1.right_stick_x;
