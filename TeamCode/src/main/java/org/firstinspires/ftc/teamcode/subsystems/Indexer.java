@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.subsystems;
 import com.arcrobotics.ftclib.hardware.SimpleServo;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.hardware.CRServo;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -32,7 +33,7 @@ public class Indexer {
         three,
         oneAlt
     }
-    private final SimpleServo indexerServo;
+    private final CRServo indexerServo;
     private final Actuator actuator;
 
     // Color sensor timing stuff
@@ -43,10 +44,12 @@ public class Indexer {
     private final double minWait = 100;
     private final double maxWait = 300;
     private double lastAngle = 0;
+    CRServoPositionControl crServoPositionControl;
     public Indexer (HardwareMap hardwareMap)
     {
         state = IndexerState.one;
-        indexerServo = new SimpleServo(hardwareMap, "index",0,360);
+        indexerServo = hardwareMap.get(CRServo.class,"indexer");
+         crServoPositionControl = new CRServoPositionControl(indexerServo);
         colorSensor = new ColorSensorSystem(hardwareMap);
         actuator = new Actuator(hardwareMap);
     }
@@ -161,10 +164,10 @@ public class Indexer {
         if(intaking)
         {
             newAngle = ((stateToNum(newState)-1)*120+60)%360; // intake angle calculation
-            indexerServo.turnToAngle(newAngle);
+            crServoPositionControl.moveToAngle(newAngle);
         } else {
             newAngle = (stateToNum(newState) - 1) * 120; // outtake angle calculation
-            indexerServo.turnToAngle(newAngle);
+            crServoPositionControl.moveToAngle(newAngle);
         }
 
         double angleDelta = Math.abs(newAngle - oldAngle);
