@@ -157,6 +157,22 @@ public class AutoMode_Hinaa extends LinearOpMode {
         // Wait for the game to start (driver presses START)
         waitForStart();
 
+        belt.setPosition(1.0);
+        telemetry.addLine("Running conveyor..."); //move ball up with conveyor belt
+        telemetry.update();
+        sleep(1500);
+
+        outtakeleft.setPower(1.0);
+        outtakeright.setPower(1.0);
+        telemetry.addLine("Running outtake..."); //shoot ball
+        telemetry.update();
+        sleep(1500);
+
+        //intake.setPower(0);
+        outtakeleft.setPower(0); //stop everything
+        outtakeright.setPower(0);
+        belt.setPosition(0.5);
+
         // Step through each leg of the path,
         // Note: Reverse movement is obtained by setting a negative distance (not speed)
         encoderDrive(DRIVE_SPEED,  35,  35, 3.0);  // S1: Forward 35 Inches with 3 Sec timeout
