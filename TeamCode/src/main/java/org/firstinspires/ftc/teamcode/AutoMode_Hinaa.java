@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 //import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
  /*Copyright (c) 2017 FIRST. All rights reserved.
@@ -82,6 +83,8 @@ public class AutoMode_Hinaa extends LinearOpMode {
     private DcMotor intake;
     private DcMotor outtakeleft;
     private DcMotor outtakeright;
+
+    private Servo belt;
     private ElapsedTime runtime = new ElapsedTime();
 
     // Calculate the COUNTS_PER_INCH for your specific drive train.
@@ -112,7 +115,7 @@ public class AutoMode_Hinaa extends LinearOpMode {
         intake = hardwareMap.get(DcMotor.class, "intake");
         outtakeleft = hardwareMap.get(DcMotor.class, "outtakeleft");
         outtakeright = hardwareMap.get(DcMotor.class, "outtakeright");
-
+        belt = hardwareMap.get(Servo.class, "belt");
 
 
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
@@ -154,9 +157,21 @@ public class AutoMode_Hinaa extends LinearOpMode {
         // Wait for the game to start (driver presses START)
         waitForStart();
 
+        encoderDrive(DRIVE_SPEED,  30,  30, 2.0);
+
+        belt.setPosition(1.0);
+        telemetry.addLine("Running conveyor..."); //move ball up with conveyor belt
+        telemetry.update();
+        sleep(1500);
+
+        outtakeleft.setPower(-1.0);
+        outtakeright.setPower(-1.0);
+        telemetry.addLine("Running outtake..."); //shoot ball
+        telemetry.update();
+        sleep(1500);
         // Step through each leg of the path,
         // Note: Reverse movement is obtained by setting a negative distance (not speed)
-        encoderDrive(DRIVE_SPEED,  35,  35, 3.0);  // S1: Forward 47 Inches with 5 Sec timeout
+        /*encoderDrive(DRIVE_SPEED,  35,  35, 3.0);  // S1: Forward 47 Inches with 5 Sec timeout
         encoderDrive(TURN_SPEED,   16, -16, 2.0);  // S2: Turn Right 12 Inches with 4 Sec timeout
         //encoderDrive(DRIVE_SPEED, -12, -12, 2.0);  // S3: Reverse 24 Inches with 4 Sec timeout
         encoderDrive(DRIVE_SPEED,  32,  32, 3.0);
@@ -182,7 +197,7 @@ public class AutoMode_Hinaa extends LinearOpMode {
         sleep(1500);
 
 
-
+*/
 
         telemetry.addData("Path", "Complete");
         telemetry.update();
