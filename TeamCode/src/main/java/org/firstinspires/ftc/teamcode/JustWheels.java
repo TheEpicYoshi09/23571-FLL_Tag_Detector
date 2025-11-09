@@ -32,8 +32,10 @@ public class JustWheels extends OpMode {
         if(gamepad1.b) {
             maxSpeed -= 0.0001f;
         }*/
-        telemetry.addLine(String.valueOf(maxSpeed));
+        telemetry.addLine(String.valueOf(gamepad1.right_stick_x));
+        telemetry.addLine(String.valueOf(gamepad1.left_stick_y));
         telemetry.update();
+
 
         y = gamepad1.right_stick_x;
         x = gamepad1.left_stick_y;
