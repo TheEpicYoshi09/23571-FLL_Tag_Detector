@@ -15,16 +15,26 @@ public class RedAuto extends LinearOpMode {
         leftDrive = hardwareMap.get(DcMotor.class, "leftDrive");
         rightDrive = hardwareMap.get(DcMotor.class, "rightDrive");
 
+        long sleepingTime1 = 1000;
+        long sleepingTime2 = 1000;        
+
         rightDrive.setDirection(DcMotorSimple.Direction.REVERSE);
         waitForStart();
 
         rightDrive.setPower(0.65);
         leftDrive.setPower(-1);
-        sleep(200);
+        sleep(sleepingTime1);
+        telemetry.addData("Sleep ms 1", sleepingTime1);
         leftDrive.setPower(1);
         rightDrive.setPower(0.65);
-        sleep(700);
+
+        sleep(sleepingTime2);
+        telemetry.addData("Sleep ms 2", sleepingTime2);
+
         leftDrive.setPower(0);
         rightDrive.setPower(0);
+
+
+        telemetry.addLine("Auto Finished");
     }
 }
