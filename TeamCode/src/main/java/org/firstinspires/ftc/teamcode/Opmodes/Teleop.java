@@ -59,28 +59,6 @@ public class Teleop extends LinearOpMode {
 
         Flipper flipper = new Flipper();
         flipper.init(hardwareMap);
-        /*
-        telemetry.addData("Flipper Position 0 - ",flipper.getPosition());
-        flipper.turnFlipper();
-        sleep(500);
-        telemetry.addData("Flipper Position 1 - ",flipper.getPosition());
-        flipper.turnFlipper();
-        sleep(500);
-        telemetry.addData("Flipper Position 2 - ",flipper.getPosition());
-        flipper.turnFlipper();
-        sleep(500);
-        telemetry.addData("Flipper Position 3 - ",flipper.getPosition());
-        flipper.resetFlipper();
-        sleep(500);
-        telemetry.addData("Flipper Position reset - ",flipper.getPosition());
-        telemetry.update();
-        sleep(10000);
-
-         */
-
-
-
-
 
         channelSensor = hardwareMap.get(DistanceSensor.class, "channelSensor");
         frontDistanceSensor = hardwareMap.get(DistanceSensor.class, "front_distance_sensor");
