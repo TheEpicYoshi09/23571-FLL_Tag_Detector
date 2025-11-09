@@ -103,6 +103,30 @@ public class NextFTCTeleop extends NextFTCOpMode {
         }
 
 
+        if(gamepad2.a){
+            rotaryIntake.setRotaryPower(.2);
+        }
+        if(gamepad2.b){
+            rotaryIntake.setRotaryPower(0);
+        }
+        if(gamepad2.y){
+            rotaryIntake.setRotaryPower(.4);
+        }
+        if(gamepad2.x){
+            rotaryIntake.setRotaryPower(.6);
+        }
+
+        if(gamepad2.dpad_up){
+            rotaryIntake.setRotaryDirection(1);
+        }
+        if(gamepad2.dpad_down){
+            rotaryIntake.setRotaryDirection(-1);
+        }
+
+
+
+
+
         //Velocity should be constantly interpolated via apriltag localization data right? Heavy comp power
         //Velocity should only be queried when ready to shoot.
         //TODO: Generate linear regression to determine velocity for given positions

@@ -21,7 +21,7 @@ public class RotaryIntakeSubsystem implements Subsystem {
     //Class variables
     JoinedTelemetry telemetry;
     UniConstants.teamColor color;
-    public static boolean debug = false;
+    public static boolean debug = true;
     public static boolean isEnabled = false;
     public static boolean isReversed = false;
 
@@ -43,6 +43,7 @@ public class RotaryIntakeSubsystem implements Subsystem {
     PDFLController rotaryController = new PDFLController(pR, dR, fR, lR);
     private int rotaryTargetPosition = 0;
     private int rotaryCurrentPosition = 0;
+    private int rotaryDirection = 1;
     //Debug rotary
     public static double rotaryPower = 0;
 
@@ -88,7 +89,7 @@ public class RotaryIntakeSubsystem implements Subsystem {
         //TODO: Needs to be tuned for PDFL
         rotaryController.setTarget(rotaryTargetPosition);
         rotaryController.update(rotaryCurrentPosition);
-        rotary.setPower(debug ? rotaryPower : rotaryController.runPDFL(5));
+        rotary.setPower(rotaryDirection * (debug ? rotaryPower : rotaryController.runPDFL(5)));
 
         active.setPower(isEnabled ? (isReversed ? -1 : 1) : 0);
 
@@ -156,6 +157,13 @@ public class RotaryIntakeSubsystem implements Subsystem {
 
     public boolean isFull(UniConstants.slotState slot) {
         return (slot == UniConstants.slotState.PURPLE) || (slot == UniConstants.slotState.GREEN);
+    }
+
+    public void setRotaryPower(double power){
+        rotaryPower = power;
+    }
+    public void setRotaryDirection(int direction){
+        rotaryDirection = direction;
     }
 
     public void setColor(UniConstants.teamColor color){
