@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 @Autonomous
-public class RedAuto extends LinearOpMode {
+public class TriangeAuto extends LinearOpMode {
     private DcMotor leftDrive;
     private DcMotor rightDrive;
 
@@ -19,11 +19,9 @@ public class RedAuto extends LinearOpMode {
         waitForStart();
 
         rightDrive.setPower(0.65);
-        leftDrive.setPower(-1);
-        sleep(400);
         leftDrive.setPower(1);
-        rightDrive.setPower(0.65);
-        sleep(900);
+
+        sleep(1000);
         leftDrive.setPower(0);
         rightDrive.setPower(0);
     }
