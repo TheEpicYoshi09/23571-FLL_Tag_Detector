@@ -28,10 +28,7 @@
  */
 
 package org.firstinspires.ftc.teamcode;
-
-import static org.firstinspires.ftc.teamcode.RobotAutoDriveByTime_Goal.GATE_DOWN;
-import static org.firstinspires.ftc.teamcode.RobotAutoDriveByTime_Goal.GATE_UP;
-import static org.firstinspires.ftc.teamcode.RobotAutoDriveByTime_Goal.LAUNCH_SPEED;
+import org.firstinspires.ftc.teamcode.BlinkyBotsLinearOpMode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -80,7 +77,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 @TeleOp(name="Basic: Omni Linear OpMode (normal servo) 25-26", group="Linear OpMode")
 //@Disabled
-public class BasicOmniOpMode_Linear_BB_25_26 extends LinearOpMode {
+public class BasicOmniOpMode_Linear_BB_25_26 extends BlinkyBotsLinearOpMode {
 
     // Declare OpMode members for each of the 4 motors.
     private final ElapsedTime runtime = new ElapsedTime();
@@ -113,164 +110,19 @@ public class BasicOmniOpMode_Linear_BB_25_26 extends LinearOpMode {
     @Override
     public void runOpMode() {
 
-        // Initialize the hardware variables. Note that the strings used here must correspond
-        // to the names assigned during the robot configuration step on the DS or RC devices.
-        leftFrontDrive = hardwareMap.get(DcMotor.class, "left_front_drive");
-        leftBackDrive = hardwareMap.get(DcMotor.class, "left_back_drive");
-        rightFrontDrive = hardwareMap.get(DcMotor.class, "right_front_drive");
-        rightBackDrive = hardwareMap.get(DcMotor.class, "right_back_drive");
-
-        //Add config for new motors (launch wheels)
-        rightLaunchDrive = hardwareMap.get(DcMotor.class, "right_launch_drive"); // Port 0
-        leftLaunchDrive = hardwareMap.get(DcMotor.class, "left_launch_drive");
-
-        // Connect to servo
-        gateServo = hardwareMap.get(Servo.class, "gate_servo");
-
-        // Wait for the start button
-        waitForStart();
-
-
-        // ########################################################################################
-        // !!!            IMPORTANT Drive Information. Test your motor directions.            !!!!!
-        // ########################################################################################
-        // Most robots need the motors on one side to be reversed to drive forward.
-        // The motor reversals shown here are for a "direct drive" robot (the wheels turn the same direction as the motor shaft)
-        // If your robot has additional gear reductions or uses a right-angled drive, it's important to ensure
-        // that your motors are turning in the correct direction.  So, start out with the reversals here, BUT
-        // when you first test your robot, push the left joystick forward and observe the direction the wheels turn.
-        // Reverse the direction (flip FORWARD <-> REVERSE ) of any wheel that runs backward
-        // Keep testing until ALL the wheels move the robot forward when you push the left joystick forward.
-        leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
-        leftBackDrive.setDirection(DcMotor.Direction.REVERSE);
-        rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
-        rightBackDrive.setDirection(DcMotor.Direction.FORWARD);
-
-        // TODO: Set direction for the launch mechanism
-        leftLaunchDrive.setDirection(DcMotor.Direction.FORWARD);
-        rightLaunchDrive.setDirection(DcMotor.Direction.REVERSE);
-
-        // Wait for the game to start (driver presses START)
-        telemetry.addData("Status", "Initialized");
-        telemetry.update();
+        initializeHardware();
 
         waitForStart();
         runtime.reset();
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
-            double max;
-            //double max2;
 
-            // POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
-            double axial = -gamepad1.left_stick_y;  // Note: pushing stick forward gives negative value
-            double lateral = gamepad1.left_stick_x;
-            double yaw = gamepad1.right_stick_x;
+            readControllerInputs();
 
-            // Combine the joystick requests for each axis-motion to determine each wheel's power.
-            // Set up a variable for each drive wheel to save the power level for telemetry.
-            double leftFrontPower = axial + lateral + yaw;
-            double rightFrontPower = axial - lateral - yaw;
-            double leftBackPower = axial - lateral + yaw;
-            double rightBackPower = axial + lateral - yaw;
+            sendMotorValues();
 
-            //gamepad2 - control launch mechanism - right bumper pressed for release
-            boolean rightBumperPressed = gamepad2.right_bumper;
-            boolean leftBumperPressed = gamepad2.left_bumper;
-
-            //dpad up pressed for addition
-            boolean dpadUpPressed = gamepad2.dpad_up;
-
-            //dpad down pressed for subtraction
-            boolean dpadDownPressed = gamepad2.dpad_down;
-
-            //control launch velocity trim through bumpers
-            if (dpadUpPressed) {
-                launchTrim -= 0.01;
-            } else if (dpadDownPressed) {
-                launchTrim += 0.01;
-            }
-
-            //gamepad2 - control gate movement - x pressed for open
-            boolean buttonXPressed = gamepad2.x;
-
-            //gamepad2 - control gate movement - y pressed for open
-            boolean buttonYPressed = gamepad2.y;
-
-            //Control gate movement through buttons
-            if (!automatedShootRunning) {
-                if (buttonXPressed) { //down position
-                    gatePosition = GATE_DOWN;
-                } else if (buttonYPressed) { //up position
-                    gatePosition = GATE_UP;
-                }
-
-                // Control launcher movement through bumper
-                if (leftBumperPressed) {
-                    launchPower = LAUNCH_POWER_MORE;
-                } else if (rightBumperPressed) {
-                    launchPower = LAUNCH_POWER_LESS;
-                } else {
-                    launchPower = 0;
-                }
-            }
-
-            //Button pressed for automated shooting
-            if (gamepad2.left_trigger > 0.2) {
-                automatedShoot(LAUNCH_POWER_MORE);
-
-            } else if (gamepad2.right_trigger > 0.2) {
-                automatedShoot(LAUNCH_POWER_LESS);
-
-            } else {
-                endAutomatedShoot();
-            }
-
-            // Normalize the values so no wheel power exceeds 100%
-            // This ensures that the robot maintains the desired motion.
-            max = Math.max(Math.abs(leftFrontPower), Math.abs(rightFrontPower));
-            max = Math.max(max, Math.abs(leftBackPower));
-            max = Math.max(max, Math.abs(rightBackPower));
-
-            if (max > 1.0) {
-                leftFrontPower /= max;
-                rightFrontPower /= max;
-                leftBackPower /= max;
-                rightBackPower /= max;
-            }
-
-            int divider = 3;
-            // if button LB is pressed, the speed will increase
-            boolean buttonLBPressed = gamepad1.left_bumper;  // B gamepad 1
-            if (!buttonLBPressed) {
-                leftFrontPower /= divider;
-                rightFrontPower /= divider;
-                leftBackPower /= divider;
-                rightBackPower /= divider;
-            }
-
-            // Send calculated power to wheels
-            leftFrontDrive.setPower(leftFrontPower);
-            rightFrontDrive.setPower(rightFrontPower);
-            leftBackDrive.setPower(leftBackPower);
-            rightBackDrive.setPower(rightBackPower);
-
-            // Set calculated power to launcher
-            leftLaunchDrive.setPower(launchPower);
-            rightLaunchDrive.setPower(launchPower);
-
-            //Set the gate servo to new position and pause
-            gateServo.setPosition(gatePosition);
-
-            // Show the elapsed game time and wheel power.
-            telemetry.addData("Status", "Run Time: " + runtime.toString());
-            telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
-            telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
-            telemetry.addData("Launcher Left/Right", "%4.2f", launchPower);
-            telemetry.addData("gatePosition", "%4.2f", gatePosition);
-            telemetry.addData("Trim amount", "Trim amount", launchTrim);
-            telemetry.addData(">", "Press Stop to end test.");
-            telemetry.update();
+            addTelemetry();
 
             sleep(CYCLE_MS);
             idle();
@@ -280,8 +132,6 @@ public class BasicOmniOpMode_Linear_BB_25_26 extends LinearOpMode {
         telemetry.addData(">", "Done");
         telemetry.update();
     }
-
-
     public void automatedShoot(double targetLaunchPower) {
         // Track whether we're mid-shoot.  Only reset the timer on first entry
         if (!automatedShootRunning) {
