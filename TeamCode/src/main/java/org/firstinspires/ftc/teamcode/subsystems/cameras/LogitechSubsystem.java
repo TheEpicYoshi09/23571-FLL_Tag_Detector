@@ -30,10 +30,10 @@ public class LogitechSubsystem {
     private VisionPortal visionPortal;
 
     public LogitechSubsystem(Hardware hw, String alliance) {
-        if (targetid == 20) {
-            alliance = "blue";
-        } else if (targetid == 24){
-            alliance = "red";
+        if (alliance == "blue") {
+            targetid = 20;
+        } else if (alliance == "red"){
+            targetid = 24;
         }
 
         aprilTag = new AprilTagProcessor.Builder()
@@ -73,13 +73,11 @@ public class LogitechSubsystem {
         }
     }
 
-    public void setTargetid(Telemetry telemetry) {
+    public void targetapril(Telemetry telemetry) {
         List<AprilTagDetection> currentDetections = aprilTag.getDetections();
         for (AprilTagDetection detection : currentDetections) {
-            if (detection.metadata != null && detection.id == 20) {
-                targetid = 20;
-            } else if (detection.metadata != null && detection.id == 24) {
-                targetid = 24;
+            if (detection.metadata != null && detection.id == targetid) {
+                telemetry.addData("April tag id ", targetid);
             }
         }
     }
