@@ -58,13 +58,13 @@ public class Util {
         telemetry.addData("Odo Position X (cms): ", odo.getPosX(DistanceUnit.CM));
         telemetry.addData("Odo Position Y (cms): ", odo.getPosY(DistanceUnit.CM));
         telemetry.addData("Odo Heading (degrees): ", odo.getHeading(AngleUnit.DEGREES));
-        telemetry.update();
     }
 
     public static void printIMUTelemetry(IMU imu, Telemetry telemetry ){
-        telemetry.addData("IMU Device Name: ", imu.getDeviceName());
-        telemetry.addData("IMU Device Version: ", imu.getVersion());
-        telemetry.addData("IMU Connection Info: ", imu.getConnectionInfo());
+        //telemetry.addData("IMU Device Name: ", imu.getDeviceName());
+        //telemetry.addData("IMU Device Version: ", imu.getVersion());
+        //telemetry.addData("IMU Connection Info: ", imu.getConnectionInfo());
+
         telemetry.addData("IMU Yaw: ", imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES));
         telemetry.addData("IMU Pitch: ", imu.getRobotYawPitchRollAngles().getPitch(AngleUnit.DEGREES));
         telemetry.addData("IMU Roll: ", imu.getRobotYawPitchRollAngles().getRoll(AngleUnit.DEGREES));

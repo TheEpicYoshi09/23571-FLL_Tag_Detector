@@ -13,9 +13,16 @@ import org.firstinspires.ftc.teamcode.Helper.Kicker;
 import org.firstinspires.ftc.teamcode.Helper.Util;
 import org.firstinspires.ftc.vision.apriltag.AprilTagPoseFtc;
 
-@Autonomous(name = "Auto Blue Near 0.4", group = "Autonomous")
+@Autonomous(name = "Auto Blue Near 0.7", group = "Autonomous")
 
 public class AutoBasketBlue extends LinearOpMode {
+
+    enum RobotType {
+        VORTEX_DECODE_1,
+        VORTEX_DECODE_2
+    }
+
+    RobotType robotType = RobotType.VORTEX_DECODE_2;
 
     Chassis chassis = new Chassis();
 
@@ -44,19 +51,27 @@ public class AutoBasketBlue extends LinearOpMode {
         intake.init(this);
 
         DecodeAprilTag aprilTag = new DecodeAprilTag(this);
-        aprilTag.initCamera();
+        Flipper flipper;
+        if(robotType == RobotType.VORTEX_DECODE_1) {
+            aprilTag = new DecodeAprilTag(this);
+            aprilTag.initCamera();
 
-        Flipper flipper = new Flipper();
-        flipper.init(hardwareMap);
+            flipper = new Flipper();
+            flipper.init(hardwareMap);
+        }
 
+        chassis.odo.resetPosAndIMU();
         while (opModeInInit()) {
-            chassis.odo.resetPosAndIMU();
+
             Util.printOdoPositionTelemetry(chassis.odo, telemetry);
+            Util.printIMUTelemetry(chassis.imu,telemetry);
+            telemetry.update();
+
         }
 
         waitForStart();
 
-        chassis.drive(1,0,0);
+        //chassis.drive(1,0,0);
 
         AutoStages currentStage = AutoStages.BACK_UP;
 

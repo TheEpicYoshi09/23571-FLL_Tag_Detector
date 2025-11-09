@@ -33,7 +33,7 @@ public class Chassis {
     private DcMotor backLeftDrive;
     private DcMotor frontRightDrive;
     private DcMotor backRightDrive;
-    private IMU imu;
+    public IMU imu;
 
     private OpMode opMode;
     private DriveMode driveMode;
@@ -84,6 +84,7 @@ public class Chassis {
         odo.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
         odo.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.REVERSED);
         odo.resetPosAndIMU();
+        odo.recalibrateIMU();
 
         frontLeftDrive.setDirection(DcMotor.Direction.REVERSE);
         backLeftDrive.setDirection(DcMotor.Direction.REVERSE);
