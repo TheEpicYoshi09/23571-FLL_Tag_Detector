@@ -32,6 +32,8 @@ public class AutoBasketBlue extends LinearOpMode {
 
     Intake intake = new Intake();
 
+    Flipper flipper;
+
     double gateClose = 0.4;
     double gateShooting = 0.25;
     double gateIntake = 0.6;
@@ -51,7 +53,7 @@ public class AutoBasketBlue extends LinearOpMode {
         intake.init(this);
 
         DecodeAprilTag aprilTag = new DecodeAprilTag(this);
-        Flipper flipper;
+
         if(robotType == RobotType.VORTEX_DECODE_1) {
             aprilTag = new DecodeAprilTag(this);
             aprilTag.initCamera();
@@ -94,15 +96,26 @@ public class AutoBasketBlue extends LinearOpMode {
             switch (currentStage) {
                 case BACK_UP:
                     //chassis.moveWithProportionalDeceleration(Chassis.Direction.FORWARD, 0.3, 60);
-                    //chassis.moveWithProportionalDecelerationAndHeading(Chassis.Direction.FORWARD, 0.8, 48,0.0);
-                    //chassis.moveToPosition(1,0,0);
-                    //currentStage = AutoStages.SHOOT;
+//                    chassis.moveWithProportionalDecelerationAndHeading(Chassis.Direction.FORWARD, 0.8, 48,0.0);
+                    //chassis.moveWithProportionalDeceleration(Chassis.Direction.FORWARD, 0.3, 10);
+                    chassis.Drive(-10,0.3);
+                    sleep(500);
+                    chassis.Drive(10, 0.3);
+                    sleep(500);
+                    chassis.Strafe(-10,0.3);
+                    sleep(500);
+                    chassis.Strafe(10,0.3);
+                    sleep(500);
+                    chassis.turnToAngle(-90);
+                    sleep(500);
+                    chassis.turnToAngle(-270);
+                    currentStage = AutoStages.SHOOT;
                     break;
 
                 case SHOOT:
-                   //Util.shoot(flyWheel, kicker, flipper, intake, robotDistanceFromAprilTag, telemetry);
-                    //flyWheel.stop();
-                    //intake.stopIntake();
+//                   Util.shoot(flyWheel, kicker, flipper, intake, robotDistanceFromAprilTag, telemetry);
+//                    flyWheel.stop();
+//                    intake.stopIntake();
                     break;
 
                 //case GET_MORE_BALLS:

@@ -68,6 +68,7 @@ public class Chassis {
         backLeftDrive = opMode.hardwareMap.get(DcMotor.class, "backLeftDrive");
         frontRightDrive = opMode.hardwareMap.get(DcMotor.class, "frontRightDrive");
         backRightDrive = opMode.hardwareMap.get(DcMotor.class, "backRightDrive");
+
         odo = opMode.hardwareMap.get(GoBildaPinpointDriver.class, "odo");
         imu = opMode.hardwareMap.get(IMU.class, "imu");
 
@@ -85,7 +86,7 @@ public class Chassis {
         //Make these values more accurate to make our heading more accurate
         odo.setOffsets(-4.5, 8, DistanceUnit.INCH);
         odo.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
-        odo.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.REVERSED);
+        odo.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.REVERSED, GoBildaPinpointDriver.EncoderDirection.REVERSED);
         odo.resetPosAndIMU();
 
         frontLeftDrive.setDirection(DcMotor.Direction.REVERSE);
@@ -117,166 +118,67 @@ public class Chassis {
         opMode.telemetry.update();
 
     }
-    // TeleOp Mode Methods
 
-    /**
-     * @param axial   The forward/backward power from left joystick Y direction (-1.0 to 1.0).
-     * @param lateral The strafing (left/right) power from left joystick X direction (-1.0 to 1.0).
-     * @param yaw     The turning/rotational power from right joystick X direction (-1.0 to 1.0).
-     */
-    public void drive(double axial, double lateral, double yaw) {
-        // If in field centric mode read botHeading from odo otherwise set botHeading equal to zero
-        double botHeading;
-        if (driveMode == DriveMode.FIELD_CENTRIC) {
+    public void Drive(double distance, double speed) {
+        odo.update();
+
+        double currentX = odo.getPosX(DistanceUnit.INCH);
+
+        double error = distance-currentX;
+
+        if (distance < 0) {
+            speed*=-1;
+        }
+
+        //The error condition needs to be flipped if distance is negative
+        //(Distance - current) will have different signs depending on sign of distance
+        while ((distance < 0 && error <= 0) || (distance >= 0 && error >= 0)) {
             odo.update();
-            botHeading = odo.getHeading(AngleUnit.RADIANS);// Get the robot's heading in radians
+            currentX = odo.getPosX(DistanceUnit.INCH);
+            error = distance - currentX;
 
-        } else {
-            botHeading = 0;
+            moveRobot(speed, 0, 0);
+            opMode.telemetry.addData("CurrentPos", currentX);
+            opMode.telemetry.addData("Error", error);
+            opMode.telemetry.update();
         }
 
+        moveRobot(0,0,0);
+    }
 
-        /*// Rotate the movement direction counter to the bot's rotation
-        double rotX = lateral * Math.cos(botHeading) - axial * Math.sin(botHeading);
-        double rotY = lateral * Math.sin(botHeading) + axial * Math.cos(botHeading);
-        rotX = rotX * 1.1; //counteract imperfect strafing
+    public void Strafe(double distance, double speed) {
+        odo.update();
 
-        // Denominator is the largest motor power (absolute value) or 1
-        // This ensures all the powers maintain the same ratio,
-        // but only if at least one is out of the range [-1, 1]
-        double speed = 1.7;
-        leftFrontPower = (rotY + rotX + yaw);
-        rightFrontPower = (rotY - rotX - yaw);
-        leftBackPower = (rotY - rotX + yaw);
-        rightBackPower = (rotY + rotX - yaw);
+        double currentY = odo.getPosY(DistanceUnit.INCH);
 
-        double denominator = Math.max(Math.abs(rotY) + Math.abs(rotX) + Math.abs(yaw), 1) * speed; //Multiply by 1.7 to reduce speed
+        double error = distance-currentY;
 
-        leftFrontPower = leftFrontPower / denominator;
-        rightFrontPower = rightFrontPower / denominator;
-        leftBackPower = leftBackPower / denominator;
-        rightBackPower = rightBackPower / denominator;*/
-
-
-        double max;
-        double lateral_1 = lateral * Math.cos(botHeading) - axial * Math.sin(botHeading);
-        double axial_1 = lateral * Math.sin(botHeading) + axial * Math.cos(botHeading);
-
-        leftFrontPower = axial_1 + lateral_1 + yaw;
-        rightFrontPower = axial_1 - lateral_1 - yaw;
-        leftBackPower = axial_1 - lateral_1 + yaw;
-        rightBackPower = axial_1 + lateral_1 - yaw;
-        // Normalize the values so no wheel power exceeds 100%
-        // This ensures that the robot maintains the desired motion.
-        max = JavaUtil.maxOfList(JavaUtil.createListWith(Math.abs(leftFrontPower), Math.abs(rightFrontPower), Math.abs(leftBackPower), Math.abs(rightBackPower)));
-        if (max > 1) {
-            leftFrontPower = leftFrontPower / max;
-            rightFrontPower = rightFrontPower / max;
-            leftBackPower = leftBackPower / max;
-            rightBackPower = rightBackPower / max;
+        if (distance < 0) {
+            speed*=-1;
         }
 
+        //The error condition needs to be flipped if distance is negative
+        //(Distance - current) will have different signs depending on sign of distance
+        while ((distance < 0 && error <= 0) || (distance >= 0 && error >= 0)) {
+            odo.update();
+            currentY = odo.getPosY(DistanceUnit.INCH);
+            error = distance - currentY;
 
-        // Send calculated power to wheels.
-        setPowerToWheels(leftFrontPower, rightFrontPower, leftBackPower, rightBackPower);
-        //setSmoothPowerToWheels(leftFrontPower, rightFrontPower, leftBackPower, rightBackPower);
-    }
-
-
-    public double smoothPower(double currentPower, double targetPower) {
-        double sigma = 0.1;
-
-        if (currentPower < targetPower) {
-            return currentPower + sigma;
-        } else if (currentPower > targetPower) {
-            return currentPower - sigma;
-        } else if (Math.abs(currentPower - targetPower) <= sigma) {
-            return currentPower;
+            moveRobot(0, speed, 0);
+            opMode.telemetry.addData("CurrentPos", currentY);
+            opMode.telemetry.addData("Error", error);
+            opMode.telemetry.update();
         }
-        return currentPower;
-    }
 
-    public void setSmoothPowerToWheels(double leftFrontPower, double rightFrontPower, double leftBackPower, double rightBackPower) {
-
-        leftFrontPower = smoothPower(frontLeftDrive.getPower(), leftFrontPower);
-        rightFrontPower = smoothPower(frontRightDrive.getPower(), rightFrontPower);
-        leftBackPower = smoothPower(backLeftDrive.getPower(), leftBackPower);
-        rightBackPower = smoothPower(backRightDrive.getPower(), rightBackPower);
-
-        setPowerToWheels(leftFrontPower, rightFrontPower, leftBackPower, rightBackPower);
-    }
-
-    public void setPowerToWheels(double leftFrontPower, double rightFrontPower, double leftBackPower, double rightBackPower) {
-        frontLeftDrive.setPower(leftFrontPower);
-        frontRightDrive.setPower(rightFrontPower);
-        backLeftDrive.setPower(leftBackPower);
-        backRightDrive.setPower(rightBackPower);
-    }
-
-    public void moveDistance(double x, double y, double yaw) {
-
-        // Use the speed and turn "gains" to calculate how we want the robot to move.
-        double drive = Range.clip(y * SPEED_GAIN, -MAX_AUTO_SPEED, MAX_AUTO_SPEED);
-        double turn = Range.clip(-yaw * TURN_GAIN, -MAX_AUTO_TURN, MAX_AUTO_TURN);
-        double strafe = Range.clip(x * STRAFE_GAIN, -MAX_AUTO_STRAFE, MAX_AUTO_STRAFE);
-
-        moveRobot(drive, strafe, turn);
-    }
-
-    public void moveToPosition(double x, double y, double yaw) {
-
-
-        double xErr = x - odo.getEncoderX();
-        double yErr = y - odo.getEncoderY();
-        double yawErr = Util.angleWrap(yaw - odo.getHeading(AngleUnit.RADIANS));
-
-//        // Use the speed and turn "gains" to calculate how we want the robot to move.
-//        double drive  = Range.clip(yErr * SPEED_GAIN, -MAX_AUTO_SPEED, MAX_AUTO_SPEED);
-//        double turn   = Range.clip(-yawErr * TURN_GAIN, -MAX_AUTO_TURN, MAX_AUTO_TURN) ;
-//        double strafe = Range.clip(xErr * STRAFE_GAIN, -MAX_AUTO_STRAFE, MAX_AUTO_STRAFE);
-//
-//        moveRobot(drive, strafe, turn);
-
-        while (xErr != 0 && yErr != 0 && yawErr != 0) {
-            xErr = x - odo.getEncoderX();
-            yErr = y - odo.getEncoderY();
-            yawErr = Util.angleWrap(yaw - odo.getHeading(AngleUnit.RADIANS));
-
-            // Use the speed and turn "gains" to calculate how we want the robot to move.
-            double drive = Range.clip(yErr * SPEED_GAIN, -MAX_AUTO_SPEED, MAX_AUTO_SPEED);
-            double turn = Range.clip(-yawErr * TURN_GAIN, -MAX_AUTO_TURN, MAX_AUTO_TURN);
-            double strafe = Range.clip(xErr * STRAFE_GAIN, -MAX_AUTO_STRAFE, MAX_AUTO_STRAFE);
-
-            moveRobot(drive, strafe, turn);
-        }
-    }
-    public void setMotorWheelMode(DcMotor.RunMode runMode){
-        frontLeftDrive.setMode(runMode);
-        frontRightDrive.setMode(runMode);
-        backLeftDrive.setMode(runMode);
-        backRightDrive.setMode(runMode);
-    }
-    public int getAverageCurrentPositionAllWheels(){
-
-
-        int fl = Math.abs(frontLeftDrive.getCurrentPosition());
-        int bl = Math.abs(backLeftDrive.getCurrentPosition());
-        int fr = Math.abs(frontRightDrive.getCurrentPosition());
-        int br = Math.abs(backRightDrive.getCurrentPosition());
-
-
-        int averageCurrentPosition = (fl + bl + fr + br)/4;
-        return averageCurrentPosition;
-
-
+        moveRobot(0,0,0);
     }
 
     public void moveRobot(double x, double y, double yaw) {
         // Calculate wheel powers.
-        double frontLeftPower = x - y - yaw;
-        double frontRightPower = x + y + yaw;
-        double backLeftPower = x + y - yaw;
-        double backRightPower = x - y + yaw;
+        double frontLeftPower = x + y + yaw;
+        double frontRightPower = x - y - yaw;
+        double backLeftPower = x - y + yaw;
+        double backRightPower = x + y - yaw;
 
         // Normalize wheel powers to be less than 1.0
         double max = Math.max(Math.abs(frontLeftPower), Math.abs(frontRightPower));
@@ -307,169 +209,11 @@ public class Chassis {
     }
 
 
-    public double wrap180(double deg) {
-        double x = (deg + 180.0) % 360.0;
-        if (x < 0) x += 360.0;
-        return x - 180.0;
-    }
-
-    final double MIN_TURN_PWR = 0.3;
-    final double MAX_TURN_PWR = 0.8;
-    final double ERROR_RANGE_DEGREE = 2;
-
 
     //Gyroscope
     public static double HEADING_THRESHOLD = 1.0;
     public static double P_TURN_COEFF = 0.03;
 
-
-    public void moveWithProportionalDecelerationAndHeading(Direction direction, double maxPower, double distanceInches, Double holdHeadingDeg){
-
-        double COUNTS_PER_MOTOR_REV = 537.7;
-        double DRIVE_GEAR_REDUCTION = 1.0;
-        double WHEEL_DIAMETER_INCHES = 4.0;
-        double COUNTS_PER_INCH = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION)/(WHEEL_DIAMETER_INCHES * Math.PI);
-
-
-
-
-        double MIN_POWER       = 0.08;  // just above stall for your drivetrain
-        double KP_HEADING      = 0.012; // start here; tune on the field
-        double KI_HEADING      = 0.000; // optional (keep 0 to start)
-        double KD_HEADING      = 0.000; // optional (keep 0 to start)
-        double MAX_YAW_CORR    = 0.25;  // cap on turn correction (0..1)
-        int    STOP_TOL_TICKS  = 20;    // ~0.4 in @ 45 cpi
-
-
-    LinearOpMode linearOpMode = (LinearOpMode)opMode;
-
-        if (!linearOpMode.opModeIsActive()) return;
-
-
-        // --- Prep encoders ---
-        int targetTicks = (int) Math.round(Math.abs(distanceInches) * COUNTS_PER_INCH);
-        setMotorWheelMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        setMotorWheelMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-
-        // --- Prep IMU ---
-        // Assuming "imu" is com.qualcomm.hardware.bosch.BNO055IMU or the newer IMU interface and already initialized.
-        // Choose degrees for angle un` it when you init IMU elsewhere.
-        imu.resetYaw();
-        double yaw0 =  -odo.getHeading(AngleUnit.DEGREES); // your helper that reads yaw in degrees
-        double headingSetpoint = (holdHeadingDeg != null) ? holdHeadingDeg : yaw0;
-
-
-        // Heading PID state
-        double lastErr = 0, errI = 0;
-        long   lastT   = System.nanoTime();
-
-
-        while (linearOpMode.opModeIsActive()) {
-
-
-            int remaining = targetTicks - getAverageCurrentPositionAllWheels();
-            if (remaining <= STOP_TOL_TICKS) break;
-
-
-            // Linear taper (1 -> 0)
-            double progress = Math.max(0.0, Math.min(1.0, (double) remaining / (double) targetTicks));
-            // Optional easing for earlier slowdown (gamma<1 decelerates earlier)
-            double gamma = 0.7;
-            double tapered = Math.pow(progress, gamma);
-
-
-            double drivePower = MIN_POWER + (maxPower - MIN_POWER) * tapered;
-            drivePower = Range.clip(drivePower, MIN_POWER, maxPower);
-
-
-            // --- Heading hold (PID) ---
-            double yaw = -odo.getHeading(AngleUnit.DEGREES); // current yaw in degrees
-            double err = wrap180(headingSetpoint - yaw);
-
-
-            long now = System.nanoTime();
-            double dt = Math.max(1e-6, (now - lastT) / 1e9); // seconds
-            lastT = now;
-
-
-            // PI(D)
-            errI += err * dt;
-            // simple anti-windup
-            errI = Range.clip(errI, -50.0, 50.0);
-
-
-            double errD = (err - lastErr) / dt;
-            lastErr = err;
-
-
-            double turnCorr = KP_HEADING * err + KI_HEADING * errI + KD_HEADING * errD;
-            turnCorr = Range.clip(turnCorr, -MAX_YAW_CORR, MAX_YAW_CORR);
-
-
-            // --- Command mix ---
-            // axial: forward/back; lateral: strafe; yaw: heading correction
-            double axial = 0, lateral = 0;
-            switch (direction) {
-                case FORWARD:  axial =  drivePower; break;
-                case BACKWARD: axial = -drivePower; break;
-                case LEFT:     lateral =  drivePower; break;
-                case RIGHT:    lateral = -drivePower; break;
-            }
-            double yawCmd = turnCorr;
-
-
-            // mecanum mix
-            double flPower = axial + lateral + yawCmd;
-            double frPower = axial - lateral - yawCmd;
-            double blPower = axial - lateral + yawCmd;
-            double brPower = axial + lateral - yawCmd;
-
-
-            // Normalize if any exceeds 1.0
-            double maxAbs = Math.max(1.0,
-                    Math.max(Math.abs(flPower),
-                            Math.max(Math.abs(frPower),
-                                    Math.max(Math.abs(blPower), Math.abs(brPower)))));
-            flPower /= maxAbs; frPower /= maxAbs; blPower /= maxAbs; brPower /= maxAbs;
-
-
-            // Scale to preserve the intended drive magnitude (keep <= maxPower)
-            flPower *= maxPower; frPower *= maxPower; blPower *= maxPower; brPower *= maxPower;
-
-
-            // Ensure we don't drop below MIN_POWER along the commanded axis (helps overcome static friction)
-            // but allow the heading correction to modulate around it.
-            // Only enforce MIN_POWER on the dominant drive component:
-            if (direction == Direction.FORWARD || direction == Direction.BACKWARD) {
-                double sign = Math.signum(axial);
-                flPower = sign * Math.max(MIN_POWER, Math.abs(flPower));
-                frPower = sign * Math.max(MIN_POWER, Math.abs(frPower));
-                blPower = sign * Math.max(MIN_POWER, Math.abs(blPower));
-                brPower = sign * Math.max(MIN_POWER, Math.abs(brPower));
-            } else {
-                double sign = Math.signum(lateral);
-                // For strafes, friction is higher—MIN_POWER helps a lot
-                flPower = (Math.signum(flPower) == 0 ? sign : Math.signum(flPower)) * Math.max(MIN_POWER, Math.abs(flPower));
-                frPower = (Math.signum(frPower) == 0 ? sign : Math.signum(frPower)) * Math.max(MIN_POWER, Math.abs(frPower));
-                blPower = (Math.signum(blPower) == 0 ? sign : Math.signum(blPower)) * Math.max(MIN_POWER, Math.abs(blPower));
-                brPower = (Math.signum(brPower) == 0 ? sign : Math.signum(brPower)) * Math.max(MIN_POWER, Math.abs(brPower));
-            }
-
-
-            // Apply powers
-            setPowerToWheels( flPower, frPower, blPower, brPower);
-
-
-        }
-
-
-        // Stop hard
-        setPowerToWheels( 0, 0, 0, 0);
-    }
-    public void turnToHeading2(double targetHeadingDeg, double maxTurnSpeed, int timeoutMillis){
-        //Util.turnToAngleIMU(targetHeadingDeg,maxTurnSpeed, );
-    }
 
     public void printOdoTelemetry(){
         Util.printAllOdoTelemetry(odo, opMode.telemetry);
@@ -480,6 +224,10 @@ public class Chassis {
     }
 
     public void turnToAngle(double targetAngle) {
+
+        final double MIN_TURN_PWR = 0.6;
+        final double MAX_TURN_PWR = 0.8;
+        final double ERROR_RANGE_DEGREE = 1;
 
         while (((LinearOpMode) opMode).opModeIsActive()) {
             odo.update();
@@ -495,8 +243,7 @@ public class Chassis {
             opMode.telemetry.update();
 
             if( Math.abs(errorAngle) < ERROR_RANGE_DEGREE ) {
-                setPowerToWheels(0,0,0,0);
-
+                moveRobot(0,0,0);
                 break;
             }
 
@@ -505,7 +252,8 @@ public class Chassis {
 
             double turnPower = ( (Math.abs(errorAngle) / 180) * (MAX_TURN_PWR - MIN_TURN_PWR) + MIN_TURN_PWR ) * Math.signum(errorAngle) * -1;
 
-            drive(0, 0, turnPower);
+            //Half turn speed
+            moveRobot(0, 0, turnPower);
         }
     }
 
