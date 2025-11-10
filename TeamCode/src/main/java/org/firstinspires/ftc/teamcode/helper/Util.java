@@ -59,7 +59,10 @@ public class Util {
         telemetry.addData("Odo Pose Y (cms): ", pose.getY(DistanceUnit.CM));
         telemetry.addData("Odo Position X (cms): ", odo.getPosX(DistanceUnit.CM));
         telemetry.addData("Odo Position Y (cms): ", odo.getPosY(DistanceUnit.CM));
-        telemetry.addData("Odo Heading (degrees): ", odo.getHeading(AngleUnit.DEGREES));
+        //telemetry.addData("Odo Heading (degrees): ", odo.getHeading(AngleUnit.DEGREES));
+        telemetry.addData("Odo Heading (radians): ", odo.getHeading(AngleUnit.RADIANS));
+        telemetry.addData("Odo Heading (rad to deg): ", Math.toDegrees(odo.getHeading(AngleUnit.RADIANS)));
+
     }
 
     public static void printIMUTelemetry(IMU imu, Telemetry telemetry ){
