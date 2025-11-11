@@ -16,7 +16,7 @@ public class OuttakeSubsystem implements Subsystem {
     //Necessary
     JoinedTelemetry telemetry;
     UniConstants.teamColor color;
-    public static boolean debug = false;
+    public static boolean debug = true;
 
     //Actual launcher things
     DcMotorEx launcher;
@@ -133,6 +133,9 @@ public class OuttakeSubsystem implements Subsystem {
 
     public  void setLauncherTargetVelo(double target){
         launcherTargetVelo = target;
+    }
+    public  void setLauncherPowerDebug(double target){
+        launcherPowerDebug = target;
     }
 
     public void sendTelemetry(UniConstants.loggingState state){

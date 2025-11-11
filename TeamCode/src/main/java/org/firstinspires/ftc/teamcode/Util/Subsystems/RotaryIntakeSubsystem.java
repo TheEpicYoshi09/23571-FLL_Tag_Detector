@@ -10,6 +10,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.sun.tools.javac.util.List;
 
 import org.firstinspires.ftc.teamcode.Util.PDFLController;
+import org.firstinspires.ftc.teamcode.Util.PDFLControllerRadial;
 import org.firstinspires.ftc.teamcode.Util.UniConstants;
 
 import java.util.ArrayList;
@@ -40,7 +41,7 @@ public class RotaryIntakeSubsystem implements Subsystem {
     //Rotary motor and controller
     DcMotorEx rotary;
     public static double pR = 0, dR = 0, lR = 0, fR = 0;
-    PDFLController rotaryController = new PDFLController(pR, dR, fR, lR);
+    PDFLControllerRadial rotaryController = new PDFLControllerRadial(pR, dR, fR, lR);
     private int rotaryTargetPosition = 0;
     private int rotaryCurrentPosition = 0;
     private int rotaryDirection = 1;

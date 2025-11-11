@@ -96,6 +96,14 @@ public class NextFTCTeleop extends NextFTCOpMode {
             rotaryIntake.disableActive();
         }
 
+        if(gamepad1.dpad_up){
+            outtake.setLauncherPowerDebug(.5);
+        }
+        if(gamepad1.dpad_down){
+            outtake.setLauncherPowerDebug(0);
+        }
+
+
         //Reverse Active and Spin
         if(gamepad1.b){
             rotaryIntake.reverseIntake();
