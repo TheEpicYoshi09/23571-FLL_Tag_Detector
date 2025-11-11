@@ -18,10 +18,11 @@ public class MechController {
     public static final double[] SHOOT = {180, 300, 60}; // Indexer 0, 1, 2 @ Shooting Post degrees
     private static final double MAX_SERVO_ROTATION = 300.0; // Degrees
     private static final long INTAKE_TIMEOUT_MS = 3000; // 3 seconds max per artifact
-    private final long MOTOR_WAIT_MS = 3000; // 3 seconds for Shooting motor full speed
+    private final long MOTOR_WAIT_MS = 3000; // 3 seconds for Shooting motor to reach full speed
     private final long POST_INDEXER_WAIT_MS = 1000; // 1 second post Indexer rotation
-    private final long LIFT_WAIT_MS = 2000; // 2 seconds for Lifter in Up position
+    private final long LIFT_WAIT_MS = 2000; // 2 seconds for Lifter in Up position for shooting
     private final long DROP_WAIT_MS = 1000; // 1 second post Lifter in Down position
+    private final long APRIL_TAG_WAIT_MS = 4000; // 4 seconds waiting to detect AprilTag
     private final ElapsedTime timer = new ElapsedTime();
 
 
@@ -46,6 +47,8 @@ public class MechController {
     private int slotToShoot = -1;
     private long shootStageStart = 0;
     private int shootStage = 0;
+    private long aprilTagStageStart = 0;
+    private boolean aprilTagRunning = false;
     private boolean delayActive = false;
     private double delayDuration = 0;
 
@@ -70,7 +73,7 @@ public class MechController {
 
             case SHOOT_STATE:
                 currentState = MechState.SHOOT_STATE;
-                if (!shootingMotorRunning) {
+                if (!shootingMotorRunning) { // Start shooting Motor
                     runShootingMot(1);
                     shootingMotorRunning = true;
                     if (!motorInitialWaitDone) {
@@ -80,7 +83,7 @@ public class MechController {
                 }
 
                 if (shootPatternIndex >= tagPattern.length || artifactCount <= 0) {
-                    runShootingMot(0);
+                    runShootingMot(0); // Stop shooting stage
                     shootingMotorRunning = false;
                     motorInitialWaitDone = false;
                     shootStage = 0;
@@ -95,7 +98,7 @@ public class MechController {
                 // Shooting stage machine
                 switch (shootStage) {
                     case -1:
-                        if (shootElapsed >= MOTOR_WAIT_MS) {
+                        if (shootElapsed >= MOTOR_WAIT_MS) { // Waiting for shooting motor to reach full speed
                             motorInitialWaitDone = true;
                             shootStageStart = System.currentTimeMillis();
                             shootStage = 0;
@@ -104,15 +107,15 @@ public class MechController {
 
                     case 0:
                         if (slotToShoot == -1) {
-                            int targetColor = tagPattern[shootPatternIndex];
+                            int targetColor = tagPattern[shootPatternIndex]; // Checking motif pattern color to shoot
                             for (int i = 0; i < indexer.length; i++) {
-                                if (indexer[i] == targetColor) {
+                                if (indexer[i] == targetColor) { // Finding the color to shoot in index
                                     slotToShoot = i;
                                     break;
                                 }
                             }
                             if (slotToShoot != -1) {
-                                setIndexer(SHOOT[slotToShoot]);
+                                setIndexer(SHOOT[slotToShoot]); // Setting indexer to shooting position
                                 shootStageStart = System.currentTimeMillis();
                                 shootStage = 3;
                             } else {
@@ -122,21 +125,21 @@ public class MechController {
                         break;
 
                     case 3:
-                        if (shootElapsed >= POST_INDEXER_WAIT_MS) {
+                        if (shootElapsed >= POST_INDEXER_WAIT_MS) { // Waiting post indexer rotation
                             shootStageStart = System.currentTimeMillis();
                             shootStage = 1;
                         }
                         break;
 
                     case 1:
-                        setLifter(1);
+                        setLifter(1); // Lifter up
                         shootStageStart = System.currentTimeMillis();
                         shootStage = 2;
                         break;
 
                     case 2:
                         if (shootElapsed >= LIFT_WAIT_MS) {
-                            setLifter(0);
+                            setLifter(0); // Lifter down
                             shootStageStart = System.currentTimeMillis();
                             shootStage = 4;
                         }
@@ -147,7 +150,7 @@ public class MechController {
                             int targetColor = tagPattern[shootPatternIndex];
                             for (int i = 0; i < indexer.length; i++) {
                                 if (indexer[i] == targetColor) {
-                                    indexer[i] = 0;
+                                    indexer[i] = 0; // Setting 0 in indexer for the artifact shot
                                     artifactCount--;
                                     break;
                                 }
@@ -164,22 +167,22 @@ public class MechController {
             case INTAKE_STATE:
                 currentState = MechState.INTAKE_STATE;
                 if (!intakeRunning) {
-                    intakeTargetIndex = getEmptyIndex();
-                    if (intakeTargetIndex != -1) {
-                        setIndexer(INTAKE[intakeTargetIndex]);
+                    intakeTargetIndex = getEmptyIndex(); // Finding slot 0 for intake
+                    if (intakeTargetIndex != -1) { // Checking if all slots are full
+                        setIndexer(INTAKE[intakeTargetIndex]); // Setting indexer to intake position
                         runIntakeMot(1);
                         intakeStartTime = System.currentTimeMillis();
                         intakeRunning = true;
                     } else {
-                        currentState = MechState.IDLE;
+                        currentState = MechState.IDLE; // Stop intake stage
                     }
                 } else {
-                    int color = visionController.artifactColor();
+                    int color = visionController.artifactColor(); // Reading sensor color
                     long intakeElapsed = System.currentTimeMillis() - intakeStartTime;
-                    if (color != 0 || intakeElapsed >= INTAKE_TIMEOUT_MS) {
+                    if (color != 0 || intakeElapsed >= INTAKE_TIMEOUT_MS) { // Checking if Purple or Green artifact
                         runIntakeMot(0);
                         if (color != 0 && intakeTargetIndex != -1) {
-                            indexer[intakeTargetIndex] = color;
+                            indexer[intakeTargetIndex] = color; // Storing the artifact color based on indexer slot filled
                             artifactCount++;
                         }
                         intakeRunning = false;
@@ -199,7 +202,21 @@ public class MechController {
 
             case APRIL_TAG:
                 currentState = MechState.APRIL_TAG;
-                tagPattern = visionController.findTagPattern(visionController.getAprilTag());
+                long aprilTagElapsed = System.currentTimeMillis() - aprilTagStageStart;
+                if (!aprilTagRunning) {
+                    aprilTagStageStart = System.currentTimeMillis();
+                    aprilTagRunning = true;
+                } else {
+                    if (tagPattern[0] == 0 || aprilTagElapsed >= APRIL_TAG_WAIT_MS) { // If no tag detected or timeout reached
+                        tagPattern = visionController.findTagPattern(visionController.getAprilTag());
+                        if (tagPattern[0] == 0) { // If still no tag detected
+                            tagPattern = new int[]{21, 2, 1, 1};  // ID 21: GPP
+                        }
+                    }
+                    currentState = MechState.IDLE; // Stop AprilTag stage
+                    aprilTagRunning = false;
+                    aprilTagStageStart = 0;
+                }
                 break;
 
             case HUMAN_STATE:
