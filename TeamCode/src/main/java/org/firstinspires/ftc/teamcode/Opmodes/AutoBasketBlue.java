@@ -95,8 +95,8 @@ public class AutoBasketBlue extends LinearOpMode {
 //            Util.moveRobot(chassis.frontLeftDrive, chassis.backLeftDrive, chassis.frontRightDrive, chassis.backRightDrive, chassis.odo, chassis.imu, Util.MovementDirection.STRAFE_LEFT, 20, 0, telemetry);
 //            sleep(2000);
 
-            Util.moveRobot(chassis.frontLeftDrive, chassis.backLeftDrive, chassis.frontRightDrive, chassis.backRightDrive, chassis.odo, chassis.imu, Util.MovementDirection.TURN_RIGHT, 0, -90, telemetry);
-            sleep(2000);
+            //Util.moveRobot(chassis.frontLeftDrive, chassis.backLeftDrive, chassis.frontRightDrive, chassis.backRightDrive, chassis.odo, chassis.imu, Util.MovementDirection.TURN_RIGHT, 0, -90, telemetry);
+            //sleep(2000);
 
         }
 
@@ -121,6 +121,8 @@ public class AutoBasketBlue extends LinearOpMode {
 
             switch (currentStage) {
                 case BACK_UP:
+                    Util.moveRobot(chassis.frontLeftDrive, chassis.backLeftDrive, chassis.frontRightDrive, chassis.backRightDrive, chassis.odo, chassis.imu, Util.MovementDirection.FORWARD, 50, 0, telemetry);
+                    Util.shoot(flyWheel,kicker,flipper,intake,robotDistanceFromAprilTag,telemetry);
                     //chassis.moveWithProportionalDeceleration(Chassis.Direction.FORWARD, 0.3, 60);
 //                    chassis.moveWithProportionalDecelerationAndHeading(Chassis.Direction.FORWARD, 0.8, 48,0.0);
                     //chassis.moveWithProportionalDeceleration(Chassis.Direction.FORWARD, 0.3, 10);
