@@ -1,0 +1,26 @@
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+
+import org.firstinspires.ftc.teamcode.mechanisms.AprilTagsWebcam;
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+@Autonomous
+public class WebcamTestOpMode  extends OpMode {
+    AprilTagsWebcam aprilTagWebcam = new AprilTagsWebcam();
+
+
+    @Override
+    public void init() {
+        aprilTagWebcam.init(hardwareMap, telemetry);
+
+    }
+
+    @Override
+    public void loop() {
+        aprilTagWebcam.update();
+        AprilTagDetection id20 = aprilTagWebcam.getTagBySpecificId(20);
+        aprilTagWebcam.displayDetectionTelemetry(id20);
+
+    }
+}
