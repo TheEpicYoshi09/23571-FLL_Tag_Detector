@@ -54,6 +54,8 @@ public class AutoBasketBlue extends LinearOpMode {
         kicker.init(hardwareMap);
         intake.init(this);
 
+        Util.resetToDefaultSpeed();
+
         chassis.resetODOPosAndIMU();
 
         DecodeAprilTag aprilTag = new DecodeAprilTag(this);
@@ -71,22 +73,22 @@ public class AutoBasketBlue extends LinearOpMode {
         //chassis.odo.resetPosAndIMU();
 
 
-        /*
-        while (opModeInInit()) {
 
-            Util.printOdoPositionTelemetry(chassis.odo, telemetry);
-            Util.printIMUTelemetry(chassis.imu,telemetry);
-            telemetry.update();
+//        while (opModeInInit()) {
+//
+//            Util.printOdoPositionTelemetry(chassis.odo, telemetry);
+//            Util.printIMUTelemetry(chassis.imu,telemetry);
+//            telemetry.update();
+//
+//        }
 
-        }
 
-         */
 
 
 
         waitForStart();
 
-        //chassis.drive(1,0,0);
+     /*   //chassis.drive(1,0,0);
         if(robotType == RobotType.VORTEX_DECODE_1) {
 //            Util.moveRobot(chassis.frontLeftDrive, chassis.backLeftDrive, chassis.frontRightDrive, chassis.backRightDrive, chassis.odo, chassis.imu, Util.MovementDirection.FORWARD, 20, 0, telemetry);
 //            sleep(2000);
@@ -102,7 +104,7 @@ public class AutoBasketBlue extends LinearOpMode {
             //Util.moveRobot(chassis.frontLeftDrive, chassis.backLeftDrive, chassis.frontRightDrive, chassis.backRightDrive, chassis.odo, chassis.imu, Util.MovementDirection.TURN_RIGHT, 0, -90, telemetry);
             //sleep(2000);
 
-        }
+        }*/
 
 
         AutoStages currentStage = AutoStages.BACK_UP;
@@ -116,45 +118,52 @@ public class AutoBasketBlue extends LinearOpMode {
                     aprilTagPoseFtc = aprilTag.getCoordinate(DecodeAprilTag.BLUE_APRIL_TAG);
                     if (aprilTagPoseFtc != null) {
                         robotDistanceFromAprilTag = aprilTagPoseFtc.range;
+                        telemetry.addData("April Tag Distance", robotDistanceFromAprilTag);
+                        telemetry.update();
                     }
                 }
             }
 
 
 
-
             switch (currentStage) {
                 case BACK_UP:
-                    chassis.drive(44);
+                    chassis.drive(30);
+                    telemetry.addData("April Tag", aprilTagPoseFtc);
+                    telemetry.update();
                     sleep(750);
                     currentStage = AutoStages.SHOOT;
                     break;
 
                 case SHOOT:
                     Util.shoot(flyWheel, kicker, flipper, intake, robotDistanceFromAprilTag, telemetry);
-                    currentStage = AutoStages.END;
+                    currentStage = AutoStages.GET_MORE_BALLS;
                     break;
 
                 case GET_MORE_BALLS:
-
+                    intake.stopIntake();
                     chassis.turn(130);
-                    sleep(300);
-                    chassis.strafe(-12);
-                    sleep(300);
+                    sleep(500);
+                    chassis.strafe(-10);
+                    sleep(500);
                     intake.startIntake();
-                    chassis.drive(26);
+                    Util.setSpeed(0.2,0.2);
+                    chassis.drive(30);
+                    sleep(500);
+                    intake.stopIntake();
                     currentStage = AutoStages.GO_BACK_TO_SHOOT;
                     break;
 
                 case GO_BACK_TO_SHOOT:
+                    chassis.drive(-30);
+                    Util.setSpeed(0.8,0.2);
                     sleep(300);
-                    chassis.drive(-26);
-                    sleep(300);
-                    chassis.strafe(12);
-                    sleep(300);
+                    chassis.strafe(10);
                     chassis.turn(-130);
                     sleep(300);
                     Util.shoot(flyWheel, kicker, flipper, intake, robotDistanceFromAprilTag, telemetry);
+                    currentStage = AutoStages.END;
+                    break;
 
                 case END:
                     break;

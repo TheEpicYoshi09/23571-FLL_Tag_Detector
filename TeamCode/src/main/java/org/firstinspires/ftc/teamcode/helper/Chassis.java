@@ -123,7 +123,7 @@ public class Chassis {
 
     public void drive(double distance) {
         if(distance < 0) {
-            Util.moveRobot(frontLeftDrive, backLeftDrive, frontRightDrive, backRightDrive, odo, imu, Util.MovementDirection.BACKWARD, distance, 0, opMode.telemetry);
+            Util.moveRobot(frontLeftDrive, backLeftDrive, frontRightDrive, backRightDrive, odo, imu, Util.MovementDirection.BACKWARD, -distance, 0, opMode.telemetry);
         } else {
             Util.moveRobot(frontLeftDrive, backLeftDrive, frontRightDrive, backRightDrive, odo, imu, Util.MovementDirection.FORWARD, distance, 0, opMode.telemetry);
         }
@@ -131,7 +131,7 @@ public class Chassis {
 
     public void strafe(double distance) {
         if(distance < 0) {
-            Util.moveRobot(frontLeftDrive, backLeftDrive, frontRightDrive, backRightDrive, odo, imu, Util.MovementDirection.STRAFE_LEFT, distance, 0, opMode.telemetry);
+            Util.moveRobot(frontLeftDrive, backLeftDrive, frontRightDrive, backRightDrive, odo, imu, Util.MovementDirection.STRAFE_LEFT, -distance, 0, opMode.telemetry);
         } else {
             Util.moveRobot(frontLeftDrive, backLeftDrive, frontRightDrive, backRightDrive, odo, imu, Util.MovementDirection.STRAFE_RIGHT, distance, 0, opMode.telemetry);
         }

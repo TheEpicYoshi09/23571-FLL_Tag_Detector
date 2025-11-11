@@ -524,7 +524,19 @@ public class Util {
     }
 
 
+    public static void setSpeed(double min_speed, double max_speed) {
+        MIN_SPEED = min_speed;
+        MAX_SPEED = max_speed;
+    }
 
+    public static void resetToDefaultSpeed() {
+        MAX_SPEED = 0.8;
+        MIN_SPEED = 0.2;
+    }
+
+
+    static Double MAX_SPEED = 0.8;
+    static Double MIN_SPEED = 0.2;
     public static void moveRobot(
             DcMotor leftFront, DcMotor leftBack,
             DcMotor rightFront, DcMotor rightBack,
@@ -536,8 +548,7 @@ public class Util {
             Telemetry telemetry) {
 
 
-        Double MAX_SPEED = 0.8;
-        Double MIN_SPEED = 0.2;
+
         Double P_DRIVE_GAIN = 0.03;
         Double ERROR_RANGE__INCHES = 0.5;
         Double P_YAW_GAIN = 0.10;
