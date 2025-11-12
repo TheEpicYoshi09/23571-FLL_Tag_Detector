@@ -155,6 +155,13 @@ public class Chassis {
         return new Pose2D(DistanceUnit.MM, x, y, AngleUnit.RADIANS, heading);
     }
 
+    public void stopRobot() {
+        frontLeftDrive.setPower(0);
+        frontRightDrive.setPower(0);
+        backLeftDrive.setPower(0);
+        backRightDrive.setPower(0);
+    }
+
 
 
     //Gyroscope

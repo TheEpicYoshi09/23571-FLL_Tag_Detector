@@ -11,23 +11,148 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
+import org.firstinspires.ftc.vision.apriltag.AprilTagPoseFtc;
 
 public class Util {
-    public static double angleWrap(double degrees) {
-        while (degrees > 180) {
-            degrees -= 360;
+
+    public static class AlignmentResult {
+        public boolean success;
+        public double distance;
+        public double bearing;
+        public double yaw;
+
+        public AlignmentResult(boolean success, double distance, double bearing, double yaw) {
+            this.success = success;
+            this.distance = distance;
+            this.bearing = bearing;
+            this.yaw = yaw;
         }
-        while (degrees < -180) {
-            degrees += 360;
-        }
-        return degrees;
     }
+
+    public static class FlyWheelSpinUpResult {
+        public boolean success;
+        public long durationMs;
+        public double achievedVelocity;
+        public double targetVelocity;
+
+        public FlyWheelSpinUpResult(boolean success, long durationMs, double achievedVelocity, double targetVelocity) {
+            this.success = success;
+            this.durationMs = durationMs;
+            this.achievedVelocity = achievedVelocity;
+            this.targetVelocity = targetVelocity;
+        }
+    }
+
     /**
-     * Clips a value to be within a minimum and maximum range.
+     * Waits for the flywheel to reach the target shooting velocity with configurable tolerance.
+     * Ramps up at full power, then fine-tunes down if overshooting, and finally sets to shooting power.
+     * Total time for both phases combined will not exceed maxWaitTime.
+     *
      */
-    public static double clip(double value, double min, double max) {
-        return Math.max(min, Math.min(max, value));
+    public static FlyWheelSpinUpResult waitForFlyWheelShootingVelocity(FlyWheel flyWheel, long velocity, double maxWaitTime, Telemetry telemetry){
+        // Configuration constants
+        final double VELOCITY_TOLERANCE_PERCENT = 2.0;  // Default 2% tolerance
+        final double SHOOTING_POWER_BOOST_PERCENT = 20.0;  // Default 20% boost for shooting
+        final double JAM_DETECTION_THRESHOLD = 0.75;  // 75% of target velocity
+
+        // Power calculation constants (for velocity-to-power conversion)
+        final double BASE_POWER = 0.45;  // Motor power at reference velocity (1200 RPM)
+        final int REFERENCE_VELOCITY = 1200;  // Reference velocity in RPM for base power
+        final double POWER_INCREMENT_PER_1000_RPM = 0.1;  // Power increases by 0.1 for every 1000 RPM above reference
+
+        long startTime = System.currentTimeMillis();
+        long durationInMillis = 0;
+        int loopCounter = 0;
+
+        // Calculate tolerance thresholds
+        double lowerThreshold = (1.0 - VELOCITY_TOLERANCE_PERCENT / 100.0) * velocity;  // 98% of target
+        double upperThreshold = (1.0 + VELOCITY_TOLERANCE_PERCENT / 100.0) * velocity;  // 102% of target
+        double jamThreshold = JAM_DETECTION_THRESHOLD * velocity;  // 90% of target
+        double boostMultiplier = 1.0 + SHOOTING_POWER_BOOST_PERCENT / 100.0;  // 1.2 for 20% boost
+
+        // Phase 1: Ramp up to target velocity (lower threshold)
+        flyWheel.setPower(1.0); // Ramp up at full power
+
+        while (flyWheel.getVelocity() < lowerThreshold){
+            loopCounter++;
+            sleepThread(50);
+
+            durationInMillis = System.currentTimeMillis() - startTime;
+            if(durationInMillis > maxWaitTime){
+                telemetry.addData("Warning", "Timeout during ramp-up");
+                double achievedVelocity = flyWheel.getVelocity();
+                boolean success = achievedVelocity >= jamThreshold;
+                telemetry.addData("Achieved Velocity", "%.0f RPM (%.0f%% of target)", achievedVelocity, (achievedVelocity / velocity) * 100);
+                return new FlyWheelSpinUpResult(success, durationInMillis, achievedVelocity, velocity);
+            }
+        }
+
+        // Phase 2: Fine-tune down if overshooting (above upper threshold)
+        while (flyWheel.getVelocity() > upperThreshold){
+            durationInMillis = System.currentTimeMillis() - startTime;
+            if(durationInMillis > maxWaitTime){
+                telemetry.addData("Warning", "Timeout during fine-tuning");
+                break;
+            }
+
+            flyWheel.setPower(-1); // Brake to slow down
+            sleepThread(50);
+        }
+
+        // Phase 3: Set to calculated shooting power with boost
+        // Formula: base_power + (target_velocity - reference_velocity) * power_per_rpm
+        // Example: For 1200 RPM: 0.45 + (1200-1200)/1000 = 0.45, then * 1.2 = 0.54
+        // Example: For 1400 RPM: 0.45 + (1400-1200)/1000 = 0.65, then * 1.2 = 0.78
+        double calculatedPower = BASE_POWER + (velocity - REFERENCE_VELOCITY) / (1000.0 / POWER_INCREMENT_PER_1000_RPM);
+        flyWheel.setPower(calculatedPower * boostMultiplier);
+
+        durationInMillis = System.currentTimeMillis() - startTime;
+        double achievedVelocity = flyWheel.getVelocity();
+        telemetry.addData("Ramp-up loops", loopCounter);
+        telemetry.addData("Time to velocity (ms)", durationInMillis);
+
+        return new FlyWheelSpinUpResult(true, durationInMillis, achievedVelocity, velocity);
     }
+
+    /**
+     * Waits for the flywheel to decelerate to or below the target velocity.
+     * Applies reverse power to actively brake the flywheel until it slows down.
+     * Total time will not exceed maxWaitTime.
+     */
+    public static long waitForFlyWheelStopVelocity(FlyWheel flyWheel, long velocity, double maxWaitTime, Telemetry telemetry){
+        long startTime = System.currentTimeMillis();
+        double startFlyWheelVelocity = flyWheel.getVelocity();
+        double currentFlyWheelVelocity = flyWheel.getVelocity();
+        long durationInMillis = 0;
+
+        telemetry.addData("Start FlyWheel Velocity", startFlyWheelVelocity);
+
+        // Apply reverse power to actively brake the flywheel
+        while (currentFlyWheelVelocity > velocity){
+            flyWheel.setPower(-1); // Full reverse power for braking
+            sleepThread(50);
+            currentFlyWheelVelocity = flyWheel.getVelocity();
+
+            // Check for timeout
+            durationInMillis = System.currentTimeMillis() - startTime;
+            if(durationInMillis > maxWaitTime){
+                telemetry.addData("Warning", "Timeout waiting for flywheel to stop");
+                break;
+            }
+        }
+
+        // Stop the flywheel motor
+        flyWheel.setPower(0.0);
+
+        // Calculate final duration and log results
+        durationInMillis = System.currentTimeMillis() - startTime;
+        double endFlyWheelVelocity = flyWheel.getVelocity();
+        telemetry.addData("End FlyWheel Velocity", endFlyWheelVelocity);
+        telemetry.addData("Stop Duration (ms)", durationInMillis);
+
+        return durationInMillis;
+    }
+
 
     public static void sleepThread(int millis){
         try {
@@ -43,7 +168,6 @@ public class Util {
         telemetry.addData("Odo Device Status: ", odo.getDeviceStatus());
         telemetry.addData("Odo Position X (cms): ", odo.getPosX(DistanceUnit.CM));
         telemetry.addData("Odo Position Y (cms): ", odo.getPosY(DistanceUnit.CM));
-//        telemetry.addData("Odo Heading (degrees): ", odo.getHeading(AngleUnit.DEGREES));
         telemetry.addData("Odo Heading (radians): ", odo.getHeading(AngleUnit.RADIANS));
         telemetry.update();
     }
@@ -194,92 +318,6 @@ public class Util {
         flyWheel.stop();
     }
 
-    public static Long waitForFlyWheelShootingVelocity(FlyWheel flyWheel, long velocity, double maxWaitTime, Telemetry telemetry){
-        long startTime = System.currentTimeMillis();
-        long intermidiateTime =  System.currentTimeMillis();
-        long durationInMillis = intermidiateTime - startTime;
-        int loopCounter = 0;
-
-        double shootPower = flyWheel.getPower();
-        flyWheel.setPower(1.0); // ramp up at full power
-
-        while (flyWheel.getVelocity() < 0.98*velocity){
-            loopCounter++;
-            intermidiateTime =  System.currentTimeMillis();
-            durationInMillis = intermidiateTime - startTime;
-            sleepThread(50);
-
-            if(durationInMillis > maxWaitTime){
-                return durationInMillis;
-            }
-        }
-
-        while (flyWheel.getVelocity() > 1.02*velocity){
-            flyWheel.setPower(-1);
-            sleepThread(50);
-        }
-
-        flyWheel.setPower((0.45 + (velocity-1200)/1000)*1.2); //20% more for shooting power
-
-     //   flyWheel.setPower(shootPower); // back to shooting power
-
-        telemetry.addData("waitForFlyWheelShootingVelocity - loopCounter - ",loopCounter);
-        return durationInMillis;
-    }
-
-    public static long waitForFlyWheelStopVelocity(FlyWheel flyWheel, long velocity, double maxWaitTime, Telemetry telemetry){
-
-        long startTime = System.currentTimeMillis();
-        double startFlyWheelVelocity = flyWheel.getVelocity();
-        double currentFlyWheelVelocity = flyWheel.getVelocity();
-
-        telemetry.addData("Start FlyWheel Velocity - " , startFlyWheelVelocity);
-
-        //flyWheel.setPower(-1); // was -0.1
-        //sleepThread(500);
-        //flyWheel.setPower(0.0);
-
-        while (currentFlyWheelVelocity > velocity){
-            flyWheel.setPower(-1); // was -0.1
-            sleepThread(50);
-           // flyWheel.setPower(0.0);
-            currentFlyWheelVelocity = flyWheel.getVelocity();
-        }
-
-        flyWheel.setPower(0.0);
-
-        long endTime = System.currentTimeMillis();
-
-        long durationInMillis = (endTime - startTime);
-        double endFlyWheelVelocity = flyWheel.getVelocity();
-        telemetry.addData("flyWheelVelocity - " + endFlyWheelVelocity,", durationInMillis - "+durationInMillis);
-        return durationInMillis;
-
-        /*
-        long startTime = System.currentTimeMillis();
-        long intermidiateTime =  System.currentTimeMillis();
-        long durationInMillis = intermidiateTime - startTime;
-        double flyWheelVelocity = flyWheel.getVelocity();
-        telemetry.addData("Start flyWheelVelocity - ",flyWheelVelocity);
-
-        while (flyWheelVelocity > velocity){
-            intermidiateTime =  System.currentTimeMillis();
-            durationInMillis = intermidiateTime - startTime;
-            flyWheel.setPower(0.1);
-            sleepThread(500);
-            flyWheel.setPower(0.0);
-            flyWheelVelocity = flyWheel.getVelocity();
-            telemetry.addData("flyWheelVelocity - " + flyWheelVelocity,", durationInMillis - "+durationInMillis);
-            //if(durationInMillis > maxWaitTime){
-            //    return durationInMillis;
-            //}
-            durationInMillis = intermidiateTime - startTime;
-        }
-        return durationInMillis;
-
-         */
-    }
-
     public static boolean waitForMotor(DcMotorEx dcWheel, long timeoutMs, double ticksPerSecond) {
         boolean ret = false;
         long sleepInMs = 200;
@@ -320,78 +358,6 @@ public class Util {
         return dDistance;
     }
 
-    public static void prepareKickerAndIntakeToShoot(FlyWheel flyWheel, Kicker kicker, Intake intake, Double distance, Telemetry telemetry){
-
-        intake.setIntakePower(0.5); //reduce intake power to avoid jam
-        kicker.setPosition(Kicker.gateClose);
-        threadSleep(400);
-
-        //threadSleep(800);
-        //Replace the timer with distance sensor
-        //When the ball is moved out, start the flywheel
-
-
-       // flyWheel.start(0.5); // start at low power
-
-
-        // flyWheel.start(Util.getRequiredFlyWheelPower(distance));
-        //threadSleep(800);
-    }
-
-    public static void prepareFlyWheelToIntake(FlyWheel flyWheel, Kicker kicker, Intake intake, Flipper flipper, Telemetry telemetry){
-        flyWheel.stop();
-        kicker.setGatePosition(Kicker.GATE_CLOSE);
-        flipper.resetFlipper();
-        Util.waitForFlyWheelStopVelocity(flyWheel,200,5000, telemetry);
-        kicker.setPosition(Kicker.gateIntake);
-        intake.startIntake();
-    }
-
-
-    public static void prepareForShooting(FlyWheel flyWheel, Kicker kicker, Flipper flipper, Intake intake, Double distanceInInchFromAprilTag, Telemetry telemetry){
-        //Double requiredFlyWheelPower = Util.getRequiredFlyWheelPower(distanceInInchFromAprilTag);
-        Integer requiredFlyWheelVelocity = Util.getRequiredFlyWheelVelocity(distanceInInchFromAprilTag);
-
-        Long timeToReachRequiredFlyWheelVelocity = Util.waitForFlyWheelShootingVelocity(flyWheel,requiredFlyWheelVelocity,3000, telemetry);
-
-        telemetry.addData("timeToReachRequiredFlyWheelVelocity - ",timeToReachRequiredFlyWheelVelocity);
-      //  kicker.setPosition(Kicker.gateShoot);
-       // sleepThread(200);
-
-       /*
-        if(!isObjectDetected(channelDistanceSensor, telemetry)){
-            flipper.turnFlipper();
-            sleepThread(200);
-            kicker.setPosition(Kicker.gateClose);
-
-        }
-
-
-
-        if ( isObjectDetected(channelDistanceSensor, telemetry) ) {
-            kicker.setPosition(Kicker.gateClose);
-        }
-        */
-
-
-        //boolean isObjectDetected = isObjectDetected(channelDistanceSensor, telemetry);
-
-        /*
-        ElapsedTime timer = new ElapsedTime();
-        timer.reset();
-        while ( !isObjectDetected(channelDistanceSensor, telemetry) ) {
-            sleepThread(100);
-            if (timer.milliseconds() > 1000) {
-                break;
-            }
-        }
-
-         */
-        //if (isObjectDetected) {
-
-
-
-    }
 
     public static Double getRequiredFlyWheelPower(double distanceInInchFromAprilTag){
         Double doubleDesiredFlyWheelPower = 0.45;
@@ -422,7 +388,7 @@ public class Util {
         minmum shooting distance is 37 inch
          */
 
-        integerDesiredFlyWheelVelocity = (int) Math.max(950 +flyWheelVelocityTunning, Math.ceil(10.25*distanceInInchFromAprilTag + 587.4));
+        integerDesiredFlyWheelVelocity = (int) Math.max(1050 +flyWheelVelocityTunning, Math.ceil(10.25*distanceInInchFromAprilTag + 587.4));
 
 
         /*
@@ -458,13 +424,6 @@ public class Util {
 
      */
 
-    public static double getDistanceRequiredForFlyWheelVelocity(Integer flyWheelVelocity){
-        double distanceInInchFromAprilTag = 53.0;
-
-        return distanceInInchFromAprilTag;
-    }
-
-
 
     public static void threadSleep(int millis) {
         try {
@@ -474,44 +433,173 @@ public class Util {
         }
     }
 
-    public static void shoot(FlyWheel flyWheel, Kicker kicker, Flipper flipper, Intake intake, Double robotDistanceFromAprilTag, Telemetry telemetry){
+    public static void prepareFlyWheelToShoot(FlyWheel flyWheel, Kicker kicker, Intake intake, Double distance, Telemetry telemetry){
 
-        prepareKickerAndIntakeToShoot(flyWheel, kicker, intake, robotDistanceFromAprilTag, telemetry);
+        intake.setIntakePower(0.5); //reduce intake power to avoid jam
+        kicker.setPosition(Kicker.gateClose); // close gate to clear ball for ramping up flywheel
+        sleepThread(400);       // wait for kicker to close
 
-        // intake.setIntakePower(0.5);
+    }
 
-        int loopCounter = 0;
-        double flipperangle = 120;
+    public static void prepareFlyWheelToIntake(FlyWheel flyWheel, Kicker kicker, Intake intake, Flipper flipper, Telemetry telemetry){
+        flyWheel.stop();
+        kicker.setGatePosition(Kicker.GATE_CLOSE);
+        flipper.resetFlipper();
+        Util.waitForFlyWheelStopVelocity(flyWheel,200,3000, telemetry);
+        kicker.setPosition(Kicker.gateIntake);
+        intake.startIntake();
+    }
 
-        while(loopCounter<4) {
+    /**
+     * Attempts to clear a jam by cycling the kicker gate rapidly.
+     * Moves kicker between intake and close positions to dislodge stuck game pieces.
+     * Also stops the flywheel during clearing to prevent further jamming.
+     *
+     */
+    public static void clearJam(FlyWheel flyWheel, Kicker kicker, int numCycles, Telemetry telemetry) {
+        final int CYCLE_DELAY_MS = 200;  // Time for each position change
+        final long STOP_VELOCITY = 200;   // Target velocity for flywheel to be considered stopped
+        final double STOP_TIMEOUT_MS = 2000;  // Maximum time to wait for flywheel to stop
 
-            // wait flywheel to get the desired speed
-            Util.prepareForShooting(flyWheel, kicker, flipper, intake, robotDistanceFromAprilTag, telemetry);
-
-            kicker.setPosition(Kicker.gateShoot);
-            threadSleep(300);
-
-            flipper.turnFlipper(flipperangle+loopCounter*30);
-            threadSleep(150 + loopCounter*50);
-            kicker.setGatePosition(Kicker.GATE_CLOSE);
-            flipper.resetFlipper();
-            threadSleep(200);
-
-
-            loopCounter = loopCounter+1;
-
-            //  sleep(200);
-
-        }
-        telemetry.addData( "loopCounter - ",loopCounter);
+        telemetry.addData("Jam Detected", "Attempting to clear...");
         telemetry.update();
 
-        //flipper.resetFlipper();
+        // Stop flywheel using waitForFlyWheelStopVelocity to actively brake
+        waitForFlyWheelStopVelocity(flyWheel, STOP_VELOCITY, STOP_TIMEOUT_MS, telemetry);
 
+        for (int i = 0; i < numCycles; i++) {
+            // Move to intake position to pull/push jam
+            kicker.setPosition(Kicker.gateIntake);
+            threadSleep(CYCLE_DELAY_MS);
 
-        Util.prepareFlyWheelToIntake(flyWheel,kicker,intake,flipper, telemetry);
+            // Move to close position
+            kicker.setPosition(Kicker.gateClose);
+            threadSleep(CYCLE_DELAY_MS);
 
+            telemetry.addData("Jam Clear Cycle", String.format("%d / %d", i + 1, numCycles));
+            telemetry.update();
+        }
 
+        telemetry.addData("Jam Clear", "Complete");
+        telemetry.update();
+    }
+
+    // Prepares the flywheel and related mechanisms for shooting based on distance to target.
+    public static FlyWheelSpinUpResult prepareForShooting(FlyWheel flyWheel, Kicker kicker, Flipper flipper, Intake intake, Double distanceInInchFromAprilTag, Telemetry telemetry){
+        Integer requiredFlyWheelVelocity = Util.getRequiredFlyWheelVelocity(distanceInInchFromAprilTag);
+        FlyWheelSpinUpResult result = Util.waitForFlyWheelShootingVelocity(flyWheel, requiredFlyWheelVelocity, 3000, telemetry);
+
+        telemetry.addData("Time to reach velocity (ms) - ", result.durationMs);
+        telemetry.addData("Velocity achieved - ", "%.0f RPM (%.0f%% of target)", result.achievedVelocity, (result.achievedVelocity / result.targetVelocity) * 100);
+
+        return result;
+    }
+
+    public static void shoot(FlyWheel flyWheel, Kicker kicker, Flipper flipper, Intake intake, Double robotDistanceFromAprilTag, DecodeAprilTag aprilTag, String aprilTagName, Telemetry telemetry){
+
+        // Configuration constants
+        final int NUM_SHOTS = 4;                    // Shoot 4 times for reliability (only 3 required)
+        final double INITIAL_FLIPPER_ANGLE = 120;   // Starting flipper angle in degrees
+        final double ANGLE_INCREMENT = 30;          // Angle increase per shot (degrees)
+        final int KICKER_OPEN_DELAY_MS = 300;       // Wait time for kicker to open
+        final int BASE_FLIPPER_DELAY_MS = 150;      // Base wait time for flipper movement
+        final int FLIPPER_DELAY_INCREMENT_MS = 50;  // Additional delay per shot
+        final int FLIPPER_RESET_DELAY_MS = 200;     // Wait time for flipper to reset
+        final int JAM_CLEAR_CYCLES = 3;             // Number of kicker cycles to clear jam
+        final int MAX_JAM_CLEAR_ATTEMPTS = 2;       // Maximum attempts to clear jam per shot
+        final double DISTANCE_FALLBACK = robotDistanceFromAprilTag;  // Initial distance as fallback
+
+        // Initial preparation: close gate, reduce intake power, wait for positioning
+        prepareFlyWheelToShoot(flyWheel, kicker, intake, robotDistanceFromAprilTag, telemetry);
+
+        // Jam detection and clearing BEFORE shooting loop
+        // Try to reach target velocity with jam detection
+        FlyWheelSpinUpResult spinUpResult = null;
+        int attemptNumber = 0;
+        final int MAX_TOTAL_ATTEMPTS = MAX_JAM_CLEAR_ATTEMPTS + 1;  // +1 for initial attempt
+
+        while (attemptNumber < MAX_TOTAL_ATTEMPTS) {
+            attemptNumber++;
+
+            spinUpResult = prepareForShooting(flyWheel, kicker, flipper, intake, robotDistanceFromAprilTag, telemetry);
+
+            if (spinUpResult.success) {
+                // Flywheel reached acceptable velocity (>75% of target)
+                telemetry.addData("Flywheel Ready", "%.0f%% of target velocity", (spinUpResult.achievedVelocity / spinUpResult.targetVelocity) * 100);
+                telemetry.update();
+                break;
+            } else {
+                // Jam detected - flywheel didn't reach 75% of target
+                if (attemptNumber < MAX_TOTAL_ATTEMPTS) {
+                    // Still have attempts left - clear jam and retry
+                    telemetry.addData("JAM DETECTED", "Attempt %d of %d", attemptNumber, MAX_TOTAL_ATTEMPTS);
+                    telemetry.addData("Clearing", "Cycling kicker...");
+                    telemetry.update();
+
+                    // Attempt to clear jam by cycling kicker (flywheel will be stopped inside)
+                    clearJam(flyWheel, kicker, JAM_CLEAR_CYCLES, telemetry);
+
+                    // Wait a moment before retrying
+                    threadSleep(300);
+                } else {
+                    // Max attempts reached, proceed anyway with reduced performance warning
+                    telemetry.addData("WARNING", "Max jam clear attempts reached - proceeding anyway");
+                    telemetry.addData("Velocity", "%.0f%% of target", (spinUpResult.achievedVelocity / spinUpResult.targetVelocity) * 100);
+                    telemetry.update();
+                }
+            }
+        }
+
+        // Execute shooting sequence - flywheel is already at speed
+        for (int shotNumber = 0; shotNumber < NUM_SHOTS; shotNumber++) {
+
+            // Calculate flipper angle for this shot (120°, 150°, 180°, 210°)
+            double currentFlipperAngle = INITIAL_FLIPPER_ANGLE + (shotNumber * ANGLE_INCREMENT);
+
+            // Update distance from AprilTag before each shot (robot may have moved)
+            Double currentDistance = DISTANCE_FALLBACK;  // Default to initial distance
+            if (aprilTag != null && aprilTagName != null) {
+                AprilTagPoseFtc currentPose = aprilTag.getCoordinate(aprilTagName);
+                if (currentPose != null) {
+                    currentDistance = currentPose.range;
+                    telemetry.addData("Shot " + (shotNumber + 1) + " Distance", String.format("%.1f inches", currentDistance));
+                } else {
+                    telemetry.addData("Shot " + (shotNumber + 1) + " Distance", String.format("%.1f inches (fallback - tag lost)", currentDistance));
+                }
+            } else {
+                telemetry.addData("Shot " + (shotNumber + 1) + " Distance", String.format("%.1f inches (fallback - no camera)", currentDistance));
+            }
+            telemetry.update();
+
+            // Bring flywheel back up to speed (each shot slows it down)
+            // No jam detection needed here - jam was already cleared before loop
+            prepareForShooting(flyWheel, kicker, flipper, intake, currentDistance, telemetry);
+
+            // Open kicker gate to release game piece into flywheel path
+            kicker.setPosition(Kicker.gateShoot);
+            threadSleep(KICKER_OPEN_DELAY_MS);
+
+            // Flip the game piece at the calculated angle
+            flipper.turnFlipper(currentFlipperAngle);
+
+            // Wait for flipper to complete movement (time increases with larger angles)
+            int flipperWaitTime = BASE_FLIPPER_DELAY_MS + (shotNumber * FLIPPER_DELAY_INCREMENT_MS);
+            threadSleep(flipperWaitTime);
+
+            // Close kicker gate to prepare for next shot
+            kicker.setGatePosition(Kicker.GATE_CLOSE);
+
+            // Reset flipper to starting position
+            flipper.resetFlipper();
+            threadSleep(FLIPPER_RESET_DELAY_MS);
+        }
+
+        // Log completion
+        telemetry.addData("Shots completed", NUM_SHOTS);
+        telemetry.update();
+
+        // Return all mechanisms to intake mode
+        prepareFlyWheelToIntake(flyWheel, kicker, intake, flipper, telemetry);
     }
 
     public enum MovementDirection {
@@ -848,6 +936,256 @@ public class Util {
         rightFront.setPower(rightFrontPower);
         leftBack.setPower(leftBackPower);
         rightBack.setPower(rightBackPower);
+    }
+
+    public static AlignmentResult autoAlignWithAprilTag(
+            LinearOpMode chassis,
+            DecodeAprilTag aprilTag,
+            String aprilTagName,
+            Chassis chassisInstance,
+            Telemetry telemetry) {
+
+        // --- Configuration Constants ---
+        final double BEARING_TOLERANCE_DEG = 10.0;  // Acceptable bearing error
+        final double YAW_TOLERANCE_DEG = 10.0;      // Acceptable yaw error
+        final int DETECTION_TIMEOUT_MS = 3000;       // Total AprilTag detection timeout (3 seconds)
+        final int BEARING_ALIGNMENT_TIMEOUT_MS = 800; // Bearing alignment timeout
+        final int YAW_ALIGNMENT_TIMEOUT_MS = 800;   // Yaw alignment timeout
+        final double TURN_POWER = 0.3;               // Power for turning (bearing correction)
+        final double STRAFE_POWER = 0.15;             // Power for strafing (yaw correction)
+        final double P_TURN_GAIN = 0.02;             // Proportional gain for bearing control (0.02 = 0.6 power at 30° error)
+        final double P_STRAFE_GAIN = 0.015;          // Proportional gain for yaw control
+        final double SCAN_TURN_POWER = 0.1;          // Power for scanning turn
+        final double FORWARD_SCAN_POWER = 0.15;      // Slow forward movement during scan
+        final int CONTROL_LOOP_MS = 50;              // Control loop period
+        final int SETTLE_TIME_MS = 150;              // Time to let robot settle after stopping
+        final int SCAN_SWEEP_MS = 1000;               // Time to sweep 90 degrees (approximate)
+
+        ElapsedTime timer = new ElapsedTime();
+
+        // --- Step 1: Robust AprilTag Detection with Scanning ---
+        // Camera is rear-facing and AprilTag is mounted HIGH (on basket)
+        // If robot is too close, camera can't see the high tag
+        // Strategy: Scan ±90° while moving FORWARD to increase viewing distance
+        // Sequences: 1) Check in place, 2) Scan right+forward, 3) Scan left+forward, 4) Center+forward
+        telemetry.addData("Auto Align", "Searching for AprilTag...");
+        telemetry.update();
+
+        timer.reset();
+        boolean tagFound = false;
+
+        // Strategy 1: Check current position (200ms)
+        double scanStartTime = timer.milliseconds();
+        while (chassis.opModeIsActive() && (timer.milliseconds() - scanStartTime) < 200) {
+            if (aprilTag.findAprilTag(aprilTagName)) {
+                tagFound = true;
+                telemetry.addData("Auto Align", "Tag found at current position");
+                telemetry.update();
+                break;
+            }
+            sleepThread(CONTROL_LOOP_MS);
+        }
+
+        if (!tagFound && timer.milliseconds() < DETECTION_TIMEOUT_MS) {
+            // Strategy 2: Scan right (+90 degrees) while moving FORWARD
+            // Camera is rear-facing and tag is HIGH, so moving FORWARD increases viewing distance
+            // This moves robot AWAY from the high tag behind it, giving camera better upward angle
+            telemetry.addData("Auto Align", "Scanning right and moving forward...");
+            telemetry.update();
+
+            scanStartTime = timer.milliseconds();
+            setMotorPower(chassisInstance.frontLeftDrive, chassisInstance.backLeftDrive,
+                    chassisInstance.frontRightDrive,chassisInstance.backRightDrive,
+                    FORWARD_SCAN_POWER, 0, -SCAN_TURN_POWER); // Slow forward + turn right (negative yaw = turn right)
+
+            while (chassis.opModeIsActive() && (timer.milliseconds() - scanStartTime) < SCAN_SWEEP_MS
+                    && timer.milliseconds() < DETECTION_TIMEOUT_MS) {
+                if (aprilTag.findAprilTag(aprilTagName)) {
+                    tagFound = true;
+                    chassisInstance.stopRobot();
+                    telemetry.addData("Auto Align", "Tag found while scanning right");
+                    telemetry.update();
+                    break;
+                }
+                sleepThread(CONTROL_LOOP_MS);
+            }
+            chassisInstance.stopRobot();
+            sleepThread(100); // Settle time
+        }
+
+        if (!tagFound && timer.milliseconds() < DETECTION_TIMEOUT_MS) {
+            // Strategy 3: Scan left (-180 degrees) while moving FORWARD
+            // Continue moving forward to increase distance from high tag
+            telemetry.addData("Auto Align", "Scanning left and moving forward...");
+            telemetry.update();
+
+            scanStartTime = timer.milliseconds();
+            setMotorPower(chassisInstance.frontLeftDrive, chassisInstance.backLeftDrive,
+                    chassisInstance.frontRightDrive,chassisInstance.backRightDrive,
+                    FORWARD_SCAN_POWER, 0, SCAN_TURN_POWER); // Slow forward + turn left (positive yaw = turn left)
+
+            while (chassis.opModeIsActive() && (timer.milliseconds() - scanStartTime) < (SCAN_SWEEP_MS * 2)
+                    && timer.milliseconds() < DETECTION_TIMEOUT_MS) {
+                if (aprilTag.findAprilTag(aprilTagName)) {
+                    tagFound = true;
+                    chassisInstance.stopRobot();
+                    telemetry.addData("Auto Align", "Tag found while scanning left");
+                    telemetry.update();
+                    break;
+                }
+                sleepThread(CONTROL_LOOP_MS);
+            }
+            chassisInstance.stopRobot();
+            sleepThread(100); // Settle time
+        }
+
+        if (!tagFound && timer.milliseconds() < DETECTION_TIMEOUT_MS) {
+            // Strategy 4: Return to approximate center while moving FORWARD
+            // Final forward movement while returning to center orientation
+            telemetry.addData("Auto Align", "Returning to center and moving forward...");
+            telemetry.update();
+
+            setMotorPower(chassisInstance.frontLeftDrive, chassisInstance.backLeftDrive,
+                    chassisInstance.frontRightDrive,chassisInstance.backRightDrive,
+                    FORWARD_SCAN_POWER, 0, -SCAN_TURN_POWER); // Turn right to return to center
+            sleepThread(SCAN_SWEEP_MS);
+            chassisInstance.stopRobot();
+            sleepThread(100);
+
+            // One more quick check at center position
+            if (aprilTag.findAprilTag(aprilTagName)) {
+                tagFound = true;
+                telemetry.addData("Auto Align", "Tag found at center");
+                telemetry.update();
+            }
+        }
+
+        if (!tagFound) {
+            telemetry.addData("Auto Align", "FAILED - AprilTag not detected after scanning");
+            telemetry.update();
+            return new AlignmentResult(false, 0, 0, 0);
+        }
+
+        // --- Step 2: Align Bearing (Turn robot to center tag in camera) ---
+        telemetry.addData("Auto Align", "Aligning bearing...");
+        telemetry.update();
+
+        timer.reset();
+        boolean bearingAligned = false;
+
+        while (chassis.opModeIsActive() && timer.milliseconds() < BEARING_ALIGNMENT_TIMEOUT_MS) {
+            AprilTagPoseFtc pose = aprilTag.getCoordinate(aprilTagName);
+
+            if (pose == null) {
+                telemetry.addData("Auto Align", "Lost AprilTag during bearing alignment");
+                telemetry.update();
+                chassisInstance.stopRobot();
+                return new AlignmentResult(false, 0, 0, 0);
+            }
+
+            double bearing = pose.bearing;
+
+            if (Math.abs(bearing) < BEARING_TOLERANCE_DEG) {
+                bearingAligned = true;
+                break;
+            }
+
+            // Turn to correct bearing with proportional control
+            // CAMERA IS REAR-FACING, so bearing is relative to BACK of robot
+            // Positive bearing = tag to the right of camera (left side of robot front)
+            // In mecanum drive: POSITIVE yaw → RIGHT turn (clockwise), NEGATIVE yaw → LEFT turn (counter-clockwise)
+            // Therefore: Positive bearing needs NEGATIVE yaw (turn left), Negative bearing needs POSITIVE yaw (turn right)
+            // Use proportional control to avoid oscillation: turnPower = -bearing * gain
+            double turnPower = Range.clip(-bearing * P_TURN_GAIN, -TURN_POWER, TURN_POWER);
+            setMotorPower(chassisInstance.frontLeftDrive, chassisInstance.backLeftDrive,
+                    chassisInstance.frontRightDrive,chassisInstance.backRightDrive,
+                    0, 0, turnPower);
+
+            telemetry.addData("Bearing", "%.1f°", bearing);
+            telemetry.update();
+
+            sleepThread(CONTROL_LOOP_MS);
+        }
+
+        chassisInstance.stopRobot();
+        sleepThread(SETTLE_TIME_MS); // Allow robot to fully stop before checking success
+
+        if (!bearingAligned) {
+            telemetry.addData("Auto Align", "FAILED - Bearing alignment timeout");
+            telemetry.update();
+            return new AlignmentResult(false, 0, 0, 0);
+        }
+
+        // --- Step 3: Align Yaw (Strafe to be perpendicular to tag) ---
+        telemetry.addData("Auto Align", "Aligning yaw...");
+        telemetry.update();
+
+        timer.reset();
+        boolean yawAligned = false;
+
+        while (chassis.opModeIsActive() && timer.milliseconds() < YAW_ALIGNMENT_TIMEOUT_MS) {
+            AprilTagPoseFtc pose = aprilTag.getCoordinate(aprilTagName);
+
+            if (pose == null) {
+                telemetry.addData("Auto Align", "Lost AprilTag during yaw alignment");
+                telemetry.update();
+                chassisInstance.stopRobot();
+                return new AlignmentResult(false, 0, 0, 0);
+            }
+
+            double yaw = pose.yaw;
+
+            if (Math.abs(yaw) < YAW_TOLERANCE_DEG) {
+                yawAligned = true;
+                break;
+            }
+
+            // Strafe to correct yaw with proportional control
+            // CAMERA IS REAR-FACING, yaw indicates tag surface angle relative to camera
+            // Positive yaw = tag surface angled, need to strafe LEFT (from robot front perspective)
+            // In mecanum: negative y = strafe left, positive y = strafe right
+            // Use proportional control to avoid oscillation: strafePower = -yaw * gain
+            double strafePower = Range.clip(-yaw * P_STRAFE_GAIN, -STRAFE_POWER, STRAFE_POWER);
+            setMotorPower(chassisInstance.frontLeftDrive, chassisInstance.backLeftDrive,
+                          chassisInstance.frontRightDrive,chassisInstance.backRightDrive,
+                    0, strafePower, 0);
+
+            telemetry.addData("Yaw", "%.1f°", yaw);
+            telemetry.update();
+
+            sleepThread(CONTROL_LOOP_MS);
+        }
+
+        chassisInstance.stopRobot();
+
+        sleepThread(SETTLE_TIME_MS); // Allow robot to fully stop before checking success
+
+        if (!yawAligned) {
+            telemetry.addData("Auto Align", "FAILED - Yaw alignment timeout");
+            telemetry.update();
+            return new AlignmentResult(false, 0, 0, 0);
+        }
+
+        // --- Step 4: Get Final Distance and Report Success ---
+        AprilTagPoseFtc finalPose = aprilTag.getCoordinate(aprilTagName);
+
+        if (finalPose == null) {
+            telemetry.addData("Auto Align", "Lost AprilTag after alignment");
+            telemetry.update();
+            return new AlignmentResult(false, 0, 0, 0);
+        }
+
+        double distance = finalPose.range;
+        double bearing = finalPose.bearing;
+        double yaw = finalPose.yaw;
+
+        telemetry.addData("Auto Align", "SUCCESS - Ready to shoot!");
+        telemetry.addData("Distance", "%.1f inches", distance);
+        telemetry.addData("Bearing", "%.1f°", bearing);
+        telemetry.addData("Yaw", "%.1f°", yaw);
+        telemetry.update();
+
+        return new AlignmentResult(true, distance, bearing, yaw);
     }
 
     }

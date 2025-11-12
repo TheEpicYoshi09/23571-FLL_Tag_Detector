@@ -29,6 +29,8 @@ public class Teleop extends LinearOpMode {
     private Limelight3A limelight;
 
 
+    String currentAprilTagName = DecodeAprilTag.BLUE_APRIL_TAG;
+
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -54,6 +56,7 @@ public class Teleop extends LinearOpMode {
         flipper.init(hardwareMap);
 
 
+
         chassis.odo.resetPosAndIMU();
 
         // Define and start the drive thread
@@ -71,50 +74,41 @@ public class Teleop extends LinearOpMode {
         // Run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
 
-            /*
-            kicker.setGatePosition(Kicker.GATE_SHOOT);
-            flyWheel.setPower(0.45);
-            telemetry.addData("FlyWheel Power - ", flyWheel.getPower());
-            telemetry.addData("FlyWheel Velocity - ", flyWheel.getVelocity());
-            telemetry.addData("Distance - ", "Distance - " + Util.getDistance(frontDistanceSensor, telemetry));
-            //Util.telemetryFlyWheelVelocity(flyWheel,0.45, frontDistanceSensor, 30000,telemetry);
-            telemetry.update();
-            */
-
-            Double flyWheelPowerRequired = 0.45;
-            Integer flyWheelVelocityRequired =  FlyWheel.FLYWHEEL_SHOOTING_VELOCITY;
+            // Calculate robot distance from AprilTag using camera
             Double robotDistanceFromAprilTagUsingCamera = 0.0;
-            Double robotDistanceUsingFrontDistanceSensor = 0.0;
-//            Double distanceSensor = 0.0;
+            Double robotDistanceFromAprilTag = 45.0;  // Default distance
+            Double bearing = 0.0;  // Bearing angle from camera
+            Double yaw = 0.0;      // Yaw angle from camera
+            boolean tagDetected = false;
 
             AprilTagPoseFtc aprilTagPoseFtc = null;
 
-            if(aprilTag.findAprilTag(DecodeAprilTag.BLUE_APRIL_TAG)){
-                aprilTagPoseFtc = aprilTag.getCoordinate(DecodeAprilTag.BLUE_APRIL_TAG);
+            if(aprilTag.findAprilTag(currentAprilTagName)){
+                aprilTagPoseFtc = aprilTag.getCoordinate(currentAprilTagName);
                 if(aprilTagPoseFtc !=null) {
                     robotDistanceFromAprilTagUsingCamera = aprilTagPoseFtc.range;
+                    bearing = aprilTagPoseFtc.bearing;
+                    yaw = aprilTagPoseFtc.yaw;
+                    tagDetected = true;
                 }
             }
 
-//            robotDistanceUsingFrontDistanceSensor = frontDistanceSensor.getDistance(DistanceUnit.INCH);
-            Double robotDistanceFromAprilTag = 45.0;
-
-
+            // Use camera distance if available and reasonable
             if(robotDistanceFromAprilTagUsingCamera != null && robotDistanceFromAprilTagUsingCamera < 180){
                 robotDistanceFromAprilTag = robotDistanceFromAprilTagUsingCamera;
             }
 
+            // Calculate required flywheel velocity based on distance
+            Integer requiredFlyWheelVelocity = Util.getRequiredFlyWheelVelocity(robotDistanceFromAprilTag);
 
-            flyWheelPowerRequired = Util.getRequiredFlyWheelPower(robotDistanceFromAprilTag);
-            flyWheelVelocityRequired = Util.getRequiredFlyWheelVelocity(robotDistanceFromAprilTag);
-//            distanceSensor = Util.getDistance(channelSensor, telemetry);
-
-            telemetry.addData("Robot dist 4m AprilTag - ", String.valueOf(robotDistanceFromAprilTag));
-            telemetry.addData("Robot dist 4m Camera - ", String.valueOf(robotDistanceFromAprilTagUsingCamera));
-            telemetry.addData("Robot dist 4m Front Sensor - ", String.valueOf(robotDistanceUsingFrontDistanceSensor));
-            telemetry.addData("flyWheelVelocityRequired - ", flyWheelVelocityRequired);
-            telemetry.addData("flyWheelPowerRequired - ", flyWheelPowerRequired);
-//            telemetry.addData("Distance From Channel Sensor - ",distanceSensor);
+            // Display telemetry with distance, bearing, yaw, and required velocity
+            telemetry.addData("AprilTag Detected", tagDetected ? "YES" : "NO");
+            telemetry.addData("Distance (in)", String.format("%.1f", robotDistanceFromAprilTag));
+            if (tagDetected) {
+                telemetry.addData("Bearing (°)", String.format("%.1f", bearing));
+                telemetry.addData("Yaw (°)", String.format("%.1f", yaw));
+            }
+            telemetry.addData("Required FlyWheel Velocity (RPM)", requiredFlyWheelVelocity);
             telemetry.update();
 
             // Kicker
@@ -144,63 +138,15 @@ public class Teleop extends LinearOpMode {
                 Util.addKickerTelemetry(kicker, telemetry);
                 telemetry.update();
             }
-            //Shooting
+
+            // Shooting - Execute complete 4-shot sequence when right bumper is pressed
+            // Distance is updated from AprilTag before each shot for accuracy
             if (gamepad2.right_bumper) {
-
-                // if robotDistanceFromAprilTag is null, tunr robot to get it
-
-                Util.prepareKickerAndIntakeToShoot(flyWheel, kicker, intake, robotDistanceFromAprilTag, telemetry);
-                //Util.prepareForShooting(flyWheel, kicker, flipper, intake, robotDistanceFromAprilTag, telemetry);
-
-                Util.prepareForShooting(flyWheel, kicker, flipper, intake, robotDistanceFromAprilTag, telemetry);
-
-               // intake.setIntakePower(0.5);
-
-                int loopCounter = 0;
-                double flipperangle = 120;
-
-                while(!gamepad2.left_bumper && loopCounter<4) {
-
-                    // wait flywheel to get the desired speed
-                    Util.prepareForShooting(flyWheel, kicker, flipper, intake, robotDistanceFromAprilTag , telemetry);
-
-                    kicker.setPosition(Kicker.gateShoot);
-                    sleep(300);
-
-                    flipper.turnFlipper(flipperangle+loopCounter*30);
-                    sleep(150 + loopCounter*50);
-                    kicker.setGatePosition(Kicker.GATE_CLOSE);
-                    flipper.resetFlipper();
-                    sleep(200);
-
-
-                    loopCounter = loopCounter+1;
-
-                  //  sleep(200);
-
-                }
-                telemetry.addData("gamepad2.right_bumper - loopCounter - ",loopCounter);
-                telemetry.update();
-
-                //flipper.resetFlipper();
-
-
-                Util.prepareFlyWheelToIntake(flyWheel,kicker,intake,flipper, telemetry);
-
-
-                /*
-                kicker.setGatePosition(Kicker.GATE_CLOSE);
-                long flyWheelStopDuration = Util.waitForFlyWheelStopVelocity(flyWheel,100,5000, telemetry);
-                //telemetry.addData("flyWheelStopDuration (ms) - ",flyWheelStopDuration);
-                kicker.setGatePosition(Kicker.GATE_INTAKE);
-                telemetry.update();
-                //sleep(5000);
-                 */
+                Util.shoot(flyWheel, kicker, flipper, intake, robotDistanceFromAprilTag, aprilTag, currentAprilTagName, telemetry);
             }
 
             if (gamepad2.a){
-                Util.prepareKickerAndIntakeToShoot(flyWheel, kicker, intake, robotDistanceFromAprilTag, telemetry);
-                Util.prepareForShooting(flyWheel, kicker, flipper, intake, 30.0, telemetry);
+                Util.prepareFlyWheelToShoot(flyWheel,kicker, intake, robotDistanceFromAprilTag, telemetry);
             }
 
             if (gamepad2.b) {
@@ -234,23 +180,45 @@ public class Teleop extends LinearOpMode {
 
         @Override
         public void run() {
-            chassis.odo.resetPosAndIMU();
             while ( threadIsRunning && !Thread.currentThread().isInterrupted()) {
 
+//                // Check for alignment trigger (gamepad1 right bumper)
+//                if (Teleop.this.gamepad1.right_bumper) {
+//                    // Perform automatic alignment with AprilTag (using selected alliance)
+//                    Util.AlignmentResult result = Util.autoAlignWithAprilTag(
+//                            Teleop.this, Teleop.this.DecodeAprilTag, Teleop.this.currentAprilTagName,
+//                            Teleop.this.chassis, Teleop.this.telemetry);
+//
+//                    if (result.success) {
+//                        Teleop.this.telemetry.addData("Alignment", "SUCCESS - Distance: %.1f inches", result.distance);
+//                    } else {
+//                        Teleop.this.telemetry.addData("Alignment", "FAILED");
+//                    }
+//                    Teleop.this.telemetry.update();
+//
+//                    // Brief pause to prevent multiple triggers
+//                    try {
+//                        Thread.sleep(500);
+//                    } catch (InterruptedException e) {
+//                        Thread.currentThread().interrupt();
+//                        return;
+//                    }
+//                }
+
                 // Read gamepad input and set drive motor power
-                float axialPower = -gamepad1.left_stick_y; //Gamepad inputs are opposite of the direction of joystick
-                float lateralPower = -gamepad1.left_stick_x;
-                float yawPower = -gamepad1.right_stick_x;
-//                telemetry.addData("axialPower", axialPower);
-//                telemetry.addData("lateralPower", lateralPower);
-//                telemetry.addData("yawPower", yawPower);
-                Util.setMotorPower(chassis.frontLeftDrive, chassis.backLeftDrive, chassis.frontRightDrive, chassis.backRightDrive, axialPower, lateralPower, yawPower);
-//                chassis.moveRobot(axial, lateral, yaw);
-              //  Util.printOdoPositionTelemetry(chassis.odo, telemetry);
+                float axial = -Teleop.this.gamepad1.left_stick_y;
+                float lateral = -Teleop.this.gamepad1.left_stick_x;
+                float yaw = Teleop.this.gamepad1.right_stick_x; // Note: positive yaw is clockwise, previously was negative
+                Util.setMotorPower(chassis.frontLeftDrive, chassis.backLeftDrive,
+                                    chassis.frontRightDrive, chassis.backRightDrive,
+                                    axial, lateral, yaw);
 
-
-
-                sleep(10);
+                try {
+                    Thread.sleep(10);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return;
+                }
             }
         }
     }
