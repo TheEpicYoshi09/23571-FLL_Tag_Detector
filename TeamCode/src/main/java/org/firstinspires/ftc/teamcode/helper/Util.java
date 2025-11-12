@@ -744,7 +744,7 @@ public class Util {
                 // Keep looping until we pass the target
                 while (odo.getPosY(DistanceUnit.INCH) > targetPosition && timer.milliseconds() < TIMEOUT_MS) {
                     odo.update();
-                    currentPosition = odo.getPosX(DistanceUnit.INCH);
+                    currentPosition = odo.getPosY(DistanceUnit.INCH);
                     errorDistance = targetPosition - currentPosition; // Error will be negative
 
                     // Simple P-Controller. Note: errorDistance * gain will be negative.
