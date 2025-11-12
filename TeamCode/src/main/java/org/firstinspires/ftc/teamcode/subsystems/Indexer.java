@@ -1,10 +1,12 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+@Config
 public class Indexer {
     private IndexerState state;
     private boolean intaking = true;
@@ -25,7 +27,7 @@ public class Indexer {
     private final double minWait = 100;
     private final double maxWait = 300;
     private double lastAngle = 0;
-    private double targetAngle = 0;
+    public static double targetAngle = 0;
     Actuator actuator;
     AnalogInput indexerAnalog;
 

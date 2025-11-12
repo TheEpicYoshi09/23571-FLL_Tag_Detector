@@ -1,16 +1,18 @@
 package org.firstinspires.ftc.teamcode.subsystems;
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+@Config
 public class CRServoPositionControl {
     private final CRServo crServo;
     private final AnalogInput encoder; // Analog input for position from 4th wire
 
-    private double kp = 1.0;
-    private double ki = 0.0;
-    private double kd = 0.1;
-    private double kf = 0.1;
+    public static double kp = 0.15;
+    public static double ki = 0.0;
+    public static double kd = 0.02;
+    public static double kf = 0.2;
 
     private double integral = 0.0;
     private double lastError = 0.0;
@@ -28,12 +30,7 @@ public class CRServoPositionControl {
 
     private double angleToVoltage(double angleDegrees) {
         angleDegrees = Math.max(0, Math.min(360, angleDegrees)); // Clamp
-        return (angleDegrees / 360.0) * 3.3;
-    }
-
-    private double voltageToAngle(double voltage) {
-        voltage = Math.max(0, Math.min(3.3, voltage));
-        return (voltage / 3.3) * 360.0;
+        return (angleDegrees / 360.0) * 3.2;
     }
 
     public void moveToAngle(double targetAngleDegrees) {
@@ -51,10 +48,9 @@ public class CRServoPositionControl {
         integral += error * deltaTime;
         double derivative = (error - lastError) / deltaTime;
 
-        double output = kp * error + ki * integral + kd * derivative + kf * targetVoltage;
+        double output = kp * error + ki * integral + kd * derivative + kf * Math.signum(error);
         output = Math.max(-1.0, Math.min(1.0, output));
         crServo.setPower(output);
-
         lastError = error;
     }
 }
