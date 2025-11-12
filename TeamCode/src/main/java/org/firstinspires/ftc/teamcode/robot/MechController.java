@@ -67,8 +67,6 @@ public class MechController {
         switch (state) {
             case IDLE:
                 currentState = MechState.IDLE;
-                runShootingMot(0);
-                runIntakeMot(0);
                 setIndexer(0);
                 setLifter(0);
                 break;
@@ -377,7 +375,7 @@ public class MechController {
         } else {
             robot.intakeMot.setPower(0);
             double currentPos = robot.intakeMot.getCurrentPosition();
-            int targetPos = (int)(Math.ceil(currentPos/INTAKE_TICKS_PER_FULL_ROTATION)*INTAKE_TICKS_PER_FULL_ROTATION);
+            int targetPos = (int)((Math.ceil(currentPos/INTAKE_TICKS_PER_FULL_ROTATION)*INTAKE_TICKS_PER_FULL_ROTATION)+1);
             robot.intakeMot.setTargetPosition(targetPos);
             robot.intakeMot.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             robot.intakeMot.setPower(0.5);
@@ -435,7 +433,6 @@ public class MechController {
         telemetry.addData("State: ", currentState);
         telemetry.addData("Artifact Count", artifactCount);
         telemetry.addData("Detected Tag Pattern", tagPattern[0]);
-        telemetry.update();
         if (robot.pinpoint != null) {
             telemetry.addData("Pinpoint: ",
                     "X: %.1f in | Y: %.1f in | Heading: %.1f°",
