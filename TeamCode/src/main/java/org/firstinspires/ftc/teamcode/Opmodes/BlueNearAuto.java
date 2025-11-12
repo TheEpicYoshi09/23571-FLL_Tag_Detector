@@ -81,7 +81,7 @@ public class BlueNearAuto extends LinearOpMode {
                 }
             }
 
-            if (autoType == AutoType.BLUE_NEAR || autoType == AutoType.RED_NEAR)
+            if (autoType == AutoType.BLUE_NEAR || autoType == AutoType.RED_NEAR) {
                 switch (currentNearAutoStage) {
                     case BACK_UP:
                         Util.setSpeed(0.2, 0.8);
@@ -137,6 +137,15 @@ public class BlueNearAuto extends LinearOpMode {
                     default:
                         throw new IllegalStateException("Unexpected value: " + currentNearAutoStage.toString());
                 }
+            }else if(autoType == AutoType.BLUE_FAR || autoType == AutoType.RED_FAR){
+                switch (currentFarAutoStage) {
+                    case MOVE_TO_SHOOTING_ZONE:
+                        Util.setSpeed(0.3, 0.8);
+                        chassis.strafe(60);
+                }
+            } else{
+                throw new IllegalStateException("Unexpected value: " + autoType.toString());
+            }
         }
         }
     }
