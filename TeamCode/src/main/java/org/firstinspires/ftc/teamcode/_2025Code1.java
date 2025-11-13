@@ -12,6 +12,10 @@ public class _2025Code1 extends LinearOpMode {
   private DcMotor back_right;
   private DcMotor front_right;
 
+  private DcMotor flywheel1;
+
+  private DcMotor flywheel2;
+
   /**
    * This sample contains the bare minimum Blocks for any regular OpMode. The 3 blue Comment
    * Blocks show where to place Initialization code (runs once, after touching the DS INIT
@@ -27,6 +31,8 @@ public class _2025Code1 extends LinearOpMode {
     float vertical;
     float horizontal;
     float pivot;
+    flywheel1 = hardwareMap.get(DcMotor.class, "flywheel1");
+    flywheel2 = hardwareMap.get(DcMotor.class, "flywheel2");
 
     back_left = hardwareMap.get(DcMotor.class, "back_left");
     front_left = hardwareMap.get(DcMotor.class, "front_left");
@@ -71,6 +77,10 @@ public class _2025Code1 extends LinearOpMode {
             gamepad1.rumble(1, 0, 676);
             WheelSpeedDivisor = 2;
           }
+
+          flywheel1.setPower(gamepad1.right_trigger * -1);
+          flywheel2.setPower(gamepad1.right_trigger * -1);
+
           telemetry.update();
         }
       }
