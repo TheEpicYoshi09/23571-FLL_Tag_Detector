@@ -13,9 +13,9 @@ import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 
 
-@TeleOp(name = "DecodeTeleopV4.23 Alaqmar", group = "TeleOp")
+@TeleOp(name = "DecodeTeleopBlueV4.24 Alaqmar", group = "TeleOp")
 
-public class Teleop extends LinearOpMode {
+public class TeleopBlue extends LinearOpMode {
 
     Chassis chassis;
     VoltageSensor voltageSensor;
@@ -151,6 +151,7 @@ public class Teleop extends LinearOpMode {
 
             if (gamepad2.a){
                 Util.prepareFlyWheelToShoot(flyWheel,kicker, intake, robotDistanceFromAprilTag, telemetry);
+                Util.FlyWheelSpinUpResult spinUpResult = Util.prepareForShooting(flyWheel, kicker, flipper, intake, 40.0, telemetry);
             }
 
             if (gamepad2.b) {
@@ -187,18 +188,18 @@ public class Teleop extends LinearOpMode {
             while ( threadIsRunning && !Thread.currentThread().isInterrupted()) {
 
                 // Check for alignment trigger (gamepad1 right bumper)
-                if (Teleop.this.gamepad1.right_bumper) {
+                if (TeleopBlue.this.gamepad1.right_bumper) {
                     // Perform automatic alignment with AprilTag (using selected alliance)
                     Util.AlignmentResult result = Util.autoAlignWithAprilTag(
-                            Teleop.this, Teleop.this.aprilTag, Teleop.this.currentAprilTagName,
-                            Teleop.this.chassis, Teleop.this.telemetry);
+                            TeleopBlue.this, TeleopBlue.this.aprilTag, TeleopBlue.this.currentAprilTagName,
+                            TeleopBlue.this.chassis, TeleopBlue.this.telemetry);
 
                     if (result.success) {
-                        Teleop.this.telemetry.addData("Alignment", "SUCCESS - Distance: %.1f inches", result.distance);
+                        TeleopBlue.this.telemetry.addData("Alignment", "SUCCESS - Distance: %.1f inches", result.distance);
                     } else {
-                        Teleop.this.telemetry.addData("Alignment", "FAILED");
+                        TeleopBlue.this.telemetry.addData("Alignment", "FAILED");
                     }
-                    Teleop.this.telemetry.update();
+                    TeleopBlue.this.telemetry.update();
 
                     // Brief pause to prevent multiple triggers
                     try {
@@ -210,9 +211,9 @@ public class Teleop extends LinearOpMode {
                 }
 
                 // Read gamepad input and set drive motor power
-                float axial = -Teleop.this.gamepad1.left_stick_y;
-                float lateral = -Teleop.this.gamepad1.left_stick_x;
-                float yaw = -Teleop.this.gamepad1.right_stick_x; // Note: positive yaw is clockwise, previously was negative
+                float axial = -TeleopBlue.this.gamepad1.left_stick_y;
+                float lateral = -TeleopBlue.this.gamepad1.left_stick_x;
+                float yaw = -TeleopBlue.this.gamepad1.right_stick_x; // Note: positive yaw is clockwise, previously was negative
                 Util.setMotorPower(chassis.frontLeftDrive, chassis.backLeftDrive,
                         chassis.frontRightDrive, chassis.backRightDrive,
                         axial, lateral, yaw);

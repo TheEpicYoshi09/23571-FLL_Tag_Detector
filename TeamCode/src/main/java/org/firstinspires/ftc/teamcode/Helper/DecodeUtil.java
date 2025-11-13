@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.Helper;
 
+import org.firstinspires.ftc.vision.apriltag.AprilTagPoseFtc;
 public class DecodeUtil {
 
     public static enum AutoType {
@@ -39,5 +40,18 @@ public class DecodeUtil {
         SHOOT,
         MOVE_OUT_OF_SHOOTING_ZONE,
         END
+    }
+
+    public static Double findRobotDistanceFromAprilTag(DecodeAprilTag aprilTag, AutoType autoType){
+        Double robotDistanceFromAprilTag = 0.0;
+        AprilTagPoseFtc aprilTagPoseFtc = null;
+
+        if (aprilTag.findAprilTag(getAprilTagType(autoType))) {
+            aprilTagPoseFtc = aprilTag.getCoordinate(getAprilTagType(autoType));
+            if (aprilTagPoseFtc != null) {
+                robotDistanceFromAprilTag = aprilTagPoseFtc.range;
+            }
+        }
+        return robotDistanceFromAprilTag;
     }
 }
