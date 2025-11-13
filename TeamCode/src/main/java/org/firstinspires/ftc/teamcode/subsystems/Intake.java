@@ -1,31 +1,35 @@
 package org.firstinspires.ftc.teamcode.subsystems;
+import dev.nextftc.core.subsystems.Subsystem;
+import dev.nextftc.core.commands.Command;
+import dev.nextftc.core.commands.utility.InstantCommand;
+import dev.nextftc.hardware.impl.MotorEx;
 
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorController;
-import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
-import com.rowanmcalpin.nextftc.core.Subsystem;
-import com.rowanmcalpin.nextftc.core.command.Command;
-import com.rowanmcalpin.nextftc.core.command.utility.InstantCommand;
-import com.rowanmcalpin.nextftc.core.control.controllers.PIDFController;
-import com.rowanmcalpin.nextftc.ftc.hardware.controllables.MotorEx;
-
-public class Intake extends Subsystem {
+public class Intake implements Subsystem  {
     private Intake() { }
     public static final Intake INSTANCE = new Intake();
 
     // USER CODE
+    public String name = "intake_motor";
+    private final double INTAKE_POWER_IN = 1.;
+    private final double INTAKE_POWER_OUT = -.9;
+    private final double INTAKE_POWER_OFF = 0.;
+
     public MotorEx motor;
+
     public Command resetZero() {
-        return new InstantCommand(() -> { motor.resetEncoder(); });
+        return new InstantCommand(() -> { motor.setCurrentPosition(0.); });
+    }
+    public Command intake_Off() { return new InstantCommand(() -> {motor.setPower(INTAKE_POWER_OFF);});
+    }
+    public Command intake_on() {return new InstantCommand(() -> {motor.setPower(INTAKE_POWER_IN);});
+    }
+    public Command intake_out() {return new InstantCommand(() -> {motor.setPower(INTAKE_POWER_OUT);});
     }
 
-
-    public String name = "lift_motor";
 
     @Override
     public void initialize() {
         motor = new MotorEx(name);
-
     }
 
 }
