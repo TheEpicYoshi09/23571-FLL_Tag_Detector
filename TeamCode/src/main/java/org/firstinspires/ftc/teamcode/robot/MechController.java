@@ -12,10 +12,11 @@ public class MechController {
     private final VisionController visionController;
     private MechState currentState;
 
+
     // Hardware constants
     public static final double[] INTAKE = {0, 120, 240}; // Indexer 0, 1, 2 @ Intake Post degrees
-    public static final double[] SHOOT = {180, 300, 60}; // Indexer 0, 1, 2 @ Shooting Post degrees
-    private static final double MAX_SERVO_ROTATION = 300.0; // Degrees
+    public static final double[] SHOOT = {150, 270, 30}; // Indexer 0, 1, 2 @ Shooting Post degrees
+    private static final double MAX_SERVO_ROTATION = 270.0; // Degrees
     public static final double INTAKE_TICKS_PER_FULL_ROTATION = 537.7;//Encoder Resolution PPR for RPM 312
     private static final long INTAKE_TIMEOUT_MS = 3000; // 3 seconds max per artifact
     private final long MOTOR_WAIT_MS = 3000; // 3 seconds for Shooting motor to reach full speed
@@ -55,20 +56,24 @@ public class MechController {
     private int humanIndex = -1;
 
     // Constructor
-    public MechController(RobotHardware RoboRoar) {
+    public MechController(RobotHardware RoboRoar, VisionController visionController) {
         this.robot = RoboRoar;
         this.telemetry = RoboRoar.telemetry;
-        this.visionController = new VisionController(RoboRoar);
+        this.visionController = visionController;
         this.currentState = MechState.IDLE;
     }
 
     // State machine handler
     public void handleMechState(MechState state) {
         switch (state) {
-            case IDLE:
-                currentState = MechState.IDLE;
+            case START:
+                currentState = MechState.START;
                 setIndexer(0);
                 setLifter(0);
+                break;
+
+            case IDLE:
+                currentState = MechState.IDLE;
                 break;
 
             case SHOOT_STATE:
@@ -430,11 +435,18 @@ public class MechController {
 
     // Telemetry output
     public void allTelemetry() {
-        telemetry.addData("State: ", currentState);
-        telemetry.addData("Artifact Count", artifactCount);
-        telemetry.addData("Detected Tag Pattern", tagPattern[0]);
+        telemetry.addData("State", currentState);
+
+        telemetry.addData("Tag Pattern",
+                "%d --> %d | %d | %d",
+                tagPattern[0], tagPattern[1], tagPattern[2], tagPattern[3]);
+
+        telemetry.addData("Artifact Count --> Indexer",
+                "%d --> %d | %d | %d",
+                artifactCount, indexer[0], indexer[1], indexer[2]);
+
         if (robot.pinpoint != null) {
-            telemetry.addData("Pinpoint: ",
+            telemetry.addData("Pinpoint",
                     "X: %.1f in | Y: %.1f in | Heading: %.1f°",
                     robot.pinpoint.getPosX(DistanceUnit.INCH),
                     robot.pinpoint.getPosY(DistanceUnit.INCH),
@@ -442,12 +454,14 @@ public class MechController {
             );
             robot.pinpoint.update();
         }
-        telemetry.addData("April Tag Time", aprilTagElapsed);
-        telemetry.addData("Intake Time", intakeElapsed);
-        telemetry.addData("Shooting Time", shootElapsed);
-        telemetry.addData("Indexer: ", statusIndexer() + " | Lifter", statusLifter());
-        visionController.aprilTagTelemetry();
+
+        telemetry.addData("Indexer | Lifter",
+                "%s | %s", statusIndexer(), statusLifter());
+
         visionController.sensorTelemetry();
+        visionController.aprilTagTelemetry();
+
         telemetry.update();
     }
+
 }

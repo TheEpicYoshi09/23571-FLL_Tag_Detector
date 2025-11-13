@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.robot;
 
 public enum MechState {
+    START,
     IDLE,
     SHOOT_STATE,
     INTAKE_STATE,

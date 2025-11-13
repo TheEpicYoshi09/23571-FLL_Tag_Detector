@@ -62,7 +62,6 @@ public class VisionController {
             AprilTagDetection tag = aprilTag.getDetections().get(0);
             telemetry.addData("Tag ", "ID: %d | X: %.1f | Y: %.1f | Heading: %.1f°",
                     tag.id, tag.ftcPose.x, tag.ftcPose.y, tag.ftcPose.yaw);
-            telemetry.update();
         }
     }
     public int artifactColor() {
@@ -112,7 +111,6 @@ public class VisionController {
     }
 
     public void sensorTelemetry() {
-        telemetry.addData("finalColor", artifactColor());
-        telemetry.update();
+        telemetry.addData("Intake Color", artifactColor());
     }
 }

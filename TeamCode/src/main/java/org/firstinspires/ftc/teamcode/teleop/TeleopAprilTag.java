@@ -28,7 +28,6 @@ public class TeleopAprilTag extends OpMode {
     RobotHardware robot;
     MechController mechController;
     VisionController visionController;
-    private AprilTagProcessor aprilTag;
     private VisionPortal visionPortal;
     private Follower follower;
     private boolean following = false;
@@ -41,14 +40,13 @@ public class TeleopAprilTag extends OpMode {
     @Override
     public void init() {
         robot = new RobotHardware(hardwareMap, telemetry);
-        mechController = new MechController(robot);
+
         visionController = new VisionController(robot);
-
         visionController.initAprilTag();
-        mechController.handleMechState(MechState.IDLE);
-
-        aprilTag = visionController.getAprilTag();
         visionPortal = visionController.getVisionPortal();
+
+        mechController = new MechController(robot, visionController);
+        mechController.handleMechState(MechState.START);
 
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(startPose);
@@ -103,9 +101,9 @@ public class TeleopAprilTag extends OpMode {
     }
 
     private Pose getRobotPoseFromCamera() {
-        if (aprilTag == null || aprilTag.getDetections().isEmpty()) return null;
+        if (visionController.getAprilTag() == null || visionController.getAprilTag().getDetections().isEmpty()) return null;
         else {
-            List<AprilTagDetection> currentDetections = aprilTag.getDetections();
+            List<AprilTagDetection> currentDetections = visionController.getAprilTag().getDetections();
             for (AprilTagDetection detection : currentDetections) {
                 if (detection.metadata != null) {
                     if (!detection.metadata.name.contains("Obelisk")) {
@@ -122,7 +120,7 @@ public class TeleopAprilTag extends OpMode {
 
     private void telemetryAprilTag() {
 
-        List<AprilTagDetection> currentDetections = aprilTag.getDetections();
+        List<AprilTagDetection> currentDetections = visionController.getAprilTag().getDetections();
         telemetry.addData("# AprilTags Detected", currentDetections.size());
 
         for (AprilTagDetection detection : currentDetections) {

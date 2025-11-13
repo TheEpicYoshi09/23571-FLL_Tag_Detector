@@ -15,7 +15,6 @@ public class TeleopMech extends OpMode {
     RobotHardware robot;
     MechController mechController;
     VisionController visionController;
-    private AprilTagProcessor aprilTag;
     private VisionPortal visionPortal;
 
     private boolean prevDpadUp = false;
@@ -25,14 +24,13 @@ public class TeleopMech extends OpMode {
     @Override
     public void init() {
         robot = new RobotHardware(hardwareMap, telemetry);
-        mechController = new MechController(robot);
+
         visionController = new VisionController(robot);
-
         visionController.initAprilTag();
-        mechController.handleMechState(MechState.IDLE);
-
-        aprilTag = visionController.getAprilTag();
         visionPortal = visionController.getVisionPortal();
+
+        mechController = new MechController(robot, visionController);
+        mechController.handleMechState(MechState.APRIL_TAG);
 
         telemetry.addData("Status", "Initialized. Press START.");
         telemetry.update();
