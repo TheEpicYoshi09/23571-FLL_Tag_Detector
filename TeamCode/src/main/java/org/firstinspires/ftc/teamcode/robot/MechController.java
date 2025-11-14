@@ -23,7 +23,7 @@ public class MechController {
     private final long POST_INDEXER_WAIT_MS = 1000; // 1 second post Indexer rotation
     private final long LIFT_WAIT_MS = 2000; // 2 seconds for Lifter in Up position for shooting
     private final long DROP_WAIT_MS = 1000; // 1 second post Lifter in Down position
-    private final long APRIL_TAG_WAIT_MS = 4000; // 4 seconds waiting to detect AprilTag
+    private final long APRIL_TAG_WAIT_MS = 3000; // 3 seconds waiting to detect AprilTag
 
 
     // Limit constants
@@ -70,6 +70,8 @@ public class MechController {
                 currentState = MechState.START;
                 setIndexer(0);
                 setLifter(0);
+                handleMechState(MechState.IDLE);
+                currentState = MechState.IDLE;
                 break;
 
             case IDLE:
@@ -325,7 +327,8 @@ public class MechController {
                             tagPattern = new int[]{21, 2, 1, 1};  // ID 21: GPP
                         }
                     }
-                    currentState = MechState.IDLE; // Stop AprilTag stage
+                    handleMechState(MechState.START);
+                    currentState = MechState.START;; // Stop AprilTag stage
                     aprilTagElapsed = 0;
                     aprilTagRunning = false;
                     aprilTagStageStart = 0;
@@ -459,7 +462,7 @@ public class MechController {
                 "%s | %s", statusIndexer(), statusLifter());
 
         visionController.sensorTelemetry();
-        visionController.aprilTagTelemetry();
+        //visionController.aprilTagTelemetry();
 
         telemetry.update();
     }
