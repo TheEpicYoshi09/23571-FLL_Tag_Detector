@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 public class Launcher {
@@ -18,12 +19,13 @@ public class Launcher {
      * velocity. Here we are setting the target, and minimum velocity that the launcher should run
      * at. The minimum velocity is a threshold for determining when to fire.
      */
-    final double LAUNCHER_TARGET_VELOCITY = 1125;    private DcMotor lowerlaunch,upperlaunch;
+    final double LAUNCHER_TARGET_VELOCITY = 1125;
+    private DcMotor lowerlaunch,upperlaunch;
 
     final double LAUNCHER_MIN_VELOCITY = 1075;
 
     private DcMotorEx lowerLaunch, upperLaunch;
-    private CRServo launchFeeder;
+    private Servo launchFeeder;
 
     ElapsedTime feederTimer = new ElapsedTime();
 
@@ -55,13 +57,13 @@ public class Launcher {
     public void init (HardwareMap hwMap) {
         upperLaunch = hwMap.get(DcMotorEx.class, "upper_launch");
         lowerLaunch = hwMap.get(DcMotorEx.class, "lower_launch");
-        launchFeeder = hwMap.get(CRServo.class,"launch_feeder");
+        launchFeeder = hwMap.get(Servo.class,"launch_feeder");
 
         // Set launcher motor to RUN_USING_ENCODER and BRAKE to slow down faster than coasting.
         // upperLaunch.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         // lowerLaunch.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        upperLaunch.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        lowerLaunch.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        upperLaunch.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        lowerLaunch.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         upperLaunch.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         lowerLaunch.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
@@ -73,7 +75,7 @@ public class Launcher {
         */
 
         // Set left feeder servo to reverse so both servos work to feed ball into robot.
-        launchFeeder.setDirection(CRServo.Direction.REVERSE);
+        launchFeeder.setDirection(Servo.Direction.REVERSE);
 
         // Set initial state of launcher to IDLE.
         launchState = LaunchState.IDLE;
@@ -83,7 +85,19 @@ public class Launcher {
 
     public void stopFeeder() {
         // Set feeders to a preset value to stop the servos.
-        launchFeeder.setPower(STOP_SPEED);
+        //launchFeeder.setPower(STOP_SPEED);
+    }
+    public int LaunchSpeed = 0;
+    public void incrementLaunchSpeed() {
+        LaunchSpeed = LaunchSpeed+100;
+    }
+    public void decrementLaunchSpeed() {
+        LaunchSpeed = LaunchSpeed-100;
+    }
+
+    public void setMotorVelocity(){
+        upperLaunch.setVelocity(LaunchSpeed);
+        lowerLaunch.setVelocity(LaunchSpeed);
     }
 
     public void updateState () {
@@ -99,7 +113,7 @@ public class Launcher {
                 }
                 break;
             case LAUNCH:
-                launchFeeder.setPower(FULL_SPEED);
+                //launchFeeder.setPower(FULL_SPEED);
                 feederTimer.reset();
                 // transition state
                 launchState = LaunchState.LAUNCHING;

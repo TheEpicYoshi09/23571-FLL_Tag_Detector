@@ -2,25 +2,39 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.mechanisms.AprilTagsWebcam;
+import org.firstinspires.ftc.teamcode.mechanisms.Launcher;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
-@Autonomous
+@TeleOp
 public class WebcamTestOpMode  extends OpMode {
     AprilTagsWebcam aprilTagWebcam = new AprilTagsWebcam();
+    Launcher launcher = new Launcher();
 
 
     @Override
     public void init() {
         aprilTagWebcam.init(hardwareMap, telemetry);
-
+        launcher.init(hardwareMap);
     }
 
     @Override
     public void loop() {
+        //Update the vision portal
         aprilTagWebcam.update();
-        AprilTagDetection id20 = aprilTagWebcam.getTagBySpecificId(20);
-        aprilTagWebcam.displayDetectionTelemetry(id20);
+        AprilTagDetection id24 = aprilTagWebcam.getTagBySpecificId(24);
+        aprilTagWebcam.displayDetectionTelemetry(id24);
+
+        if (gamepad1.y) {
+            launcher.incrementLaunchSpeed();
+        }
+        else if (gamepad1.b) {
+            launcher.decrementLaunchSpeed();
+        }
+        telemetry.addLine("Motor Velocity: " + launcher.LaunchSpeed);
+
+        launcher.setMotorVelocity();
 
     }
 }
