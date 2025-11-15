@@ -7,7 +7,7 @@ public class Intake {
 
     // ARC Thunder Vortex
 
-    private final double INTAKING_POWER = -1.0;
+    private final double INTAKING_POWER = -0.8;
     private MotorEx intakeMotor;
     private boolean running;
 
