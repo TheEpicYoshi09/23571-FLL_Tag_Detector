@@ -14,15 +14,14 @@ import org.firstinspires.ftc.teamcode.Helper.Intake;
 import org.firstinspires.ftc.teamcode.Helper.Kicker;
 import org.firstinspires.ftc.teamcode.Helper.Util;
 import org.firstinspires.ftc.vision.apriltag.AprilTagPoseFtc;
+@Autonomous(name = "Red Far Auto 4.68", group = "Autonomous")
 
-@Autonomous(name = "Blue Near Auto 4.58", group = "Autonomous")
-
-public class BlueNearAuto extends LinearOpMode {
+public class RedFarAuto extends LinearOpMode {
 
     // |----------------------------------------|
     // |    Variable for auto mode selection    |
     // |----------------------------------------|
-    AutoType autoType = AutoType.BLUE_NEAR;
+    AutoType autoType = AutoType.RED_FAR;
     // |----------------------------------------|
 
 
@@ -41,6 +40,12 @@ public class BlueNearAuto extends LinearOpMode {
     double gateShooting = 0.25;
     double gateIntake = 0.6;
 
+
+    enum Autostages {
+        Drive_To_Shooting_Zone,
+        Turn_To_Shoot,
+
+    }
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -63,7 +68,6 @@ public class BlueNearAuto extends LinearOpMode {
         chassis.resetODOPosAndIMU();
 
 
-
         waitForStart();
 
         while (opModeIsActive()) {
@@ -82,60 +86,36 @@ public class BlueNearAuto extends LinearOpMode {
                 }
             }
 
-            if (autoType == AutoType.BLUE_NEAR) {
+            if (autoType == AutoType.RED_FAR) {
                 switch (currentNearAutoStage) {
                     case BACK_UP:
                         Util.setSpeed(0.2, 0.8);
                         intake.setIntakePower(0.5);
-                        chassis.drive(30);
+                        chassis.drive(-42);
                         sleep(200);
                         currentNearAutoStage = NearAutoStages.SHOOT;
                         break;
 
                     case SHOOT:
-                       // alignmentResult = Util.autoAlignWithAprilTag(this, aprilTag, DecodeAprilTag.BLUE_APRIL_TAG, chassis, telemetry);
-                        robotDistanceFromAprilTag = DecodeUtil.findRobotDistanceFromAprilTag(aprilTag, autoType);
-
-                        Util.shoot(flyWheel, kicker, flipper, intake,robotDistanceFromAprilTag, aprilTag, DecodeAprilTag.BLUE_APRIL_TAG, telemetry);
+                        // alignmentResult = Util.autoAlignWithAprilTag(this, aprilTag, DecodeAprilTag.BLUE_APRIL_TAG, chassis, telemetry);
+                        chassis.turn(42);
+                        chassis.drive(-22);
+                        chassis.strafe(-4);
                         currentNearAutoStage = NearAutoStages.GET_MORE_BALLS;
                         break;
 
                     case GET_MORE_BALLS:
-                        chassis.turn(135);
-                        sleep(100);
-                        chassis.strafe(-11.5);
-                        sleep(100);
-                        intake.startIntake();
-                        Util.setSpeed(0.2, 0.2);
-                        chassis.drive(32);
-                        Util.setSpeed(0.3, 0.6);
-                        chassis.drive(-20);
-                        sleep(100);
-                        currentNearAutoStage = NearAutoStages.GO_BACK_TO_SHOOTING_ZONE;
-                        break;
 
-                    case GO_BACK_TO_SHOOTING_ZONE:
-                        chassis.strafe(12);
-                        Util.prepareFlyWheelToShoot(flyWheel, kicker, intake, robotDistanceFromAprilTag, telemetry);
-                        sleep(100);
-                        chassis.turn(-135);
-                        sleep(100);
-                        currentNearAutoStage = NearAutoStages.SHOOT_AGAIN;
-                        break;
+                        robotDistanceFromAprilTag = DecodeUtil.findRobotDistanceFromAprilTag(aprilTag, autoType);
 
-                    case SHOOT_AGAIN:
-                        alignmentResult = Util.autoAlignWithAprilTag(this, aprilTag, DecodeAprilTag.BLUE_APRIL_TAG, chassis, telemetry);
-                        Util.shoot(flyWheel, kicker, flipper, intake, alignmentResult.distance, aprilTag, DecodeAprilTag.BLUE_APRIL_TAG, telemetry);
-                        currentNearAutoStage = NearAutoStages.MOVE_OUT_OF_SHOOTING_ZONE;
-                        break;
+                        sleep(100);
 
-                    case MOVE_OUT_OF_SHOOTING_ZONE:
-                        Util.setSpeed(0.3, 0.8);
-                        chassis.strafe(36);
+                        Util.shoot(flyWheel, kicker, flipper, intake,robotDistanceFromAprilTag, aprilTag, DecodeUtil.getAprilTagType(autoType), telemetry);
+
                         currentNearAutoStage = NearAutoStages.END;
                         break;
 
-                        case END:
+                    case END:
                         break;
 
                     default:
@@ -151,6 +131,6 @@ public class BlueNearAuto extends LinearOpMode {
                 throw new IllegalStateException("Unexpected value: " + autoType.toString());
             }
         }
-        }
     }
+}
 
