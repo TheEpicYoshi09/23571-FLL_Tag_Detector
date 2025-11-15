@@ -79,6 +79,42 @@ public class TeleopDriveBlue extends OpMode {
         follower.update();
         telemetryM.update();
 
+        mechController.handleMechState(mechController.getCurrentState()); // Keeps running states till IDLE
+
+        if (gamepad2.aWasPressed()) {
+            mechController.handleMechState(MechState.APRIL_TAG);
+        } else if ((gamepad2.left_trigger > 0.2) && !buttonPressed) {
+            buttonPressed = true;
+            mechController.handleMechState(MechState.INTAKE_STATE);
+        } else if ((gamepad2.right_trigger > 0.2) && !buttonPressed) {
+            buttonPressed = true;
+            mechController.handleMechState(MechState.SHOOT_STATE);
+        } else if ((gamepad2.left_bumper) && !buttonPressed) {
+            buttonPressed = true;
+            mechController.handleMechState(MechState.SHOOT_GREEN);
+        } else if ((gamepad2.right_bumper) && !buttonPressed) {
+            buttonPressed = true;
+            mechController.handleMechState(MechState.SHOOT_PURPLE);
+        } else if ((gamepad2.b) && !buttonPressed) {
+            buttonPressed = true;
+            mechController.handleMechState(MechState.HUMAN_STATE);
+        } else if ((gamepad2.x) && !buttonPressed) {
+            buttonPressed = true;
+            mechController.handleMechState(MechState.IDLE);
+        }
+        boolean noButtons =
+                !gamepad2.b &&
+                        !gamepad2.x &&
+                        gamepad2.left_trigger <= 0.2 &&
+                        gamepad2.right_trigger <= 0.2 &&
+                        !gamepad2.left_bumper &&
+                        !gamepad2.right_bumper &&
+                        !gamepad2.a;
+
+        if (noButtons) {
+            buttonPressed = false;
+        }
+
         if (!automatedDrive) {
             //Make the last parameter false for field-centric
             //In case the drivers want to use a "slowMode" you can scale the vectors
@@ -150,16 +186,24 @@ public class TeleopDriveBlue extends OpMode {
 
         //Optional way to change slow mode strength
         if (gamepad1.yWasPressed()) {
-            slowModeMultiplier += 0.25;
+            slowModeMultiplier = Math.min(1.5, slowModeMultiplier + 0.25);
         }
 
         //Optional way to change slow mode strength
-        if (gamepad2.aWasPressed()) {
-            slowModeMultiplier -= 0.25;
+        if (gamepad1.aWasPressed()) {
+            slowModeMultiplier = Math.max(0.1, slowModeMultiplier - 0.25);
         }
 
         telemetryM.debug("position", follower.getPose());
         telemetryM.debug("velocity", follower.getVelocity());
         telemetryM.debug("automatedDrive", automatedDrive);
+        mechController.allTelemetry();
+    }
+
+    @Override
+    public void stop() {
+        if (visionPortal != null) {
+            visionPortal.close();
+        }
     }
 }

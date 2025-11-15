@@ -37,7 +37,7 @@ public class TeleopMech extends OpMode {
 
     @Override
     public void loop() {
-        mechController.handleMechState(mechController.getCurrentState());
+        mechController.handleMechState(mechController.getCurrentState()); // Keeps running states till IDLE
 
         // ----- APRIL_TAG handling -----
         if (gamepad2.a) {
@@ -49,10 +49,10 @@ public class TeleopMech extends OpMode {
         } else if ((gamepad2.right_trigger > 0.2) && !buttonPressed) {
             buttonPressed = true;
             mechController.handleMechState(MechState.SHOOT_STATE);
-        } else if ((gamepad2.right_bumper) && !buttonPressed) {
+        } else if ((gamepad2.left_bumper) && !buttonPressed) {
             buttonPressed = true;
             mechController.handleMechState(MechState.SHOOT_GREEN);
-        } else if ((gamepad2.left_bumper) && !buttonPressed) {
+        } else if ((gamepad2.right_bumper) && !buttonPressed) {
             buttonPressed = true;
             mechController.handleMechState(MechState.SHOOT_PURPLE);
         } else if ((gamepad2.b) && !buttonPressed) {
@@ -68,7 +68,16 @@ public class TeleopMech extends OpMode {
         }*/
 
         // Reset button press flag when no buttons (except A) are pressed
-        if (!gamepad2.b && !gamepad2.x && gamepad2.left_trigger <= 0.2 && gamepad2.right_trigger <= 0.2) {
+        boolean noButtons =
+                !gamepad2.b &&
+                        !gamepad2.x &&
+                        gamepad2.left_trigger <= 0.2 &&
+                        gamepad2.right_trigger <= 0.2 &&
+                        !gamepad2.left_bumper &&
+                        !gamepad2.right_bumper &&
+                        !gamepad2.a;
+
+        if (noButtons) {
             buttonPressed = false;
         }
 

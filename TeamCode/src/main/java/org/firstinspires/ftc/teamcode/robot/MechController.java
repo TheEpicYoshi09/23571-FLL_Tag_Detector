@@ -508,7 +508,7 @@ public class MechController {
         telemetry.addData("Indexer | Lifter",
                 "%.1f° | %.1f°", statusIndexer(), statusLifter());
 
-        visionController.sensorTelemetry();
+        //visionController.sensorTelemetry();
         //visionController.aprilTagTelemetry();
 
         telemetry.update();
