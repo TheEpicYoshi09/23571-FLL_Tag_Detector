@@ -120,8 +120,22 @@ public class SigmaTeleop extends LinearOpMode {
 
         // spindexer control
         // Advance state
-        if (g2.wasJustPressed(GamepadKeys.Button.DPAD_UP)) {
+        if (g2.wasJustPressed(GamepadKeys.Button.DPAD_RIGHT)) {
             if (!indexer.isBusy()) indexer.moveTo(indexer.nextState());
+        }
+
+        //actuator control
+        if (g2.wasJustPressed(GamepadKeys.Button.DPAD_UP)) {
+            actuator.up();
+        }
+        if (g2.wasJustPressed(GamepadKeys.Button.DPAD_DOWN)) {
+            actuator.down();
+        }
+
+        // Scan obelisk
+        if (g2.wasJustPressed(GamepadKeys.Button.DPAD_LEFT)) {
+            aprilTag.scanObeliskTag();
+            telemetry.addData("Obelisk ID", aprilTag.getObeliskId());
         }
 
         // Set intaking ON
@@ -135,17 +149,6 @@ public class SigmaTeleop extends LinearOpMode {
         }
 
         indexer.update();
-
-        //actuator control
-        if (g2.wasJustPressed(GamepadKeys.Button.DPAD_RIGHT)) {
-            actuator.set(!actuator.isActivated());
-        }
-
-        // Scan obelisk
-        if (g2.wasJustPressed(GamepadKeys.Button.DPAD_LEFT)) {
-            aprilTag.scanObeliskTag();
-            telemetry.addData("Obelisk ID", aprilTag.getObeliskId());
-        }
 
         // Begin continuous lock
         if (g2.wasJustPressed(GamepadKeys.Button.X)) {
