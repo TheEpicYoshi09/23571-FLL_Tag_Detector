@@ -1,18 +1,18 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.OpModes;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.teamcode.Mechanisms.Drivetrain;
+
 @TeleOp
-public class MecanumFieldOrientatedOpMode extends OpMode {
-    MecanumDrive drive = new MecanumDrive();
-    Flywheel wheel = new Flywheel();
+public class Drive extends OpMode {
+    Drivetrain drive = new Drivetrain();
 
 
     @Override
     public void init() {
         drive.init(hardwareMap);
-        Flywheel.init(hardwareMap);
     }
 
     @Override
@@ -20,11 +20,7 @@ public class MecanumFieldOrientatedOpMode extends OpMode {
         double y = -gamepad1.left_stick_y;
         double x = gamepad1.left_stick_x;
         double turn = gamepad1.right_stick_x;
-        boolean input1 = gamepad1.a;
-        boolean input2 = gamepad1.x;
 
         drive.driveFieldRelative(y,x,turn);
-        wheel.spin(input1, input2);
-
     }
 }
