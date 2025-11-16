@@ -1,5 +1,5 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+# Force LF endings for all files Git treats as text
+* text eol=lf
 
 # Explicitly declare text files
 *.java text
