@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 @TeleOp
-public class  REVStarterBotTeleOpJava extends LinearOpMode {
+public class REVStarterTeleOp extends LinearOpMode {
 
   private DcMotor flywheel;
   private DcMotor coreHex;
@@ -43,6 +43,7 @@ public class  REVStarterBotTeleOpJava extends LinearOpMode {
         splitStickArcadeDrive();
         setFlywheelVelocity();
         manualCoreHexAndServoControl();
+
         telemetry.addData("Flywheel Velocity", ((DcMotorEx) flywheel).getVelocity());
         telemetry.addData("Flywheel Power", flywheel.getPower());
         telemetry.update();
