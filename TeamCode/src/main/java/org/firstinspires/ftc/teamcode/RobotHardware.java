@@ -115,7 +115,7 @@ public class RobotHardware {
 
         //INTAKE
         intake = myOpMode.hardwareMap.get(DcMotorEx.class,"intake");
-        intake.setDirection(DcMotor.Direction.REVERSE);
+        //intake.setDirection(DcMotor.Direction.REVERSE);
         intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         intake.setTargetPositionTolerance(5);
         //intake.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
