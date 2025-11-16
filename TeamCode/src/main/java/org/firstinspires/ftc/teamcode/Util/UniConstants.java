@@ -5,6 +5,9 @@ import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Configurable
 public class UniConstants {
 
@@ -91,6 +94,7 @@ CONFIG
     public static double MOTOR_TO_TURRET_RATIO =  ((double) 45 / 115); //Motor to Turret
     public static double TURRET_TICKS_PER_DEGREE = (360/537.7) * (1/ MOTOR_TO_TURRET_RATIO);
 
+    public static final ArrayList<Integer> obeliskIDs = new ArrayList<>(List.of(21, 22, 23));
 
 
 //    //Artifact locator processors
