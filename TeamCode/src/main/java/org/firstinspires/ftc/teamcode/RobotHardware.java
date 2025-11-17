@@ -4,6 +4,7 @@ import com.qualcomm.hardware.limelightvision.Limelight3A;
 //import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 //import com.qualcomm.robotcore.hardware.ColorSensor;
+import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
@@ -21,18 +22,16 @@ public class RobotHardware {
     private LinearOpMode myOpMode;   // gain access to methods in the calling OpMode.
 
     // Define Motor and Servo objects  (Make them private so they can't be accessed externally)
-    public DcMotor leftFront = null;
-    public DcMotor rightFront = null;
-    public DcMotor leftBack = null;
-    public DcMotor rightBack = null;
-    public DcMotorEx intake = null;
-    public DcMotorEx launcher = null;
-    public Servo spindexer = null;
-    public Servo turret = null;
-    public Servo hood = null;
-    public Servo kicker = null;
+    public DcMotor leftFront;
+    public DcMotor rightFront;
+    public DcMotor leftBack;
+    public DcMotor rightBack;
+    public DcMotorEx intake;
+    public DcMotorEx launcher;
+    public Servo turret;
     public boolean allianceColorRed = false;
     public boolean allianceColorBlue = false;
+    private AnalogInput turretPos;
 
     public enum IntakeDirection {
         IN,
@@ -49,7 +48,6 @@ public class RobotHardware {
     Limelight3A limelight = null;
     GoBildaPinpointDriver pinpoint = null; // Declare OpMode member for the Odometry Computer
     rgbIndicator rgbIndicatorMain = null;
-    private DigitalChannel allianceButton = null;
     private double targetRPM = 0;
     private boolean flywheelOn = false;
 
@@ -72,7 +70,7 @@ public class RobotHardware {
         rgbIndicatorMain = new rgbIndicator(myOpMode.hardwareMap, "rgbLight");
         rgbIndicatorMain.setColor(LEDColors.YELLOW);
 
-        allianceButton = myOpMode.hardwareMap.get(DigitalChannel.class, "allianceButton");
+        DigitalChannel allianceButton = myOpMode.hardwareMap.get(DigitalChannel.class, "allianceButton");
         if (allianceButton.getState()){
             allianceColorRed = true;
             rgbIndicatorMain.setColor(LEDColors.RED);
@@ -85,7 +83,6 @@ public class RobotHardware {
         //Deploy to Control Hub to make Odometry Pod show in hardware selection list
         pinpoint = myOpMode.hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
         pinpoint.setOffsets(-100, -65, DistanceUnit.MM);
-        //odo.setOffsets(-100.0, -65.0);
         pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
         pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.REVERSED);
         pinpoint.resetPosAndIMU();
@@ -130,16 +127,19 @@ public class RobotHardware {
 
         // Define and initialize ALL installed servos.
 
-        spindexer = myOpMode.hardwareMap.get(Servo.class, "spindexer");
+        Servo spindexer = myOpMode.hardwareMap.get(Servo.class, "spindexer");
 
         turret = myOpMode.hardwareMap.get(Servo.class, "turret");
         turret.setPosition(Constants.turretHome);
 
-        hood = myOpMode.hardwareMap.get(Servo.class, "hood");
+        Servo hood = myOpMode.hardwareMap.get(Servo.class, "hood");
         hood.setPosition(Constants.hoodMinimum);
 
-        kicker = myOpMode.hardwareMap.get(Servo.class, "kicker");
+        Servo kicker = myOpMode.hardwareMap.get(Servo.class, "kicker");
         kicker.setPosition(Constants.kickerDown);
+
+        // Servo Feedback Setup
+        turretPos = myOpMode.hardwareMap.get(AnalogInput.class, "turretPos");
 
         //Limelight Setup
         limelight = myOpMode.hardwareMap.get(Limelight3A.class, "limelight");
