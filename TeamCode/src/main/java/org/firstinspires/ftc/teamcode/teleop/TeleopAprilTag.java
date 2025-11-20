@@ -6,6 +6,7 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.HeadingInterpolator;
 import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -22,6 +23,7 @@ import java.util.List;
 import java.util.Locale;
 
 @TeleOp(name = "TeleopAprilTag", group = "Teleop")
+@Disabled
 public class TeleopAprilTag extends OpMode {
 
     RobotHardware robot;

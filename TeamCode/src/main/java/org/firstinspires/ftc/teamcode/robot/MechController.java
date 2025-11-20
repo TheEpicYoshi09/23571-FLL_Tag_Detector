@@ -15,7 +15,7 @@ public class MechController {
 
     // Hardware constants
     public static final double[] INTAKE = {0, 120, 240}; // Indexer 0, 1, 2 @ Intake Post degrees
-    public static final double[] SHOOT = {150, 270, 30}; // Indexer 0, 1, 2 @ Shooting Post degrees
+    public static final double[] SHOOT = {180, 270, 60}; // Indexer 0, 1, 2 @ Shooting Post degrees
     private static final double MAX_SERVO_ROTATION = 270.0; // Degrees
     private static final double INTAKE_TICKS_PER_FULL_ROTATION = 537.7; //Encoder Resolution PPR for RPM 312
     private static final long POST_ROTATE_WAIT_MS = 1000; // After every rotation
@@ -29,8 +29,8 @@ public class MechController {
 
 
     // Limit constants
-    private static final int lifterDown = 21; // Lifter down angle degrees
-    private static final int lifterUp = 56; // Lifter up angle degrees
+    private static final int lifterDown = 45; // Lifter down angle degrees
+    private static final int lifterUp = 100; // Lifter up angle degrees
 
     // Offset constants
 

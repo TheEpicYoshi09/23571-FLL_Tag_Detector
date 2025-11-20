@@ -9,6 +9,7 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.HeadingInterpolator;
 import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -24,6 +25,7 @@ import java.util.function.Supplier;
 
 @Configurable
 @TeleOp(name = "TeleopBlue", group = "Teleop")
+@Disabled
 public class TeleopDriveBlue extends OpMode {
     private Follower follower;
     private final Pose startingPose = Blue.SCORE_POSE;
@@ -131,20 +133,26 @@ public class TeleopDriveBlue extends OpMode {
             //In case the drivers want to use a "slowMode" you can scale the vectors
 
             //This is the normal version to use in the TeleOp
-            if (!slowMode) follower.setTeleOpDrive(
-                    -gamepad1.left_stick_y,
-                    -gamepad1.left_stick_x,
-                    -gamepad1.right_stick_x,
-                    true // Robot Centric
-            );
+            if (mechController.getCurrentState() == MechState.SHOOT_STATE ||
+                    mechController.getCurrentState() == MechState.SHOOT_PURPLE ||
+                    mechController.getCurrentState() == MechState.SHOOT_GREEN){
+                follower.setTeleOpDrive(0, 0, 0);
+            } else {
+                if (!slowMode) follower.setTeleOpDrive(
+                        -gamepad1.left_stick_y,
+                        -gamepad1.left_stick_x,
+                        -gamepad1.right_stick_x,
+                        true // Robot Centric
+                );
 
-                //This is how it looks with slowMode on
-            else follower.setTeleOpDrive(
-                    -gamepad1.left_stick_y * slowModeMultiplier,
-                    -gamepad1.left_stick_x * slowModeMultiplier,
-                    -gamepad1.right_stick_x * slowModeMultiplier,
-                    true // Robot Centric
-            );
+                    //This is how it looks with slowMode on
+                else follower.setTeleOpDrive(
+                        -gamepad1.left_stick_y * slowModeMultiplier,
+                        -gamepad1.left_stick_x * slowModeMultiplier,
+                        -gamepad1.right_stick_x * slowModeMultiplier,
+                        true // Robot Centric
+                );
+            }
         }
         //Shooting Pose
         if (gamepad1.left_trigger > 0.1) {

@@ -7,6 +7,7 @@ import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import org.firstinspires.ftc.teamcode.field.Blue;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
@@ -17,6 +18,7 @@ import org.firstinspires.ftc.teamcode.robot.VisionController;
 import org.firstinspires.ftc.vision.VisionPortal;
 
 @Autonomous(name = "AutoBlue", group = "Auto")
+@Disabled
 public class AutoBlue extends OpMode {
 
     RobotHardware robot;
@@ -219,6 +221,7 @@ public class AutoBlue extends OpMode {
     public void loop() {
 
         // These loop the movements of the robot, these must be called continuously in order to work
+        mechController.update(); // Keeps running states till IDLE
         if (mechController.getCurrentState() != MechState.SHOOT_STATE){
             follower.update();
             autonomousPathUpdate();
@@ -228,8 +231,6 @@ public class AutoBlue extends OpMode {
         } else {
             follower.setMaxPower(MechController.FULL_DRIVE_POWER);
         }
-
-        mechController.update(); // Keeps running states till IDLE
 
         // Feedback to Driver Hub for debugging
         telemetry.addData("path state", pathState);

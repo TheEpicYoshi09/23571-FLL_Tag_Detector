@@ -9,6 +9,7 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.HeadingInterpolator;
 import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -19,6 +20,7 @@ import java.util.function.Supplier;
 
 @Configurable
 @TeleOp(name = "TeleopRed_Pedro", group = "Teleop")
+@Disabled
 public class TeleopDriveRed_Pedro extends OpMode {
     private Follower follower;
     private final Pose startingPose = Red.SCORE_POSE;

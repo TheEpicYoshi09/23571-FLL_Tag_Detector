@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.robot;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -64,6 +65,6 @@ public class RobotHardware {
         intakeMot.setDirection(DcMotor.Direction.REVERSE);
         intakeMot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         intakeMot.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        shootingMot.setDirection(DcMotor.Direction.REVERSE);
+        shootingMot.setDirection(DcMotor.Direction.FORWARD);
     }
 }
