@@ -18,7 +18,11 @@ public class DriveFlywheel extends OpMode {
     private double previousPower = 0.0; // for optional full motor ramp
     private boolean flywheelOn = false;
 
-    private final double targetRPM = 4000;
+    private double targetRPM = 4000;
+    private final double rpmStep = 50;
+    private boolean upPressed = false;
+    private boolean downPressed = false;
+
     private FlywheelPID pid;
     Drivetrain drive = new Drivetrain();
     Intake intake = new Intake();
@@ -26,6 +30,8 @@ public class DriveFlywheel extends OpMode {
     private ElapsedTime timer = new ElapsedTime();
     public DcMotorEx leftFlywheel = null;
     public DcMotorEx rightFlywheel = null;
+
+    public DcMotorEx SIntake;
     private boolean xWasPressed = false;
 
     @Override
@@ -34,6 +40,7 @@ public class DriveFlywheel extends OpMode {
         intake.init(hardwareMap);
         leftFlywheel = hardwareMap.get(DcMotorEx.class, "flywheelL");
         rightFlywheel = hardwareMap.get(DcMotorEx.class, "flywheelR");
+        SIntake = hardwareMap.get(DcMotorEx.class, "intake2");
 
         leftFlywheel.setDirection(DcMotorEx.Direction.REVERSE);
         rightFlywheel.setDirection(DcMotorEx.Direction.FORWARD);
@@ -47,7 +54,31 @@ public class DriveFlywheel extends OpMode {
 
         previousPid = 0.0;
         previousPower = 0.0;
+        telemetry.addLine("Press dpad up/down to adjust RPM");
     }
+
+    @Override
+    public void init_loop() {
+        if (gamepad1.dpad_up && !upPressed) {
+            targetRPM += rpmStep;
+            upPressed = true;
+        }
+        if (!gamepad1.dpad_up) {
+            upPressed = false;
+        }
+        if (gamepad1.dpad_down && !downPressed) {
+            targetRPM -= rpmStep;
+            if (targetRPM < 0) targetRPM = 0;
+            downPressed = true;
+        }
+        if (!gamepad1.dpad_down) {
+            downPressed = false;
+        }
+
+        telemetry.addData("Target RPM", targetRPM);
+        telemetry.update();
+    }
+
 
     @Override
     public void start() {
@@ -61,16 +92,17 @@ public class DriveFlywheel extends OpMode {
         double x = gamepad1.left_stick_x;
         double turn = gamepad1.right_stick_x;
         boolean input1 = gamepad1.a;
-        boolean input3 = gamepad1.b;
+        boolean input3 = false;
+        boolean input2 = gamepad1.x;
 
         drive.driveRobotRelative(y,x,turn);
         intake.NonStationary(input1);
-        intake.stationary(input3);
 
-        if (gamepad1.x && !xWasPressed) {
+
+        if (input2 && !xWasPressed) {
             flywheelOn = !flywheelOn;
         }
-        xWasPressed = gamepad1.x;
+        xWasPressed = input2;
 
         double kF = flywheelOn ? 0.7 : 0.0;
 
@@ -88,6 +120,20 @@ public class DriveFlywheel extends OpMode {
 
         if (!flywheelOn) power = 0;
 
+        double minusTRPM = 200;
+
+        if(avgRPM < targetRPM && avgRPM >(targetRPM-minusTRPM) && gamepad1.b){
+            input3 = true;
+        }
+        else{
+            input3 = false;
+        }
+
+        if(avgRPM <(targetRPM-minusTRPM) && gamepad1.b){
+            SIntake.setPower(0);
+        }
+
+        intake.stationary(input3);
         leftFlywheel.setPower(power);
         rightFlywheel.setPower(power);
 
