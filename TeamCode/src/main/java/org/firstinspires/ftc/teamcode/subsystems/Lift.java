@@ -1,52 +1,48 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
-import com.rowanmcalpin.nextftc.core.Subsystem;
-import com.rowanmcalpin.nextftc.core.command.Command;
-import com.rowanmcalpin.nextftc.core.command.utility.InstantCommand;
-import com.rowanmcalpin.nextftc.core.control.controllers.PIDFController;
-import com.rowanmcalpin.nextftc.ftc.hardware.controllables.MotorEx;
-import com.rowanmcalpin.nextftc.ftc.hardware.controllables.RunToPosition;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 
-
-public class Lift extends Subsystem {
-    // BOILERPLATE
+public class Lift {
     public static final Lift INSTANCE = new Lift();
-    private Lift() { }
+    private Lift() {  }
 
-    // USER CODE
-    public MotorEx motor;
+    private DcMotorEx lift_motor;
+    private static final String motor_name = "lift";
 
-    public PIDFController controller = new PIDFController(0.005, 0.0, 0.0);
+    private static final int STOW_POSITION = 0;
+    private static final int TIP_POSITION = 10;
+    private static final double POWER_TO_STOW = -1.;
+    private static final double POWER_TO_TIP = 1.;
 
-    public Command resetZero() {
-        return new InstantCommand(() -> { motor.resetEncoder(); });
+    public void stow() {
+        lift_motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        lift_motor.setTargetPosition(STOW_POSITION);
+        lift_motor.setPower(POWER_TO_STOW);
     }
 
-    public String name = "lift_motor";
-
-    public Command toLow() {
-        return new RunToPosition(motor, // MOTOR TO MOVE
-                0.0, // TARGET POSITION, IN TICKS
-                controller, // CONTROLLER TO IMPLEMENT
-                this); // IMPLEMENTED SUBSYSTEM
+    public void hold() {
+        lift_motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        lift_motor.setPower(0.);
     }
 
-    public Command toMiddle() {
-        return new RunToPosition(motor, // MOTOR TO MOVE
-                500.0, // TARGET POSITION, IN TICKS
-                controller, // CONTROLLER TO IMPLEMENT
-                this); // IMPLEMENTED SUBSYSTEM
+    public void tip() {
+        lift_motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        lift_motor.setTargetPosition(TIP_POSITION);
+        lift_motor.setPower(POWER_TO_TIP);
     }
 
-    public Command toHigh() {
-        return new RunToPosition(motor, // MOTOR TO MOVE
-                1200.0, // TARGET POSITION, IN TICKS
-                controller, // CONTROLLER TO IMPLEMENT
-                this); // IMPLEMENTED SUBSYSTEM
+    public int getPosition() {
+        return lift_motor.getCurrentPosition();
     }
-    
-    @Override
-    public void initialize() {
-        motor = new MotorEx(name);
+
+    public void init(HardwareMap hMap) {
+        lift_motor = hMap.get(DcMotorEx.class, motor_name);
+        lift_motor.setDirection(DcMotorSimple.Direction.FORWARD);
+        lift_motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        lift_motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        lift_motor.setTargetPosition(0);
     }
 }
