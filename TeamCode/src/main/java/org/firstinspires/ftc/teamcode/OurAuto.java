@@ -14,9 +14,8 @@ public class OurAuto extends LinearOpMode {
     private DcMotorEx leftDrive;
     private DcMotorEx rightDrive;
     private CRServo agitator;
-    float ticksPerRev = 28;
-    float circumfrenece = 9.5f;
-    //in inches
+    float ticksPerRev = 28 * 5 * 3; //5 and 3 is the gear reductions
+    float circumfrenece = 9.5f; //in inches
     float ticksPerInch = ticksPerRev / circumfrenece;
 
     public void runOpMode() {
@@ -34,17 +33,18 @@ public class OurAuto extends LinearOpMode {
 
         flywheel.setDirection(DcMotorSimple.Direction.REVERSE);
         feedRoller.setDirection(DcMotorSimple.Direction.REVERSE);
+        leftDrive.setDirection(DcMotor.Direction.REVERSE);
 
         telemetry.addLine("new one");
         telemetry.update();
 
         waitForStart();
         while(opModeIsActive()) {
-            leftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            rightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
             leftDrive.setTargetPosition((int)(ticksPerInch * -23));
             rightDrive.setTargetPosition((int)(ticksPerInch * -23));
+
+            leftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            rightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
             leftDrive.setPower(0.2);
             rightDrive.setPower(0.2);
