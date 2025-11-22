@@ -8,6 +8,8 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.RoadRunner.teamcode.Decode.DC_PIDController;
+
 import java.util.List;
 
 public class DC_Swerve_Drive {
@@ -28,8 +30,8 @@ public class DC_Swerve_Drive {
   // public Servo rtTurn = null;
   public Servo lfTurn = null;
   public Servo rtTurn = null;
-  public Servo drag1 = null;
-  public Servo drag2 = null;
+  public Servo dragL  = null;
+  public Servo dragR  = null;
   // ---
   public AnalogInput lfSPot = null;
 
@@ -113,8 +115,9 @@ public class DC_Swerve_Drive {
     // limit the turn range of servos, may not need this
     //lfTurn.scaleRange(0.3, 0.67); // set limits of servo
     //rtTurn.scaleRange(0.3, 0.67); // set limits of servo
-    drag1 = myOp.hardwareMap.get(Servo.class, "drag1");
-    drag2 = myOp.hardwareMap.get(Servo.class, "drag2");
+    dragL = myOp.hardwareMap.get(Servo.class, "dragL");
+    dragR = myOp.hardwareMap.get(Servo.class, "dragR");
+
 
     lfSPot = myOp.hardwareMap.get(AnalogInput.class, "LFP");
     rtSPot = myOp.hardwareMap.get(AnalogInput.class, "RFP");
@@ -125,9 +128,9 @@ public class DC_Swerve_Drive {
       hub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
     }
   }
-  
-  // return potentiometer voltage from JoyStick value 
-    public double gpXtoSpv(double gpX){
+
+  // return potentiometer voltage from JoyStick value
+  public double gpXtoSpv(double gpX){
     // map joystick 0 to 1 as 90 to 180 and | -1 to 0 | 180 to 270 return sign to motor drive
     return servoMax + (servoMin-servoMax)*gpX;
   }
@@ -214,8 +217,8 @@ public class DC_Swerve_Drive {
 
   // this starts servos moving with CRServo power -1 < 0 < 1
   public void servodrag(double setdrag) {
-    drag1.setPosition(setdrag);
-    drag2.setPosition(setdrag);
+    dragL.setPosition(setdrag);
+    dragR.setPosition(-setdrag);
   }
 
   public void driveSpeed(double desV) {

@@ -1,9 +1,8 @@
-package org.firstinspires.ftc.teamcode.RoadRunner.HuskyLensOnApril;
+package org.firstinspires.ftc.teamcode.RoadRunner.teamcode.HuskyLensOnApril;
 
+import com.qualcomm.hardware.dfrobot.HuskyLens;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.hardware.dfrobot.HuskyLens;
 
 /**
  * Hardware class for a simple tank drive robot with a HuskyLens.

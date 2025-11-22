@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.Decode_2025;// Copyright (c) 2024-2025 FTC 13532
+package org.firstinspires.ftc.teamcode.RoadRunner.teamcode.Decode;// Copyright (c) 2024-2025 FTC 13532
 // All rights reserved.
 
 import com.qualcomm.hardware.lynx.LynxModule;
@@ -15,7 +15,7 @@ public class DC_Swerve_Drive {
   private LynxModule[] allHubs;
 
   // Define a constructor that allows the OpMode to pass a reference to itself.
-  public DC_Swerve_Drive(LinearOpMode opmode) {
+  DC_Swerve_Drive(LinearOpMode opmode) {
     myOp = opmode;
   }
 
@@ -28,8 +28,8 @@ public class DC_Swerve_Drive {
   // public Servo rtTurn = null;
   public Servo lfTurn = null;
   public Servo rtTurn = null;
-  public Servo drag1 = null;
-  public Servo drag2 = null;
+  public Servo dragL  = null;
+  public Servo dragR  = null;
   // ---
   public AnalogInput lfSPot = null;
 
@@ -113,8 +113,9 @@ public class DC_Swerve_Drive {
     // limit the turn range of servos, may not need this
     //lfTurn.scaleRange(0.3, 0.67); // set limits of servo
     //rtTurn.scaleRange(0.3, 0.67); // set limits of servo
-    drag1 = myOp.hardwareMap.get(Servo.class, "drag1");
-    drag2 = myOp.hardwareMap.get(Servo.class, "drag2");
+    dragL = myOp.hardwareMap.get(Servo.class, "dragL");
+    dragR = myOp.hardwareMap.get(Servo.class, "dragR");
+
 
     lfSPot = myOp.hardwareMap.get(AnalogInput.class, "LFP");
     rtSPot = myOp.hardwareMap.get(AnalogInput.class, "RFP");
@@ -214,8 +215,8 @@ public class DC_Swerve_Drive {
 
   // this starts servos moving with CRServo power -1 < 0 < 1
   public void servodrag(double setdrag) {
-    drag1.setPosition(setdrag);
-    drag2.setPosition(setdrag);
+    dragL.setPosition(setdrag);
+    dragR.setPosition(-setdrag);
   }
 
   public void driveSpeed(double desV) {
