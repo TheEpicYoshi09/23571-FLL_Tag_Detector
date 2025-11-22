@@ -21,7 +21,7 @@
 */
 package org.firstinspires.ftc.teamcode.Decode_2025;
 
-import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
+import org.firstinspires.ftc.teamcode.ODO.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -53,7 +53,7 @@ public class UT_SensorGoBildaPinpoint extends OpMode {
         configurePinpoint();
 
         // Set the location of the robot - this should be the place you are starting the robot from
-        pinpoint.setPosition(new Pose2D(DistanceUnit.INCH, 0, 0, AngleUnit.DEGREES, 0));
+        pinpoint.setOffsets( 0, 0);
     }
 
     @Override
@@ -62,14 +62,13 @@ public class UT_SensorGoBildaPinpoint extends OpMode {
         telemetry.addLine("Press A to reset the position");
         if(gamepad1.a){
             // You could use readings from April Tags here to give a new known position to the pinpoint
-            pinpoint.setPosition(new Pose2D(DistanceUnit.INCH, 0, 0, AngleUnit.DEGREES, 0));
+            pinpoint.setOffsets( 0, 0);
         }
         pinpoint.update();
-        Pose2D pose2D = pinpoint.getPosition();
 
-        telemetry.addData("X coordinate (IN)", pose2D.getX(DistanceUnit.INCH));
-        telemetry.addData("Y coordinate (IN)", pose2D.getY(DistanceUnit.INCH));
-        telemetry.addData("Heading angle (DEGREES)", pose2D.getHeading(AngleUnit.DEGREES));
+        telemetry.addData("X coordinate (IN)", pinpoint.getPosX());
+        telemetry.addData("Y coordinate (IN)", pinpoint.getPosY());
+        telemetry.addData("Heading angle (DEGREES)", pinpoint.getHeading().getDegrees());
     }
 
     public void configurePinpoint(){
@@ -82,7 +81,7 @@ public class UT_SensorGoBildaPinpoint extends OpMode {
         *  The Y pod offset refers to how far forwards from the tracking point the Y (strafe) odometry pod is.
         *  Forward of center is a positive number, backwards is a negative number.
         */
-        pinpoint.setOffsets(-2.0, 0.0, DistanceUnit.INCH); //these are tuned for 3110-0002-0001 Product Insight #1
+        pinpoint.setOffsets(-2.0, 0.0); //these are tuned for 3110-0002-0001 Product Insight #1
 
         /*
          * Set the kind of pods used by your robot. If you're using goBILDA odometry pods, select either
