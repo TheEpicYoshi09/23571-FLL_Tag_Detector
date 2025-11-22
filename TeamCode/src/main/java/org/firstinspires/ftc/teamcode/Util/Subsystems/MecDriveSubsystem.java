@@ -67,9 +67,10 @@ public class MecDriveSubsystem implements Subsystem {
             case RED:
                 x =  Poses.redGoal.getX() - follower.getPose().getX();
                 y =  Poses.redGoal.getY() - follower.getPose().getY();
+                break;
         }
 
-        changeInTurretAngle = 180 + (-(Math.toDegrees(Math.atan2(x,y))) - Math.toDegrees(follower.getPose().getHeading()));
+        changeInTurretAngle = 180 + (-(Math.toDegrees(Math.atan2(y,x))) - Math.toDegrees(follower.getPose().getHeading()));
         return Math.hypot(x,y) / 39.37;
 
     }
@@ -88,6 +89,14 @@ public class MecDriveSubsystem implements Subsystem {
 
     public void setPose(Pose pose) {
         follower.setPose(pose);
+    }
+
+    public double getHeading(){
+        return follower.getPose().getHeading();
+    }
+
+    public Follower getFollower(){
+        return follower;
     }
 
     public void sendTelemetry(UniConstants.loggingState state){

@@ -53,14 +53,15 @@ public class NextFTCTeleop extends NextFTCOpMode {
         rotaryIntake = new RotaryIntakeSubsystem(hardwareMap, joinedTelemetry, color);
         outtake = new OuttakeSubsystem(hardwareMap, joinedTelemetry, color);
         mecDrive = new MecDriveSubsystem(hardwareMap, joinedTelemetry, color);
-        mecDrive.resetPinpoint();
+        //mecDrive.resetPinpoint();
         outtake.resetMotors();
     }
 
-    @Override public void onWaitForStart() {
-        if(gamepad1.a){
+    @Override
+    public void onWaitForStart() {
+        if (gamepad1.a) {
             color = UniConstants.teamColor.RED;
-        }else if (gamepad1.b){
+        } else if (gamepad1.b) {
             color = UniConstants.teamColor.BLUE;
         }
 
@@ -76,9 +77,10 @@ public class NextFTCTeleop extends NextFTCOpMode {
 
         rotaryIntake.setColor(color);
         outtake.setColor(color);
+        outtake.setTurretTargetAngle(0);
         mecDrive.setColor(color);
         mecDrive.startTele();
-        mecDrive.setPose(new Pose(72, 72, Math.toRadians(90)));
+//        mecDrive.setPose(new Pose(72, 72, Math.toRadians(90)));
 
 
     }
@@ -86,56 +88,44 @@ public class NextFTCTeleop extends NextFTCOpMode {
     @Override
     public void onUpdate() {
 
-        isSlowed = gamepad1.right_bumper;
+        isSlowed = gamepad1.left_bumper;
 
         //Spin active forward, if the front slot is full, move to the next one.
-        if (gamepad1.a && !rotaryIntake.allFull()) {
+        if (gamepad1.right_trigger > 0) {
             rotaryIntake.forwardIntake();
             rotaryIntake.enableActive();
-
-
-        } else {
-            rotaryIntake.disableActive();
-        }
-
-        if(gamepad1.dpad_up){
-            outtake.setLauncherPowerDebug(.5);
-        }
-        if(gamepad1.dpad_down){
-            outtake.setLauncherPowerDebug(0);
-        }
-
-
-        //Reverse Active and Spin
-        if(gamepad1.b){
+        } //Reverse Active and Spin
+        else if (gamepad1.left_trigger > 0) {
             rotaryIntake.reverseIntake();
             rotaryIntake.enableActive();
         }
-
-
-        if(gamepad2.a){
-            rotaryIntake.setRotaryPower(.2);
-        }
-        if(gamepad2.b){
-            rotaryIntake.setRotaryPower(0);
-        }
-        if(gamepad2.y){
-            rotaryIntake.setRotaryPower(.4);
-        }
-        if(gamepad2.x){
-            rotaryIntake.setRotaryPower(.6);
+        else {
+            rotaryIntake.disableActive();
         }
 
-        if(gamepad2.dpad_up){
-            rotaryIntake.setRotaryDirection(1);
-        }
-        if(gamepad2.dpad_down){
-            rotaryIntake.setRotaryDirection(-1);
+        if(gamepad1.a){
+            outtake.setLauncherTargetVelo(2000);
         }
 
-        if(rotaryIntake.isAtPosition()){
+        if(gamepad1.b){
+            outtake.setLauncherTargetVelo(0);
+            outtake.setPower(0);
+        }
+
+        if (gamepad1.right_bumper && rotaryTimer.getTimeSeconds() > 1) {
+            //Transfer command here
+            rotaryIntake.toggleServo();
             rotaryTimer.reset();
         }
+
+        if(rotaryIntake.state == RotaryIntakeSubsystem.servoState.OUTTAKE){
+            gamepad1.rumble(250);
+        } else {
+            gamepad1.stopRumble();
+        }
+
+
+
 
 
 
@@ -145,14 +135,14 @@ public class NextFTCTeleop extends NextFTCOpMode {
         //Exit velocity will be a function of the power put into the motor (PDFL)
 
         distanceToGoalInMeters = mecDrive.updateDistanceAndAngle();
-        outtake.setLauncherTargetVelo(outtake.getTargetVelocity(distanceToGoalInMeters));
-        outtake.setTurretTargetAngle(mecDrive.getCalculatedTurretAngle());
+//            outtake.setLauncherTargetVelo(outtake.getTargetVelocity(distanceToGoalInMeters));
+//            outtake.setTurretTargetAngle(mecDrive.getCalculatedTurretAngle() - 90);
 
 
         mecDrive.updateTeleop(
-                -gamepad1.left_stick_y * (isSlowed ? .5 : 1), //Forward/Backward
-                -gamepad1.left_stick_x * (isSlowed ? .5 : 1), //Left/Right Rotation
-                -gamepad1.right_stick_x * (isSlowed ? .5 : 1), //Left/Right Strafe
+                -gamepad1.left_stick_y * (isSlowed ? .25 : 1), //Forward/Backward
+                -gamepad1.left_stick_x * (isSlowed ? .25 : 1), //Left/Right Rotation
+                -gamepad1.right_stick_x * (isSlowed ? .25 : 1), //Left/Right Strafe
                 true
         );
 
@@ -161,14 +151,13 @@ public class NextFTCTeleop extends NextFTCOpMode {
 //        vision.periodic(); //updater for vision
         mecDrive.periodic(); //updater for Mecanum drive and follower
 
-        rotaryIntake.sendTelemetry(logState);
+//        rotaryIntake.sendTelemetry(logState);
         outtake.sendTelemetry(logState);
         mecDrive.sendTelemetry(logState);
+        telemetry.addData("Distance to Goal ", distanceToGoalInMeters);
         telemetry.update();
 
+        }
+
+
     }
-
-
-
-
-}

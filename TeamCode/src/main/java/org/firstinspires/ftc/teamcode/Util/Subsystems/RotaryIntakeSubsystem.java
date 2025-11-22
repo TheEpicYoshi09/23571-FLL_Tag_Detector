@@ -47,6 +47,7 @@ public class RotaryIntakeSubsystem implements Subsystem {
     //Debug rotary
     public static double rotaryPower = 0;
 
+    public servoState state = servoState.INTAKE;
 
     public RotaryIntakeSubsystem(HardwareMap hardwareMap, JoinedTelemetry telemetry, UniConstants.teamColor color){
         this.telemetry = telemetry;
@@ -82,8 +83,8 @@ public class RotaryIntakeSubsystem implements Subsystem {
 
         rotaryController.setPDFL(pR, dR, fR, lR);
 
-        readSlots();
-        rotaryCurrentPosition = rotary.getCurrentPosition();
+        //readSlots();
+        //rotaryCurrentPosition = rotary.getCurrentPosition();
 
 
         //TODO: Needs to be tuned for PDFL
@@ -93,7 +94,11 @@ public class RotaryIntakeSubsystem implements Subsystem {
 
         active.setPower(isEnabled ? (isReversed ? -1 : 1) : 0);
 
-        ballServo.setPosition(debug ? testServoPos : servoTarget);
+        if(state == servoState.OUTTAKE){
+            active.setPower(1);
+        }
+
+        ballServo.setPosition(debug ? testServoPos : (state == servoState.INTAKE ? UniConstants.SERVO_INTAKE : UniConstants.SERVO_OUTTAKE));
 
     }
 
@@ -128,12 +133,13 @@ public class RotaryIntakeSubsystem implements Subsystem {
         return Math.abs(rotaryTargetPosition - rotaryCurrentPosition);
     }
 
-    public void passServo(){
-        servoTarget = UniConstants.SERVO_PASS;
-    }
-
-    public void transferServo(){
-        servoTarget = UniConstants.SERVO_TRANSFER;
+    public void toggleServo(){
+        if(state == servoState.INTAKE){
+            state = servoState.OUTTAKE;
+        }
+        else {
+            state = servoState.INTAKE;
+        }
     }
 
     public void readSlots() {
@@ -184,6 +190,11 @@ public class RotaryIntakeSubsystem implements Subsystem {
         return getError() <= 5;
     }
 
+    public void setServoState(servoState state){
+        servoTarget = (state == servoState.INTAKE ? UniConstants.SERVO_INTAKE : UniConstants.SERVO_OUTTAKE );
+    }
+
+
     public void sendTelemetry(UniConstants.loggingState state){
         switch(state){
             case DISABLED:
@@ -227,6 +238,11 @@ public class RotaryIntakeSubsystem implements Subsystem {
 
 
         }
+    }
+
+    public enum servoState{
+        INTAKE,
+        OUTTAKE
     }
 
 

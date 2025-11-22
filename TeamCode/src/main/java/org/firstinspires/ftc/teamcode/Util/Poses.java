@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.Util;
 
+import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.geometry.Pose;
 
 
@@ -7,6 +8,7 @@ import com.pedropathing.geometry.Pose;
 
 //All tutorials and explanations can be found HERE: https://pedropathing.com
 
+@Configurable
 public class Poses {
 
 

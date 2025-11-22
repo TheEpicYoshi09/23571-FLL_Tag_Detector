@@ -80,8 +80,8 @@ CONFIG
     public static final DcMotorSimple.Direction ROTARY_DIRECTION = DcMotorSimple.Direction.REVERSE;
     public static final int SPACE_BETWEEN_ROTARY_SLOTS = 225;
     public static final String BALL_SERVO_STRING = "BS";
-    public static final double SERVO_PASS = 1;
-    public static final double SERVO_TRANSFER = 0;
+    public static final double SERVO_OUTTAKE = 1;
+    public static final double SERVO_INTAKE = .6;
     //Color sensors
     public static final String COLOR_SENSOR_SLOT_FRONT_STRING = "CSF";
     public static final String COLOR_SENSOR_SLOT_RIGHT_STRING = "CSR";

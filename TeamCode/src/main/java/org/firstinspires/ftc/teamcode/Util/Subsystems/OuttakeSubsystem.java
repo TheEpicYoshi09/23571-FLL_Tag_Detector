@@ -16,11 +16,11 @@ public class OuttakeSubsystem implements Subsystem {
     //Necessary
     JoinedTelemetry telemetry;
     UniConstants.teamColor color;
-    public static boolean debug = true;
+    public static boolean debug = false;
 
     //Actual launcher things
     DcMotorEx launcher;
-    public static double pL = 0, dL = 0, lL = 0, fL = 0;
+    public static double pL = 0.000005, dL = 0, lL = 0, fL = 0;
     PDFLController launcherController = new PDFLController(pL, dL, fL, lL);
     private static double launcherTargetVelo = 0;
     private static double launcherCurrentVelo = 0;
@@ -134,6 +134,14 @@ public class OuttakeSubsystem implements Subsystem {
     }
     public  void setLauncherPowerDebug(double target){
         launcherPowerDebug = target;
+    }
+
+    public double getLauncherRPM(){
+        return launcher.getVelocity();
+    }
+
+    public void setPower(double power){
+        launcherPower = power;
     }
 
     public void sendTelemetry(UniConstants.loggingState state){
