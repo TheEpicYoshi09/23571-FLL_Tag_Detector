@@ -35,13 +35,10 @@ public class OurAuto extends LinearOpMode {
         feedRoller.setDirection(DcMotorSimple.Direction.REVERSE);
         leftDrive.setDirection(DcMotor.Direction.REVERSE);
 
-        telemetry.addLine("new one");
-        telemetry.update();
-
         waitForStart();
         while(opModeIsActive()) {
-            leftDrive.setTargetPosition((int)(ticksPerInch * -23));
-            rightDrive.setTargetPosition((int)(ticksPerInch * -23));
+            leftDrive.setTargetPosition((int)(ticksPerInch * 23));
+            rightDrive.setTargetPosition((int)(ticksPerInch * 23));
 
             leftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             rightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -50,7 +47,9 @@ public class OurAuto extends LinearOpMode {
             rightDrive.setPower(0.2);
 
             while(leftDrive.isBusy() || rightDrive.isBusy()) {
-
+                telemetry.addLine(String.valueOf(leftDrive.getCurrentPosition()));
+                telemetry.addLine(String.valueOf(rightDrive.getCurrentPosition()));
+                telemetry.update();
             }
 
             leftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);

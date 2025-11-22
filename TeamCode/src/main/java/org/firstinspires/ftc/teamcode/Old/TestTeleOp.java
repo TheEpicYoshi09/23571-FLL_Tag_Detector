@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.Old;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
@@ -6,10 +6,10 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-
+import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 @TeleOp
-public class OurTeleOp extends OpMode {
+public class TestTeleOp extends OpMode {
     private DcMotorEx flywheel;
     private DcMotor feedRoller;
     private DcMotor leftDrive;
@@ -32,19 +32,17 @@ public class OurTeleOp extends OpMode {
         agitator = hardwareMap.get(CRServo.class, "servo");
         rightDrive = hardwareMap.get(DcMotor.class, "rightDrive");
 
-        // Establishing the direction and mode for the motors
         flywheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         flywheel.setDirection(DcMotor.Direction.REVERSE);
         feedRoller.setDirection(DcMotor.Direction.REVERSE);
         leftDrive.setDirection(DcMotor.Direction.REVERSE);
         agitator.setDirection(DcMotor.Direction.REVERSE);
+
         telemetry.addLine("a to turn on/off the flywheel");
         telemetry.addLine("b to turn on/off the agitator");
         telemetry.addLine("x to turn on/off the feed roller");
         telemetry.addLine("Left bumper for slow speed");
         telemetry.addLine("right bumper for medium speed");
-
- 
         telemetry.update();
     }
 
@@ -54,47 +52,49 @@ public class OurTeleOp extends OpMode {
         flyWheel();
     }
 
-    public void basicMovement() {
-        float x;
-        float y;
+    // -----------------------------------------------------------
+    // VOLTAGE SENSOR FUNCTION
+    // -----------------------------------------------------------
+    private double getVoltage() {
+        double result = Double.POSITIVE_INFINITY;
+        for (VoltageSensor sensor : hardwareMap.voltageSensor) {
+            double v = sensor.getVoltage();
+            if (v > 0) {
+                result = Math.min(result, v);
+            }
+        }
+        return result;
+    }
 
-        x = gamepad1.right_stick_x;
-        y = gamepad1.left_stick_y;
+    public void basicMovement() {
+        float x = gamepad1.right_stick_x;
+        float y = gamepad1.left_stick_y;
         leftDrive.setPower(y - x);
         rightDrive.setPower(y + x);
     }
+
     public void turnOnMotors() {
         if(gamepad1.aWasPressed()) {
-            if(flyWheelPowered) {
-                flyWheelPowered = false;
-            } else {
-                flyWheelPowered = true;
-            }
+            flyWheelPowered = !flyWheelPowered;
         }
+
         if(gamepad1.bWasPressed()) {
-            if(agitatorPowered) {
-                agitatorPowered = false;
-                agitator.setPower(0);
-            } else {
-                agitatorPowered = true;
-                agitator.setPower(1);
-            }
+            agitatorPowered = !agitatorPowered;
+            agitator.setPower(agitatorPowered ? 1 : 0);
         }
+
         if(gamepad1.xWasPressed()) {
-            if(feedRollerPowered) {
-                feedRollerPowered = false;
-                feedRoller.setPower(0);
-            } else {
-                feedRollerPowered = true;
-                feedRoller.setPower(1);
-            }
+            feedRollerPowered = !feedRollerPowered;
+            feedRoller.setPower(feedRollerPowered ? 1 : 0);
         }
+
         if(gamepad1.y) {
             feedRoller.setPower(-0.5);
         }
         if(gamepad1.yWasReleased()) {
             feedRoller.setPower(0);
         }
+
         if(gamepad1.leftBumperWasPressed()) {
             flyWheelVelocity = bankVelocity;
         }
@@ -102,11 +102,35 @@ public class OurTeleOp extends OpMode {
             flyWheelVelocity = farVelocity;
         }
     }
+
+    // -----------------------------------------------------------
+    // FLYWHEEL WITH VOLTAGE COMPENSATION
+    // -----------------------------------------------------------
     public void flyWheel() {
+
         if(flyWheelPowered) {
-            flywheel.setVelocity(flyWheelVelocity);
+
+            // measure current battery voltage
+            double voltage = getVoltage();
+
+            // compute multiplier to normalize to 12V
+            double multiplier = 14 / voltage;
+
+            // apply it to the commanded velocity
+            double compensatedVelocity = flyWheelVelocity * multiplier;
+
+            // send to motor
+            flywheel.setVelocity(compensatedVelocity);
+
+            // debug
+            telemetry.addData("Battery Voltage", voltage);
+            telemetry.addData("Flywheel Target", flyWheelVelocity);
+            telemetry.addData("Compensated", compensatedVelocity);
+
         } else {
             flywheel.setVelocity(0);
         }
+
+        telemetry.update();
     }
 }
