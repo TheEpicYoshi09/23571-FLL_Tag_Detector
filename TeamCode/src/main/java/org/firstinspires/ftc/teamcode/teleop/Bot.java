@@ -105,8 +105,7 @@ public class Bot {
         }
 
         // Toggle field centric
-        if (g1.getButton(GamepadKeys.Button.LEFT_STICK_BUTTON)) fieldCentric = true;
-        if (g1.getButton(GamepadKeys.Button.RIGHT_STICK_BUTTON)) fieldCentric = false;
+        if (g1.getButton(GamepadKeys.Button.LEFT_STICK_BUTTON)) fieldCentric = !fieldCentric;
 
 
 
