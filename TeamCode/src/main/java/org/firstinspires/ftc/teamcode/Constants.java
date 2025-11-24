@@ -23,8 +23,8 @@ public class Constants {
 
     ///  TURRET POSITIONS
     public static final int turretHome = 0;
-    public static final double turretMaxLeft = 0;
-    public static final double turretMaxRight = 0;
+    public static final int turret_MIN = -350;
+    public static final int turret_MAX = 775;
 
     ///  KICKER POSITIONS
     public static final double kickerDown = 0.0;

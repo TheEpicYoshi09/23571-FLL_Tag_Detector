@@ -51,6 +51,7 @@ public class RobotHardware {
     rgbIndicator rgbIndicatorMain = null;
     private double targetRPM = 0;
     private boolean flywheelOn = false;
+    private int turretTargetPosition = 0;
 
     // Example: GoBilda 5202/5203/5204 encoder = 28 ticks/rev
     private static final double TICKS_PER_REV = 28.0;
@@ -130,7 +131,7 @@ public class RobotHardware {
         turret = myOpMode.hardwareMap.get(DcMotorEx.class, "turret");
         turret.setDirection(DcMotorSimple.Direction.FORWARD);
         turret.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        turret.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        turret.setTargetPositionTolerance(5);
         turret.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         // Define and initialize ALL installed servos.
@@ -269,6 +270,26 @@ public class RobotHardware {
 
     public double getCurrentRPM() {
         return (launcher.getVelocity() * 60.0) / TICKS_PER_REV;
+    }
+
+
+    public int getTurretTarget() {
+        return turretTargetPosition;
+    }
+
+    public int getTurretPosition() {
+        return turret.getCurrentPosition();
+    }
+
+    public void adjustTurret(int deltaTicks) {
+        turretTargetPosition += deltaTicks;
+
+        // Clamp safe range
+        turretTargetPosition = Math.max(Constants.turret_MIN, Math.min(Constants.turret_MAX, turretTargetPosition));
+
+        turret.setTargetPosition(turretTargetPosition);
+        turret.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        turret.setPower(0.40);
     }
 
     public void rotateTurret(TurretDirection Direction){

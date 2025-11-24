@@ -43,6 +43,8 @@ public class Competition extends LinearOpMode {
         boolean bPressed = false;
         boolean xPressed = false;
         boolean yPressed = false;
+        boolean dpadLeftPressed = false;
+        boolean dpadRightPressed = false;
 
         robot.init();  //Hardware configuration in RobotHardware.java
 
@@ -113,15 +115,21 @@ public class Competition extends LinearOpMode {
                 robot.runIntake(RobotHardware.IntakeDirection.STOP);
             }
 
-            boolean TurretLeftPressed = gamepad1.dpad_left;
-            boolean TurretRightPressed = gamepad1.dpad_right;
+            // ---------------- Turret Control ----------------
+            // D-Pad Left = decrease by 10 ticks
+            if (gamepad1.dpad_left && !dpadLeftPressed) {
+                robot.adjustTurret(-25);
+                dpadLeftPressed = true;
+            } else if (!gamepad1.dpad_left) {
+                dpadLeftPressed = false;
+            }
 
-            if (TurretLeftPressed){
-                robot.rotateTurret(RobotHardware.TurretDirection.LEFT);
-            } else if (TurretRightPressed) {
-                robot.rotateTurret(RobotHardware.TurretDirection.RIGHT);
-            } else {
-                robot.rotateTurret(RobotHardware.TurretDirection.STOP);
+            // D-Pad Right = increase by 10 ticks
+            if (gamepad1.dpad_right && !dpadRightPressed) {
+                robot.adjustTurret(+25);
+                dpadRightPressed = true;
+            } else if (!gamepad1.dpad_right) {
+                dpadRightPressed = false;
             }
 
             // --- Toggle Close Shot ---
@@ -168,10 +176,11 @@ public class Competition extends LinearOpMode {
 
             StateMachine.update(); //Update state machine in case of long running tasks
             telemetry.addData("State", StateMachine.getState());
-            telemetry.addData("Intake Vel", robot.intake.getVelocity());
             telemetry.addData("Target RPM", robot.getTargetRPM());
             telemetry.addData("Current RPM", "%.1f", robot.getCurrentRPM());
             telemetry.addData("Flywheel On", robot.isFlywheelOn());
+            telemetry.addData("Turret Target Pos", robot.getTurretTarget());
+            telemetry.addData("Turret Current Pos", robot.getTurretPosition());
             telemetry.update();
         }
     }
