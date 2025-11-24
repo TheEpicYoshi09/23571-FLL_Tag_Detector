@@ -35,6 +35,12 @@ public class Bot {
 
     //private static final long AIM_UPDATE_INTERVAL_MS = 50;
 
+    public enum FSM{
+        SortOuttake,
+        QuickOuttake,
+        Intake,
+        Endgame
+    }
     public Bot(HardwareMap hardwareMap, Telemetry tele, Gamepad gamepad1, Gamepad gamepad2) {
         intake = new Intake(hardwareMap);
         indexer = new Indexer(hardwareMap);
