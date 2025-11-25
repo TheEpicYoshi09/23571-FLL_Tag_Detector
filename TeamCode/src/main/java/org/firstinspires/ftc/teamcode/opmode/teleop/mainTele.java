@@ -23,13 +23,14 @@ public class mainTele extends LinearOpMode {
     //@Override
     public void runOpMode() throws InterruptedException {
         telemetry.addLine("Ready to drive!");
-        telemetry.update();
 
         robot = new Robot(hardwareMap, telemetry);
         
         waitForStart();
 
         while (opModeIsActive()) {
+            robot.periodic();
+
             // Read joystick values --------------------------------------
             double forward = -gamepad1.left_stick_y; // Forward is negative on the stick
             double strafe = gamepad1.left_stick_x;  // Strafe
