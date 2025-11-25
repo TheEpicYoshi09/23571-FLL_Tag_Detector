@@ -53,6 +53,7 @@ public class Bot {
     public void teleopTick() {
         g1.readButtons();
         g2.readButtons();
+
         if (fieldCentric) {
             movement.teleopTickFieldCentric(
                     g1.getLeftX(),
@@ -71,36 +72,32 @@ public class Bot {
         }
         if (g1.getButton(GamepadKeys.Button.LEFT_STICK_BUTTON)) fieldCentric = !fieldCentric;
 
-        // intake control
-        if (indexer.getIntaking()) {
-            if(g2.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER)>0.01)
-            {
-                intake.run();
-            }
-            else
-            {
-                intake.stop();
-            }
-        }
+        switch(state) {
 
-        //outtake control
-        //should be replaced with better automation i'll do that eventually
-        if (!indexer.getIntaking()) {
-            if (g2.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) > 0.01) {
-                outtake.run();
-            } else {
-                outtake.stop();
-            }
-        }
-
-        //should be replaced with better automation i'll do that eventually
-        if (!indexer.getIntaking()) {
-            if (g2.wasJustPressed(GamepadKeys.Button.DPAD_UP)) {
-                actuator.up();
-            }
-            if (g2.wasJustPressed(GamepadKeys.Button.DPAD_DOWN)) {
-                actuator.down();
-            }
+            case Intake:
+                if (g2.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) > 0.01) {
+                    intake.run();
+                } else {
+                    intake.stop();
+                }
+                if (g2.wasJustPressed(GamepadKeys.Button.A)){
+                    state = FSM.QuickOuttake;
+                }
+                //TODO: manage spinning while intaking
+                break;
+            case QuickOuttake:
+                if (g2.wasJustPressed(GamepadKeys.Button.X)){
+                    //TODO: quickspin
+                }
+                if (g2.wasJustPressed(GamepadKeys.Button.A)){
+                    state = FSM.Intake;
+                }
+                break;
+            case SortOuttake:
+                //TODO: figure this out
+                break;
+            case Endgame:
+                //TODO: Ts more of a build todo than a code one
         }
         // ========== TELEMETRY ==========
         telemetry.addData("Field Centric", fieldCentric);
