@@ -11,8 +11,9 @@ public class Kicker {
 
     public static final double gateClose = 0.37;
     public static final double gateShoot = 0.21;
-    public static final double gateIntake = 0.6;
-
+    public static final double gateIntake = 0.48; // was 0.6
+                                                // 0.5 was good for intake without 2nd ball run against the passive gate
+                                                // 0.45 good for intake 3 without touching flywheel
     public static final String GATE_CLOSE = "GATE_CLOSE";
     public static final String GATE_SHOOT = "GATE_SHOOT";
     public static final String GATE_INTAKE = "GATE_INTAKE";

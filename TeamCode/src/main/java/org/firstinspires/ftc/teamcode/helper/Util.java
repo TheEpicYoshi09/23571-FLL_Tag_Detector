@@ -51,7 +51,7 @@ public class Util {
     public static FlyWheelSpinUpResult waitForFlyWheelShootingVelocity(FlyWheel flyWheel, long velocity, double maxWaitTime, Telemetry telemetry) {
         // Configuration constants
         final double VELOCITY_TOLERANCE_PERCENT = 2.0;  // Default 2% tolerance
-        final double SHOOTING_POWER_BOOST_PERCENT = 20.0;  // Default 20% boost for shooting
+        final double SHOOTING_POWER_BOOST_PERCENT = 30.0;  // Default 20% boost for shooting
         final double JAM_DETECTION_THRESHOLD = 0.75;  // 75% of target velocity
 
         // Power calculation constants (for velocity-to-power conversion)
@@ -495,7 +495,7 @@ public class Util {
     public static void shoot(FlyWheel flyWheel, Kicker kicker, Flipper flipper, Intake intake, Double robotDistanceFromAprilTag, DecodeAprilTag aprilTag, String aprilTagName, Telemetry telemetry) {
 
         // Configuration constants
-        final int NUM_SHOTS = 4;                    // Shoot 4 times for reliability (only 3 required)
+        final int NUM_SHOTS = 3;                    // Shoot 4 times for reliability (only 3 required)
         final double INITIAL_FLIPPER_ANGLE = 120;   // Starting flipper angle in degrees
         final double ANGLE_INCREMENT = 30;          // Angle increase per shot (degrees)
         final int KICKER_OPEN_DELAY_MS = 300;       // Wait time for kicker to open
@@ -573,8 +573,9 @@ public class Util {
             prepareForShooting(flyWheel, kicker, flipper, intake, currentDistance, telemetry);
 
             // Open kicker gate to release game piece into flywheel path
+            if (shotNumber==0){ //only open for the 1st shot -- continous shoot
             kicker.setPosition(Kicker.gateShoot);
-            threadSleep(KICKER_OPEN_DELAY_MS);
+            threadSleep(KICKER_OPEN_DELAY_MS);}
 
             // Flip the game piece at the calculated angle
             flipper.turnFlipper(currentFlipperAngle);
@@ -584,7 +585,7 @@ public class Util {
             threadSleep(flipperWaitTime);
 
             // Close kicker gate to prepare for next shot
-            kicker.setGatePosition(Kicker.GATE_CLOSE);
+      //      kicker.setGatePosition(Kicker.GATE_CLOSE);  //alway open for cont shoot
 
             // Reset flipper to starting position
             flipper.resetFlipper();
