@@ -112,7 +112,7 @@ public class Competition extends LinearOpMode {
             // Hold Start on gamepad2 to track turret
             if (gamepad2.start) {
                 turretTracker.update();
-                robot.headlight.setPosition(0.5);
+                robot.headlight.setPosition(0.25); //Set light power here
             } else {
                 robot.turret.setPower(0);
                 robot.headlight.setPosition(0.0);
