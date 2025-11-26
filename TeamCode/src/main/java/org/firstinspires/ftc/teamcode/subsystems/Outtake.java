@@ -8,7 +8,7 @@ public class Outtake {
     private final MotorEx motor;
     private double rpm;
     double lastTime;
-
+    
     public static class Params
     {
         public static final double DISTANCE_TO_RPM_COEFF = 0.8;
