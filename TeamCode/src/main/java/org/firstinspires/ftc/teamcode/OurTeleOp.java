@@ -45,7 +45,8 @@ public class OurTeleOp extends OpMode {
         telemetry.addLine("x to turn on/off the feed roller");
         telemetry.addLine("Left bumper for slow speed");
         telemetry.addLine("right bumper for medium speed");
-
+        telemetry.addLine("This will disappear when the first interaction begins");
+        telemetry.addLine("Voltage control is on");
  
         telemetry.update();
     }

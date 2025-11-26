@@ -48,6 +48,8 @@ public class RedAutoWithShooting extends LinearOpMode {
         flywheel.setDirection(DcMotorSimple.Direction.REVERSE);
         flywheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         flywheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        feedRoller.setDirection(DcMotorSimple.Direction.REVERSE);
+
 
         waitForStart();
 
@@ -61,20 +63,18 @@ public class RedAutoWithShooting extends LinearOpMode {
 
         // Stop shooter motors
         flywheel.setPower(0);
-        agitator.setPower(0);
+        //agitator.setPower(0);
         feedRoller.setPower(0);
 
-        // --- Post-shoot movement ---
-        rightDrive.setPower(1);
-        leftDrive.setPower(-1);
-        sleep(200);
-
+        rightDrive.setPower(-1);
+        leftDrive.setPower(1);
+        sleep(1000);
         leftDrive.setPower(1);
         rightDrive.setPower(1);
-        sleep(700);
-
+        sleep(1000);
         leftDrive.setPower(0);
         rightDrive.setPower(0);
+
     }
 
     void ourSleep(double timeTakes) {

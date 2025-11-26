@@ -66,17 +66,15 @@ public class BlueAutoWithShooting extends LinearOpMode {
         //agitator.setPower(0);
         feedRoller.setPower(0);
 
-        // --- Movement (BlueAuto style) ---
         rightDrive.setPower(-1);
         leftDrive.setPower(1);
         sleep(200);
-
         leftDrive.setPower(1);
         rightDrive.setPower(1);
         sleep(700);
-
         leftDrive.setPower(0);
         rightDrive.setPower(0);
+
     }
 
     void ourSleep(double timeTakes) {
