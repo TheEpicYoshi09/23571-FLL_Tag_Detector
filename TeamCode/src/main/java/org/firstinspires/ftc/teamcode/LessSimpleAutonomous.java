@@ -20,7 +20,7 @@ import java.util.function.Supplier;
 @Autonomous
 public class LessSimpleAutonomous extends OpMode {
     private Follower follower;
-    public static Pose startingPose = new Pose(108, 132, Math.toRadians(0)); //See ExampleAuto to understand how to use this
+    public static Pose startingPose = new Pose(116, 132, Math.toRadians(38)); //See ExampleAuto to understand how to use this
     private boolean automatedDrive;
     private Supplier<PathChain> pathChain;
     private TelemetryManager telemetryM;
@@ -37,8 +37,8 @@ public class LessSimpleAutonomous extends OpMode {
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
 
         pathChain = () -> follower.pathBuilder() //Lazy Curve Generation
-                .addPath(new Path(new BezierLine(follower::getPose, Poses.redTopLeavePose)))
-                .setHeadingInterpolation(HeadingInterpolator.linearFromPoint(follower::getHeading, Math.toRadians(45), 0.8))
+                .addPath(new Path(new BezierLine(follower::getPose, new Pose(126, 110, 38))))
+                .setHeadingInterpolation(HeadingInterpolator.constant(Math.toRadians(38)))
                 .build();
     }
 
@@ -48,7 +48,7 @@ public class LessSimpleAutonomous extends OpMode {
         follower.update();
         telemetryM.update();
         if (!running) {
-            follower.followPath(pathChain.get());
+            follower.followPath(pathChain.get(), 0.5, true);
             running = true;
         }
 
