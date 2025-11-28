@@ -3,7 +3,6 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -52,7 +51,6 @@ public class RobotHardware {
     private DigitalChannel allianceButton;
     private double targetRPM = 0;
     private boolean flywheelOn = false;
-    public int targetTagID;
     private int turretTargetPosition = 0;
     public double spindexerPos = Constants.spindexerStart;
 
@@ -77,18 +75,13 @@ public class RobotHardware {
         rgbIndicatorMain.setColor(LEDColors.YELLOW);
 
         allianceButton = myOpMode.hardwareMap.get(DigitalChannel.class, "allianceButton");
+        allianceButton.setMode(DigitalChannel.Mode.INPUT);
         if (allianceButton.getState()){
             allianceColorRed = true;
             rgbIndicatorMain.setColor(LEDColors.RED);
         } else {
             allianceColorBlue = true;
             rgbIndicatorMain.setColor(LEDColors.BLUE);
-        }
-
-        if (allianceColorRed) {
-            targetTagID = 24; // example tag ID for red alliance
-        } else if (allianceColorBlue) {
-            targetTagID = 20; // example tag ID for blue alliance
         }
 
         ///GoBilda Odometry Pod Setup
