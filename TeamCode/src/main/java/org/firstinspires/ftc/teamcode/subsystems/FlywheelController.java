@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
+import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.teamcode.Constants;
 import org.firstinspires.ftc.teamcode.RobotHardware;
 
@@ -99,20 +100,23 @@ public class FlywheelController {
             List<LLResultTypes.FiducialResult> fiducials = result.getFiducialResults();
             if (fiducials != null && !fiducials.isEmpty()) {
                 LLResultTypes.FiducialResult fid = fiducials.get(0);
-                Pose3D pose = fid.getRobotPose_TargetSpace();
+                Pose3D pose = fid.getRobotPoseTargetSpace();
+                Position position = pose != null ? pose.getPosition() : null;
 
-                double xMeters = pose.getX(DistanceUnit.METER);
-                double yMeters = pose.getY(DistanceUnit.METER);
-                double distanceMeters = Math.hypot(xMeters, yMeters);
-                double distanceFeet = DistanceUnit.convert(distanceMeters, DistanceUnit.METER, DistanceUnit.FOOT);
+                if (position != null) {
+                    double xMeters = position.getX(DistanceUnit.METER);
+                    double yMeters = position.getY(DistanceUnit.METER);
+                    double distanceMeters = Math.hypot(xMeters, yMeters);
+                    double distanceFeet = distanceMeters * 3.28084;
 
-                double clampedDistance = Range.clip(distanceFeet, MID_ZONE_DISTANCE_FT, FAR_ZONE_DISTANCE_FT);
-                double distanceRatio = (clampedDistance - MID_ZONE_DISTANCE_FT) / (FAR_ZONE_DISTANCE_FT - MID_ZONE_DISTANCE_FT);
-                rpm = Constants.LAUNCH_ZONE_MID_RPM
-                        + distanceRatio * (Constants.LAUNCH_ZONE_FAR_RPM - Constants.LAUNCH_ZONE_MID_RPM);
+                    double clampedDistance = Range.clip(distanceFeet, MID_ZONE_DISTANCE_FT, FAR_ZONE_DISTANCE_FT);
+                    double distanceRatio = (clampedDistance - MID_ZONE_DISTANCE_FT) / (FAR_ZONE_DISTANCE_FT - MID_ZONE_DISTANCE_FT);
+                    rpm = Constants.LAUNCH_ZONE_MID_RPM
+                            + distanceRatio * (Constants.LAUNCH_ZONE_FAR_RPM - Constants.LAUNCH_ZONE_MID_RPM);
 
-                telemetry.addData("Flywheel Distance (ft)", "%.2f", distanceFeet);
-                telemetry.addData("Flywheel Target RPM", rpm);
+                    telemetry.addData("Flywheel Distance (ft)", "%.2f", distanceFeet);
+                    telemetry.addData("Flywheel Target RPM", rpm);
+                }
             }
         }
 
