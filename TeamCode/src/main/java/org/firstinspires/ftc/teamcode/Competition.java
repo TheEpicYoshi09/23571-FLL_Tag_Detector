@@ -1,9 +1,11 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -11,9 +13,11 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit;
 import org.firstinspires.ftc.teamcode.StateMachine.State;
+import org.firstinspires.ftc.teamcode.subsystems.FlywheelController;
 import org.firstinspires.ftc.teamcode.subsystems.TurretTracker;
 //import org.firstinspires.ftc.teamcode.drivers.GoBildaPinpointDriver;
 
+import java.util.List;
 import java.util.Locale;
 
 //@Disabled
@@ -24,6 +28,22 @@ public class Competition extends LinearOpMode {
 
     RobotHardware robot = new RobotHardware(this);
     private TurretTracker turretTracker;
+    private FlywheelController flywheelController;
+
+    private enum ShootState {
+        IDLE,
+        FIRE,
+        RETRACT,
+        ADVANCE,
+        WAIT_FOR_SPINUP,
+        PRIME_NEXT
+    }
+
+    private ShootState shootState = ShootState.IDLE;
+    private final double[] spindexerPositions = new double[]{Constants.spindexer1, Constants.spindexer2, Constants.spindexer3};
+    private int spindexerIndex = 0;
+    private final ElapsedTime shootTimer = new ElapsedTime();
+    private boolean hasFiredShot = false;
 
     StateMachine StateMachine;
 
@@ -31,8 +51,6 @@ public class Competition extends LinearOpMode {
     public void runOpMode() {
 
         StateMachine = new StateMachine(robot);
-
-        turretTracker = new TurretTracker(robot, telemetry, robot.allianceColorRed, robot.allianceColorBlue);
 
         ///Variable Setup
         //Odometry
@@ -49,19 +67,29 @@ public class Competition extends LinearOpMode {
         boolean yPressed = false;
         boolean dpadLeftPressed = false;
         boolean dpadRightPressed = false;
-        boolean prevDpadLeft2 = false;
-        boolean prevDpadRight2 = false;
+        boolean dpadLeft2PreviouslyPressed = false;
+        boolean dpadRight2PreviouslyPressed = false;
+        boolean backButtonPreviouslyPressed = false;
+        boolean rightBumperPreviouslyPressed = false;
 
 
         robot.init();  //Hardware configuration in RobotHardware.java
+
+        robot.spindexer.setPosition(spindexerPositions[spindexerIndex]);
+        robot.spindexerPos = spindexerPositions[spindexerIndex];
+
+        turretTracker = new TurretTracker(robot, telemetry);
+        flywheelController = new FlywheelController(robot, telemetry);
 
         waitForStart();
         resetRuntime();
 
         while (opModeIsActive()) {
 
+            robot.refreshLimelightResult();
+
             //Limelight Data
-            LLResult result = robot.limelight.getLatestResult();
+            LLResult result = robot.getLatestLimelightResult();
             if (result != null) {
                 if (result.isValid()) {
                     Pose3D botpose = result.getBotpose();
@@ -109,14 +137,32 @@ public class Competition extends LinearOpMode {
             // D-Pad left/right = turret manual rotate
             // Trigger left/right = (hold) intake forward/reverse
 
-            // Hold Start on gamepad2 to track turret
-            if (gamepad2.start) {
+            // Run turret tracking when the flywheel is active or Start is held for manual testing
+            boolean trackingActive = flywheelController.isEnabled() || gamepad2.start;
+            if (trackingActive) {
                 turretTracker.update();
                 robot.headlight.setPosition(0.25); //Set light power here
             } else {
                 robot.turret.setPower(0);
                 robot.headlight.setPosition(0.0);
             }
+
+            // Flywheel toggle on gamepad2 back
+            boolean backButtonPressed = gamepad2.back;
+            if (backButtonPressed && !backButtonPreviouslyPressed) {
+                flywheelController.toggle();
+            }
+            backButtonPreviouslyPressed = backButtonPressed;
+            flywheelController.update();
+
+            boolean rightBumperPressed = gamepad2.right_bumper;
+            if (rightBumperPressed && !rightBumperPreviouslyPressed && shootState == ShootState.IDLE
+                    && flywheelController.isEnabled() && flywheelController.getTargetRpm() > 0) {
+                startShootSequence();
+            }
+            rightBumperPreviouslyPressed = rightBumperPressed;
+
+            updateShootSequence();
 
             ///INTAKE
             //IntakeDirection
@@ -137,31 +183,38 @@ public class Competition extends LinearOpMode {
             boolean dpadRight2 = gamepad2.dpad_right;
 
             // Edge trigger LEFT (-0.05)
-            if (dpadLeft2 && !prevDpadLeft2) {
+            if (dpadLeft2 && !dpadLeft2PreviouslyPressed) {
                 robot.adjustSpindexer(-0.01);
             }
 
             // Edge trigger RIGHT (+0.05)
-            if (dpadRight2 && !prevDpadRight2) {
+            if (dpadRight2 && !dpadRight2PreviouslyPressed) {
                 robot.adjustSpindexer(0.01);
             }
 
             // update previous
-            prevDpadLeft2  = dpadLeft2;
-            prevDpadRight2 = dpadRight2;
+            dpadLeft2PreviouslyPressed  = dpadLeft2;
+            dpadRight2PreviouslyPressed = dpadRight2;
 
-            //Manual Lift Control
-            if (gamepad2.a) {
-                robot.kicker.setPosition(Constants.kickerUp);
-            } else robot.kicker.setPosition(Constants.kickerDown);
+            if (shootState == ShootState.IDLE) {
+                //Manual Lift Control
+                if (gamepad2.a) {
+                    robot.kicker.setPosition(Constants.kickerUp);
+                } else {
+                    robot.kicker.setPosition(Constants.kickerDown);
+                }
 
-            //Spindexer Manual Control
-            if (gamepad2.b) {
-                robot.spindexer.setPosition(Constants.spindexer1);
-            } else if (gamepad2.y) {
-                robot.spindexer.setPosition(Constants.spindexer2);
-            } else if (gamepad2.x) {
-                robot.spindexer.setPosition(Constants.spindexer3);
+                //Spindexer Manual Control
+                if (gamepad2.b) {
+                    robot.spindexer.setPosition(Constants.spindexer1);
+                    robot.spindexerPos = Constants.spindexer1;
+                } else if (gamepad2.y) {
+                    robot.spindexer.setPosition(Constants.spindexer2);
+                    robot.spindexerPos = Constants.spindexer2;
+                } else if (gamepad2.x) {
+                    robot.spindexer.setPosition(Constants.spindexer3);
+                    robot.spindexerPos = Constants.spindexer3;
+                }
             }
 
 
@@ -198,27 +251,31 @@ public class Competition extends LinearOpMode {
                 bPressed = false;
             }
 
-            // --- Decrease RPM ---
-            if (gamepad1.x && !xPressed) {
-                robot.adjustRPM(-100);
-                xPressed = true;
-            } else if (!gamepad1.x) {
-                xPressed = false;
-            }
+//            // --- Decrease RPM ---
+//            if (gamepad1.x && !xPressed) {
+//                robot.adjustRPM(-100);
+//                xPressed = true;
+//            } else if (!gamepad1.x) {
+//                xPressed = false;
+//            }
 
-            // --- Increase RPM ---
-            if (gamepad1.y && !yPressed) {
-                robot.adjustRPM(100);
-                yPressed = true;
-            } else if (!gamepad1.y) {
-                yPressed = false;
-            }
+//            // --- Increase RPM ---
+//            if (gamepad1.y && !yPressed) {
+//                robot.adjustRPM(100);
+//                yPressed = true;
+//            } else if (!gamepad1.y) {
+//                yPressed = false;
+//            }
 
             StateMachine.update(); //Update state machine in case of long running tasks
             telemetry.addData("State", StateMachine.getState());
             telemetry.addData("Target RPM", robot.getTargetRPM());
             telemetry.addData("Current RPM", "%.1f", robot.getCurrentRPM());
-            telemetry.addData("Flywheel On", robot.isFlywheelOn());
+//            telemetry.addData("Flywheel On", robot.isFlywheelOn());
+            telemetry.addData("Turret Flywheel Enabled", flywheelController.isEnabled());
+            telemetry.addData("Turret Flywheel Target", "%.0f", flywheelController.getTargetRpm());
+            telemetry.addData("Turret Flywheel Current", "%.0f", flywheelController.getCurrentRpm());
+            telemetry.addData("Shoot State", shootState);
             telemetry.addData("Turret Target Pos", robot.getTurretTarget());
             telemetry.addData("Turret Current Pos", robot.getTurretPosition());
             telemetry.addData("Color1 R: ", robot.color1.red());
@@ -227,5 +284,94 @@ public class Competition extends LinearOpMode {
             telemetry.addData("Spindexer Position", robot.spindexerPos);
             telemetry.update();
         }
+    }
+
+    private boolean isAimedAtTarget() {
+        LLResult result = robot.getLatestLimelightResult();
+        if (result == null || !result.isValid()) {
+            return false;
+        }
+
+        double txPercent = result.getTx();
+        if (!Double.isNaN(txPercent)) {
+            return Math.abs(txPercent) <= 0.05;
+        }
+
+        List<LLResultTypes.FiducialResult> fiducials = result.getFiducialResults();
+        if (fiducials == null || fiducials.isEmpty()) {
+            return false;
+        }
+
+        double txDegrees = fiducials.get(0).getTargetXDegrees();
+        return Math.abs(txDegrees) <= 5.0;
+    }
+
+    private void startShootSequence() {
+        shootState = ShootState.WAIT_FOR_SPINUP;
+        shootTimer.reset();
+        hasFiredShot = false;
+        robot.kicker.setPosition(Constants.kickerDown);
+    }
+
+    private void updateShootSequence() {
+        if (shootState == ShootState.IDLE) {
+            return;
+        }
+
+        if (!flywheelController.isEnabled() || flywheelController.getTargetRpm() <= 0) {
+            robot.kicker.setPosition(Constants.kickerDown);
+            shootState = ShootState.IDLE;
+            hasFiredShot = false;
+            return;
+        }
+
+        switch (shootState) {
+            case WAIT_FOR_SPINUP:
+                if (flywheelController.isAtSpeed(Constants.FLYWHEEL_TOLERANCE_RPM) && isAimedAtTarget()) {
+                    robot.kicker.setPosition(Constants.kickerUp);
+                    shootTimer.reset();
+                    if (!hasFiredShot) {
+                        shootState = ShootState.FIRE;
+                        hasFiredShot = true;
+                    } else {
+                        shootState = ShootState.PRIME_NEXT;
+                    }
+                }
+                break;
+            case FIRE:
+                if (shootTimer.milliseconds() >= 500) {
+                    robot.kicker.setPosition(Constants.kickerDown);
+                    shootTimer.reset();
+                    shootState = ShootState.RETRACT;
+                }
+                break;
+            case RETRACT:
+                if (shootTimer.milliseconds() >= 250) {
+                    advanceSpindexer();
+                    shootTimer.reset();
+                    shootState = ShootState.ADVANCE;
+                }
+                break;
+            case ADVANCE:
+                if (shootTimer.milliseconds() >= 500) {
+                    shootState = ShootState.WAIT_FOR_SPINUP;
+                }
+                break;
+            case PRIME_NEXT:
+                if (shootTimer.milliseconds() >= 500) {
+                    robot.kicker.setPosition(Constants.kickerDown);
+                    shootState = ShootState.IDLE;
+                }
+                break;
+            default:
+                shootState = ShootState.IDLE;
+                break;
+        }
+    }
+
+    private void advanceSpindexer() {
+        spindexerIndex = (spindexerIndex + 1) % spindexerPositions.length;
+        robot.spindexerPos = spindexerPositions[spindexerIndex];
+        robot.spindexer.setPosition(robot.spindexerPos);
     }
 }

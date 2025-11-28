@@ -3,7 +3,6 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -12,6 +11,7 @@ import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import com.qualcomm.hardware.limelightvision.LLResult;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import org.firstinspires.ftc.teamcode.drivers.rgbIndicator;
@@ -51,12 +51,12 @@ public class RobotHardware {
     private DigitalChannel allianceButton;
     private double targetRPM = 0;
     private boolean flywheelOn = false;
-    public int targetTagID;
     private int turretTargetPosition = 0;
     public double spindexerPos = Constants.spindexerStart;
 
     // Example: GoBilda 5202/5203/5204 encoder = 28 ticks/rev
     private static final double TICKS_PER_REV = 28.0;
+    private LLResult latestLimelightResult;
 
     // Define a constructor that allows the OpMode to pass a reference to itself.
     public RobotHardware(LinearOpMode opmode) {
@@ -75,19 +75,8 @@ public class RobotHardware {
         rgbIndicatorMain.setColor(LEDColors.YELLOW);
 
         allianceButton = myOpMode.hardwareMap.get(DigitalChannel.class, "allianceButton");
-        if (allianceButton.getState()){
-            allianceColorRed = true;
-            rgbIndicatorMain.setColor(LEDColors.RED);
-        } else {
-            allianceColorBlue = true;
-            rgbIndicatorMain.setColor(LEDColors.BLUE);
-        }
-
-        if (allianceColorRed) {
-            targetTagID = 24; // example tag ID for red alliance
-        } else if (allianceColorBlue) {
-            targetTagID = 20; // example tag ID for blue alliance
-        }
+        allianceButton.setMode(DigitalChannel.Mode.INPUT);
+        configureAllianceFromSwitch();
 
         ///GoBilda Odometry Pod Setup
         //Deploy to Control Hub to make Odometry Pod show in hardware selection list
@@ -132,6 +121,7 @@ public class RobotHardware {
         launcher.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         launcher.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         launcher.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        launcher.setTargetPositionTolerance(25);
 
         //TURRET
         turret = myOpMode.hardwareMap.get(DcMotorEx.class, "turret");
@@ -152,9 +142,6 @@ public class RobotHardware {
         Servo hood = myOpMode.hardwareMap.get(Servo.class, "hood");
         hood.setPosition(Constants.hoodMinimum);
 
-        Servo kicker = myOpMode.hardwareMap.get(Servo.class, "kicker");
-        kicker.setPosition(Constants.kickerDown);
-
         //Turret LED
         headlight = myOpMode.hardwareMap.get(Servo.class, "headlight");
         headlight.setPosition(0.0);
@@ -162,8 +149,11 @@ public class RobotHardware {
         //Limelight Setup
         limelight = myOpMode.hardwareMap.get(Limelight3A.class, "limelight");
         //odo.setMsTransmissionInterval(11);
-        limelight.pipelineSwitch(0);
+        selectAllianceLimelightPipeline();
         limelight.start();
+
+        // Prime cached Limelight data
+        refreshLimelightResult();
 
         //Color Sensor Setup
         color1 = myOpMode.hardwareMap.get(RevColorSensorV3.class, "color1");
@@ -176,6 +166,57 @@ public class RobotHardware {
         myOpMode.telemetry.addData("Device Version Number:", pinpoint.getDeviceVersion());
         myOpMode.telemetry.addData("Device Scalar", pinpoint.getYawScalar());
         myOpMode.telemetry.update();
+    }
+
+    /**
+     * Fetch and cache the most recent Limelight result so subsystems can reuse
+     * the same frame data instead of polling the camera independently.
+     */
+    public void refreshLimelightResult() {
+        if (limelight == null) {
+            latestLimelightResult = null;
+            myOpMode.telemetry.addLine("ERROR: Limelight not initialized");
+            return;
+        }
+
+        latestLimelightResult = limelight.getLatestResult();
+    }
+
+    public LLResult getLatestLimelightResult() {
+        return latestLimelightResult;
+    }
+
+    /**
+     * Read the alliance selector switch and set alliance colors with a blue default.
+     */
+    private void configureAllianceFromSwitch() {
+        // Default to blue. If the alliance switch is wired active-low (ground = red),
+        // interpret a low signal as red and a high or absent signal as blue.
+        allianceColorBlue = true;
+        allianceColorRed = false;
+
+        if (allianceButton != null && allianceButton.getMode() == DigitalChannel.Mode.INPUT) {
+            boolean rawSwitchState = allianceButton.getState();
+            allianceColorRed = !rawSwitchState;
+            allianceColorBlue = rawSwitchState;
+        }
+
+        rgbIndicatorMain.setColor(allianceColorRed ? LEDColors.RED : LEDColors.BLUE);
+    }
+
+    public void selectAllianceLimelightPipeline() {
+        if (limelight == null) {
+            myOpMode.telemetry.addLine("ERROR: Limelight not initialized");
+            return;
+        }
+
+        // Default to blue if the switch is absent or read as low
+        int pipeline = allianceColorRed ? 4 : 0;
+        limelight.pipelineSwitch(pipeline);
+        boolean rawSwitchState = allianceButton != null && allianceButton.getState();
+        myOpMode.telemetry.addData("Alliance switch state (raw)", rawSwitchState);
+        myOpMode.telemetry.addData("Alliance inferred", allianceColorRed ? "RED" : "BLUE");
+        myOpMode.telemetry.addData("Selected pipeline", pipeline);
     }
 
     /**

@@ -19,31 +19,15 @@ public class TurretTracker {
     private double integral = 0;
     private final ElapsedTime timer = new ElapsedTime();
 
-    public TurretTracker(RobotHardware robot, Telemetry telemetry,
-                         boolean allianceColorRed, boolean allianceColorBlue) {
+    public TurretTracker(RobotHardware robot, Telemetry telemetry) {
 
         this.robot = robot;
         this.telemetry = telemetry;
-
-        // -----------------------------
-        // Select pipeline by alliance
-        // -----------------------------
-        if (allianceColorBlue) {
-            robot.limelight.pipelineSwitch(0);   // Blue → Tag 20
-        } else if (allianceColorRed) {
-            robot.limelight.pipelineSwitch(4);   // Red → Tag 24
-        }
     }
 
     public void update() {
 
         // SAFETY: limelight not initialized
-        if (robot.limelight == null) {
-            robot.turret.setPower(0);
-            telemetry.addLine("Limelight is NULL!");
-            return;
-        }
-
         // SAFETY: turret not initialized
         if (robot.turret == null) {
             telemetry.addLine("ERROR: turret motor is NULL!");
@@ -51,7 +35,7 @@ public class TurretTracker {
         }
 
         // Get latest frame
-        LLResult result = robot.limelight.getLatestResult();
+        LLResult result = robot.getLatestLimelightResult();
 
         // SAFETY: result missing or invalid
         if (result == null || !result.isValid()) {
