@@ -43,6 +43,7 @@ public class Competition extends LinearOpMode {
     private final double[] spindexerPositions = new double[]{Constants.spindexer1, Constants.spindexer2, Constants.spindexer3};
     private int spindexerIndex = 0;
     private final ElapsedTime shootTimer = new ElapsedTime();
+    private boolean hasFiredShot = false;
 
     StateMachine StateMachine;
 
@@ -155,7 +156,8 @@ public class Competition extends LinearOpMode {
             flywheelController.update();
 
             boolean rightBumper2 = gamepad2.right_bumper;
-            if (rightBumper2 && !prevRightBumper2 && shootState == ShootState.IDLE && canShoot()) {
+            if (rightBumper2 && !prevRightBumper2 && shootState == ShootState.IDLE
+                    && flywheelController.isEnabled() && flywheelController.getTargetRpm() > 0) {
                 startShootSequence();
             }
             prevRightBumper2 = rightBumper2;
@@ -284,14 +286,6 @@ public class Competition extends LinearOpMode {
         }
     }
 
-    private boolean canShoot() {
-        if (!flywheelController.isEnabled() || flywheelController.getTargetRpm() <= 0) {
-            return false;
-        }
-
-        return isAimedAtTarget() && flywheelController.isAtSpeed(Constants.FLYWHEEL_TOLERANCE_RPM);
-    }
-
     private boolean isAimedAtTarget() {
         LLResult result = robot.getLatestLimelightResult();
         if (result == null || !result.isValid()) {
@@ -313,9 +307,10 @@ public class Competition extends LinearOpMode {
     }
 
     private void startShootSequence() {
-        shootState = ShootState.FIRE;
+        shootState = ShootState.WAIT_FOR_SPINUP;
         shootTimer.reset();
-        robot.kicker.setPosition(Constants.kickerUp);
+        hasFiredShot = false;
+        robot.kicker.setPosition(Constants.kickerDown);
     }
 
     private void updateShootSequence() {
@@ -326,10 +321,23 @@ public class Competition extends LinearOpMode {
         if (!flywheelController.isEnabled() || flywheelController.getTargetRpm() <= 0) {
             robot.kicker.setPosition(Constants.kickerDown);
             shootState = ShootState.IDLE;
+            hasFiredShot = false;
             return;
         }
 
         switch (shootState) {
+            case WAIT_FOR_SPINUP:
+                if (flywheelController.isAtSpeed(Constants.FLYWHEEL_TOLERANCE_RPM) && isAimedAtTarget()) {
+                    robot.kicker.setPosition(Constants.kickerUp);
+                    shootTimer.reset();
+                    if (!hasFiredShot) {
+                        shootState = ShootState.FIRE;
+                        hasFiredShot = true;
+                    } else {
+                        shootState = ShootState.PRIME_NEXT;
+                    }
+                }
+                break;
             case FIRE:
                 if (shootTimer.milliseconds() >= 200) {
                     robot.kicker.setPosition(Constants.kickerDown);
@@ -347,13 +355,6 @@ public class Competition extends LinearOpMode {
             case ADVANCE:
                 if (shootTimer.milliseconds() >= 250) {
                     shootState = ShootState.WAIT_FOR_SPINUP;
-                }
-                break;
-            case WAIT_FOR_SPINUP:
-                if (flywheelController.isAtSpeed(Constants.FLYWHEEL_TOLERANCE_RPM) && isAimedAtTarget()) {
-                    robot.kicker.setPosition(Constants.kickerUp);
-                    shootTimer.reset();
-                    shootState = ShootState.PRIME_NEXT;
                 }
                 break;
             case PRIME_NEXT:

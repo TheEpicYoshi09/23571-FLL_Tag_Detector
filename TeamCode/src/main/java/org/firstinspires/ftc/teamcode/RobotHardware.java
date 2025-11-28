@@ -121,6 +121,7 @@ public class RobotHardware {
         launcher.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         launcher.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         launcher.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        launcher.setTargetPositionTolerance(25);
 
         //TURRET
         turret = myOpMode.hardwareMap.get(DcMotorEx.class, "turret");
