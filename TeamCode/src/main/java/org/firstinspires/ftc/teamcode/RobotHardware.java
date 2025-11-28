@@ -76,13 +76,7 @@ public class RobotHardware {
 
         allianceButton = myOpMode.hardwareMap.get(DigitalChannel.class, "allianceButton");
         allianceButton.setMode(DigitalChannel.Mode.INPUT);
-        if (allianceButton.getState()){
-            allianceColorRed = true;
-            rgbIndicatorMain.setColor(LEDColors.RED);
-        } else {
-            allianceColorBlue = true;
-            rgbIndicatorMain.setColor(LEDColors.BLUE);
-        }
+        configureAllianceFromSwitch();
 
         ///GoBilda Odometry Pod Setup
         //Deploy to Control Hub to make Odometry Pod show in hardware selection list
@@ -147,9 +141,6 @@ public class RobotHardware {
         Servo hood = myOpMode.hardwareMap.get(Servo.class, "hood");
         hood.setPosition(Constants.hoodMinimum);
 
-        Servo kicker = myOpMode.hardwareMap.get(Servo.class, "kicker");
-        kicker.setPosition(Constants.kickerDown);
-
         //Turret LED
         headlight = myOpMode.hardwareMap.get(Servo.class, "headlight");
         headlight.setPosition(0.0);
@@ -194,17 +185,34 @@ public class RobotHardware {
         return latestLimelightResult;
     }
 
+    /**
+     * Read the alliance selector switch and set alliance colors with a blue default.
+     */
+    private void configureAllianceFromSwitch() {
+        // Default to blue if the switch is missing or reads low
+        allianceColorBlue = true;
+        allianceColorRed = false;
+
+        if (allianceButton != null && allianceButton.getMode() == DigitalChannel.Mode.INPUT) {
+            boolean switchState = allianceButton.getState();
+            allianceColorRed = switchState;
+            allianceColorBlue = !switchState;
+        }
+
+        rgbIndicatorMain.setColor(allianceColorRed ? LEDColors.RED : LEDColors.BLUE);
+    }
+
     public void selectAllianceLimelightPipeline() {
         if (limelight == null) {
             myOpMode.telemetry.addLine("ERROR: Limelight not initialized");
             return;
         }
 
-        if (allianceColorBlue) {
-            limelight.pipelineSwitch(0);   // Blue → Tag 20
-        } else if (allianceColorRed) {
-            limelight.pipelineSwitch(4);   // Red → Tag 24
-        }
+        // Default to blue if the switch is absent or read as low
+        int pipeline = allianceColorRed ? 4 : 0;
+        limelight.pipelineSwitch(pipeline);
+        myOpMode.telemetry.addData("Alliance switch state", allianceButton != null && allianceButton.getState());
+        myOpMode.telemetry.addData("Selected pipeline", pipeline);
     }
 
     /**
