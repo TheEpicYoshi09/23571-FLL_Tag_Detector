@@ -1,15 +1,17 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.hardware.limelightvision.Limelight3A;
-//import com.qualcomm.hardware.rev.RevColorSensorV3;
+import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-//import com.qualcomm.robotcore.hardware.ColorSensor;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
-//import com.qualcomm.robotcore.hardware.DistanceSensor;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import com.qualcomm.hardware.limelightvision.LLResult;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import org.firstinspires.ftc.teamcode.drivers.rgbIndicator;
@@ -21,18 +23,21 @@ public class RobotHardware {
     private LinearOpMode myOpMode;   // gain access to methods in the calling OpMode.
 
     // Define Motor and Servo objects  (Make them private so they can't be accessed externally)
-    public DcMotor leftFront = null;
-    public DcMotor rightFront = null;
-    public DcMotor leftBack = null;
-    public DcMotor rightBack = null;
-    public DcMotorEx intake = null;
-    public DcMotorEx launcher = null;
-    public Servo spindexer = null;
-    public Servo turret = null;
-    public Servo hood = null;
-    public Servo kicker = null;
+    public DcMotor leftFront;
+    public DcMotor rightFront;
+    public DcMotor leftBack;
+    public DcMotor rightBack;
+    public DcMotorEx intake;
+    public DcMotorEx launcher;
+    public DcMotorEx turret;
+    public Servo spindexer;
+    public Servo kicker;
+    public Servo headlight;  //PWM Controlled LED
     public boolean allianceColorRed = false;
     public boolean allianceColorBlue = false;
+    public ColorSensor color1;
+    public DistanceSensor distance1;
+    //private AnalogInput turretPos;
 
     public enum IntakeDirection {
         IN,
@@ -40,21 +45,18 @@ public class RobotHardware {
         STOP
     }
 
-    public enum TurretDirection {
-        LEFT,
-        RIGHT,
-        STOP
-    }
-
-    Limelight3A limelight = null;
-    GoBildaPinpointDriver pinpoint = null; // Declare OpMode member for the Odometry Computer
-    rgbIndicator rgbIndicatorMain = null;
-    private DigitalChannel allianceButton = null;
+    public Limelight3A limelight;
+    public GoBildaPinpointDriver pinpoint; // Declare OpMode member for the Odometry Computer
+    public rgbIndicator rgbIndicatorMain;
+    private DigitalChannel allianceButton;
     private double targetRPM = 0;
     private boolean flywheelOn = false;
+    private int turretTargetPosition = 0;
+    public double spindexerPos = Constants.spindexerStart;
 
     // Example: GoBilda 5202/5203/5204 encoder = 28 ticks/rev
     private static final double TICKS_PER_REV = 28.0;
+    private LLResult latestLimelightResult;
 
     // Define a constructor that allows the OpMode to pass a reference to itself.
     public RobotHardware(LinearOpMode opmode) {
@@ -73,19 +75,13 @@ public class RobotHardware {
         rgbIndicatorMain.setColor(LEDColors.YELLOW);
 
         allianceButton = myOpMode.hardwareMap.get(DigitalChannel.class, "allianceButton");
-        if (allianceButton.getState()){
-            allianceColorRed = true;
-            rgbIndicatorMain.setColor(LEDColors.RED);
-        } else {
-            allianceColorBlue = true;
-            rgbIndicatorMain.setColor(LEDColors.BLUE);
-        }
+        allianceButton.setMode(DigitalChannel.Mode.INPUT);
+        configureAllianceFromSwitch();
 
         ///GoBilda Odometry Pod Setup
         //Deploy to Control Hub to make Odometry Pod show in hardware selection list
         pinpoint = myOpMode.hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
-        pinpoint.setOffsets(-100, -65, DistanceUnit.MM);
-        //odo.setOffsets(-100.0, -65.0);
+        pinpoint.setOffsets(-100, -65, DistanceUnit.MM);  //TODO update offsets
         pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
         pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.REVERSED);
         pinpoint.resetPosAndIMU();
@@ -115,45 +111,112 @@ public class RobotHardware {
 
         //INTAKE
         intake = myOpMode.hardwareMap.get(DcMotorEx.class,"intake");
-        intake.setDirection(DcMotor.Direction.REVERSE);
         intake.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        intake.setTargetPositionTolerance(5);
-        intake.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        intake.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        //intake.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        //intake.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         //LAUNCHER
         launcher = myOpMode.hardwareMap.get(DcMotorEx.class,"launcher");
-        launcher.setDirection(DcMotor.Direction.REVERSE);
+        launcher.setDirection(DcMotor.Direction.FORWARD);
         launcher.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        launcher.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         launcher.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        launcher.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        launcher.setTargetPositionTolerance(25);
+
+        //TURRET
+        turret = myOpMode.hardwareMap.get(DcMotorEx.class, "turret");
+        turret.setDirection(DcMotorSimple.Direction.REVERSE);
+        turret.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        turret.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        turret.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        turret.setTargetPositionTolerance(5);
 
         // Define and initialize ALL installed servos.
 
         spindexer = myOpMode.hardwareMap.get(Servo.class, "spindexer");
-
-        turret = myOpMode.hardwareMap.get(Servo.class, "turret");
-        turret.setPosition(Constants.turretHome);
-
-        hood = myOpMode.hardwareMap.get(Servo.class, "hood");
-        hood.setPosition(Constants.hoodMinimum);
+        spindexer.setPosition(Constants.spindexerStart);
 
         kicker = myOpMode.hardwareMap.get(Servo.class, "kicker");
         kicker.setPosition(Constants.kickerDown);
 
+        Servo hood = myOpMode.hardwareMap.get(Servo.class, "hood");
+        hood.setPosition(Constants.hoodMinimum);
+
+        //Turret LED
+        headlight = myOpMode.hardwareMap.get(Servo.class, "headlight");
+        headlight.setPosition(0.0);
+
         //Limelight Setup
         limelight = myOpMode.hardwareMap.get(Limelight3A.class, "limelight");
         //odo.setMsTransmissionInterval(11);
-        limelight.pipelineSwitch(0);
+        selectAllianceLimelightPipeline();
         limelight.start();
+
+        // Prime cached Limelight data
+        refreshLimelightResult();
+
+        //Color Sensor Setup
+        color1 = myOpMode.hardwareMap.get(RevColorSensorV3.class, "color1");
+        distance1 = myOpMode.hardwareMap.get(DistanceSensor.class, "color1");
 
         //Telemetry Data
         myOpMode.telemetry.addData("Status", "Initialized");
-        //myOpMode.telemetry.addData("X offset", odo.getXOffset());
-        //myOpMode.telemetry.addData("Y offset", odo.getYOffset());
+        myOpMode.telemetry.addData("X offset", pinpoint.getXOffset(DistanceUnit.MM));
+        myOpMode.telemetry.addData("Y offset", pinpoint.getYOffset(DistanceUnit.MM));
         myOpMode.telemetry.addData("Device Version Number:", pinpoint.getDeviceVersion());
         myOpMode.telemetry.addData("Device Scalar", pinpoint.getYawScalar());
         myOpMode.telemetry.update();
+    }
+
+    /**
+     * Fetch and cache the most recent Limelight result so subsystems can reuse
+     * the same frame data instead of polling the camera independently.
+     */
+    public void refreshLimelightResult() {
+        if (limelight == null) {
+            latestLimelightResult = null;
+            myOpMode.telemetry.addLine("ERROR: Limelight not initialized");
+            return;
+        }
+
+        latestLimelightResult = limelight.getLatestResult();
+    }
+
+    public LLResult getLatestLimelightResult() {
+        return latestLimelightResult;
+    }
+
+    /**
+     * Read the alliance selector switch and set alliance colors with a blue default.
+     */
+    private void configureAllianceFromSwitch() {
+        // Default to blue. If the alliance switch is wired active-low (ground = red),
+        // interpret a low signal as red and a high or absent signal as blue.
+        allianceColorBlue = true;
+        allianceColorRed = false;
+
+        if (allianceButton != null && allianceButton.getMode() == DigitalChannel.Mode.INPUT) {
+            boolean rawSwitchState = allianceButton.getState();
+            allianceColorRed = !rawSwitchState;
+            allianceColorBlue = rawSwitchState;
+        }
+
+        rgbIndicatorMain.setColor(allianceColorRed ? LEDColors.RED : LEDColors.BLUE);
+    }
+
+    public void selectAllianceLimelightPipeline() {
+        if (limelight == null) {
+            myOpMode.telemetry.addLine("ERROR: Limelight not initialized");
+            return;
+        }
+
+        // Default to blue if the switch is absent or read as low
+        int pipeline = allianceColorRed ? 4 : 0;
+        limelight.pipelineSwitch(pipeline);
+        boolean rawSwitchState = allianceButton != null && allianceButton.getState();
+        myOpMode.telemetry.addData("Alliance switch state (raw)", rawSwitchState);
+        myOpMode.telemetry.addData("Alliance inferred", allianceColorRed ? "RED" : "BLUE");
+        myOpMode.telemetry.addData("Selected pipeline", pipeline);
     }
 
     /**
@@ -221,6 +284,17 @@ public class RobotHardware {
         rightBack.setPower(rightBackPower);
     }
 
+    public void adjustSpindexer(double delta) {
+        spindexerPos += delta;
+
+        // Clamp between valid servo range
+        spindexerPos = Math.max(0.0, Math.min(1.0, spindexerPos));
+
+        spindexer.setPosition(spindexerPos);
+
+        myOpMode.telemetry.addData("Spindexer Pos", spindexerPos);
+    }
+
     public double getTargetRPM() {
         return targetRPM;
     }
@@ -270,14 +344,23 @@ public class RobotHardware {
     }
 
 
-    public void rotateTurret(TurretDirection Direction){
-        if (Direction == TurretDirection.LEFT){
-            turret.setPosition(0.0);
-        } else if (Direction == TurretDirection.RIGHT) {
-            turret.setPosition(1.0);
-        } else if (Direction == TurretDirection.STOP) {
-            turret.setPosition(0.5);
-        }
+    public int getTurretTarget() {
+        return turretTargetPosition;
+    }
+
+    public int getTurretPosition() {
+        return turret.getCurrentPosition();
+    }
+
+    public void adjustTurret(int deltaTicks) {
+        turretTargetPosition += deltaTicks;
+
+        // Clamp safe range
+        turretTargetPosition = Math.max(Constants.turret_MIN, Math.min(Constants.turret_MAX, turretTargetPosition));
+
+        turret.setTargetPosition(turretTargetPosition);
+        turret.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        turret.setPower(0.40);
     }
 
     public void runIntake(IntakeDirection Direction) {
