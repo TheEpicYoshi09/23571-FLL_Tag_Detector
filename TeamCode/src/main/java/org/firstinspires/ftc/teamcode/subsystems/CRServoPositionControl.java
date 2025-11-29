@@ -17,6 +17,7 @@ public class CRServoPositionControl {
     private double integral = 0.0;
     private double lastError = 0.0;
     private double filteredVoltage = 0;
+    private double targetVoltage;
     private ElapsedTime timer = new ElapsedTime();
 
     public CRServoPositionControl(CRServo servo, AnalogInput encoder) {
@@ -31,14 +32,14 @@ public class CRServoPositionControl {
     }
 
 
-    private double angleToVoltage(double angleDegrees) {
+    public double angleToVoltage(double angleDegrees) {
         angleDegrees = Math.max(0, Math.min(360, angleDegrees)); // Clamp
         return (angleDegrees / 360.0) * 3.3;
         // REV Through-Bore analog encoders output 0–3.3V, not 0–3.2V apparently but we measured 3.2 so we will try
     }
 
     public void moveToAngle(double targetAngleDegrees) {
-        double targetVoltage = angleToVoltage(targetAngleDegrees);
+        targetVoltage = angleToVoltage(targetAngleDegrees);
         double currentVoltage = getFilteredVoltage();
 
         double error = targetVoltage - currentVoltage;
@@ -59,6 +60,9 @@ public class CRServoPositionControl {
         output = Math.max(-1.0, Math.min(1.0, output));
         crServo.setPower(output);
         lastError = error;
+    }
+    public double getTargetVoltage() {
+        return targetVoltage;
     }
 }
 
