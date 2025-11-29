@@ -1,4 +1,5 @@
 package org.firstinspires.ftc.teamcode.subsystems;
+
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.AnalogInput;
@@ -6,22 +7,31 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 @Config
 public class CRServoPositionControl {
+
     private final CRServo crServo;
     private final AnalogInput encoder;
 
-    public static double kp = 0.45;
-    public static double ki = 0.0;
-    public static double kd = 0.04;
+    public static double kp = 0.40;
+    public static double ki = 0.00;
 
-    public static double deadband = 1.5;    // degrees
-    public static double minPower = 0.08;
-    public static double holdPower = 0.05;
+    // NO derivative - amplifies noise
+    public static double ff = 0.10;
+
+    public static double deadband = 1.6;
+    public static double minPower = 0.02;
+
+    public static double maxVoltage = 3.2;
+    public static double fullRotation = 360.0;
 
     private double integral = 0.0;
-    private double lastError = 0.0;
-    private double filteredVoltage = 0;
 
-    private ElapsedTime timer = new ElapsedTime();
+    // continuous angle tracker
+    private double continuousAngle = 0.0;
+    private Double lastRawAngle = null;
+
+    private double filteredVoltage = 0.0;
+
+    private final ElapsedTime timer = new ElapsedTime();
 
     public CRServoPositionControl(CRServo servo, AnalogInput encoder) {
         this.crServo = servo;
@@ -35,48 +45,64 @@ public class CRServoPositionControl {
     }
 
     private double voltageToAngle(double v) {
-        return (v / 3.2) * 360.0;
+        return (v / maxVoltage) * fullRotation;
     }
 
-    private double wrapDegrees(double angle) {
-        angle %= 360;
-        if (angle > 180) angle -= 360;
-        if (angle < -180) angle += 360;
-        return angle;
+    private double getContinuousAngle() {
+        double rawAngle = voltageToAngle(getFilteredVoltage());
+
+        if (lastRawAngle == null) {
+            lastRawAngle = rawAngle;
+            continuousAngle = rawAngle;
+            return continuousAngle;
+        }
+
+        double delta = rawAngle - lastRawAngle;
+
+        // unwrap rollover
+        if (delta > 180) delta -= 360;
+        if (delta < -180) delta += 360;
+
+        continuousAngle += delta;
+        lastRawAngle = rawAngle;
+
+        return continuousAngle;
     }
 
-    public void moveToAngle(double target) {
-        //double current = voltageToAngle(getFilteredVoltage());
-        double currentVoltage = voltageToAngle(encoder.getVoltage());
-        double error = wrapDegrees(target - currentVoltage);
+    public void moveToAngle(double targetDeg) {
+        double current = getContinuousAngle();
+        double error = targetDeg - current;
 
-        // Hold state behavior
+        // Deadband
         if (Math.abs(error) < deadband) {
-            crServo.setPower(holdPower * Math.signum(lastError));
-            lastError = error;
+            crServo.setPower(0);
             return;
         }
 
+        // dt for integral
         double dt = timer.seconds();
         timer.reset();
         if (dt < 0.0001) dt = 0.0001;
 
+        // Integral
         integral += error * dt;
         integral = Math.max(-2, Math.min(2, integral));
 
-        double derivative = (error - lastError) / dt;
+        double p = kp * error;
+        double i = ki * integral;
 
-        double output = kp * error + ki * integral + kd * derivative;
+        double ffTerm = ff * Math.signum(error);
 
-        // Minimum power to break stiction
-        if (Math.abs(output) < minPower)
-            output = minPower * Math.signum(output);
+        double out = p + i + ffTerm;
 
-        output = Math.max(-1.0, Math.min(1.0, output));
+        // min power threshold
+        if (Math.abs(out) < minPower)
+            out = minPower * Math.signum(out);
 
-        crServo.setPower(output);
+        // clamp
+        out = Math.max(-1, Math.min(1, out));
 
-        lastError = error;
+        crServo.setPower(out);
     }
 }
 
