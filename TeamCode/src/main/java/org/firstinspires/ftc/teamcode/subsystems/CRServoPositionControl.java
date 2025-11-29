@@ -3,7 +3,6 @@ package org.firstinspires.ftc.teamcode.subsystems;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.AnalogInput;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
 @Config
 public class CRServoPositionControl {
@@ -12,32 +11,20 @@ public class CRServoPositionControl {
     private final AnalogInput encoder;
 
     public static double kp = 0.12;
-    public static double ki = 0.001;
-    // NO derivative - amplifies noise
-
-    public static double ff = 0.06;
-
+    public static double ff = 0.05;
     public static double deadband = 2.0;
-    public static double minPower = 0.04;
+    public static double minPower = 0.05;
 
     public static double maxVoltage = 3.2;
     public static double fullRotation = 360.0;
 
-    private double integral = 0.0;
-    private double lastError = 0;
-
-    // continuous angle tracker
     private double continuousAngle = 0.0;
     private Double lastRawAngle = null;
-
     private double filteredVoltage = 0.0;
-
-    private final ElapsedTime timer = new ElapsedTime();
 
     public CRServoPositionControl(CRServo servo, AnalogInput encoder) {
         this.crServo = servo;
         this.encoder = encoder;
-        timer.reset();
     }
 
     public double getCurrentAngle() {
@@ -75,42 +62,34 @@ public class CRServoPositionControl {
     }
 
     public void moveToAngle(double targetDeg) {
-
         double current = getContinuousAngle();
         double error = targetDeg - current;
 
-        // Deadband
+        // unwrap error to shortest path
+        if (error > 180) error -= 360;
+        if (error < -180) error += 360;
+
+        // stop if within deadband
         if (Math.abs(error) < deadband) {
             crServo.setPower(0);
-            integral = 0;
             return;
         }
 
-        // dt for integral
-        double dt = timer.seconds();
-        timer.reset();
-        if (dt < 0.0001) dt = 0.0001;
+        // proportional + feedforward
+        double power = kp * error + ff * Math.signum(error);
 
-        if (Math.signum(error) != Math.signum(lastError))
-            integral = 0;
+        // apply minimum power
+        if (Math.abs(power) < minPower) {
+            power = minPower * Math.signum(power);
+        }
 
-        integral += error * dt;
-        integral = Math.max(-3, Math.min(3, integral));
+        // clamp to -1,1
+        power = Math.max(-1, Math.min(1, power));
 
-        lastError = error;
-
-        double out = kp * error + ki * integral + ff * Math.signum(error);
-
-        // min power threshold
-        if (Math.abs(out) < minPower)
-            out = minPower * Math.signum(out);
-
-        // clamp
-        out = Math.max(-1, Math.min(1, out));
-
-        crServo.setPower(out);
+        crServo.setPower(power);
     }
 }
+
 
 /*
 package org.firstinspires.ftc.teamcode.subsystems;
