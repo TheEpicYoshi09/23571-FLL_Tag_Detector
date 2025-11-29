@@ -23,7 +23,7 @@ public class CRServoPositionControl {
 
     private double range = 3.2;
 
-    private double voltageOffset = range/2.0; // middle of 0–3.2V range
+    private double voltageOffset = range/4.0; // middle of 0–3.2V range
 
 
     public CRServoPositionControl(CRServo servo, AnalogInput encoder) {
