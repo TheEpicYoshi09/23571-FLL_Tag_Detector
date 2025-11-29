@@ -266,7 +266,4 @@ public class Indexer {
     public boolean isBusy() {
         return scanPending;
     }
-    public double getTargetVoltage() {
-        return indexerServoControl.getTargetVoltage();
-    }
 }

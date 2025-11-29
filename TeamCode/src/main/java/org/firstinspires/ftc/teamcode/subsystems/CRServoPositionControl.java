@@ -7,17 +7,20 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 @Config
 public class CRServoPositionControl {
     private final CRServo crServo;
-    private final AnalogInput encoder; // Analog input for position from 4th wire
+    private final AnalogInput encoder;
 
-    public static double kp = 0.341;
+    public static double kp = 0.45;
     public static double ki = 0.0;
-    public static double kd = 0.0;
-    public static double kf = 0.0167;
-    public static double filterAlpha = 0.8;
+    public static double kd = 0.04;
+
+    public static double deadband = 1.5;    // degrees
+    public static double minPower = 0.08;
+    public static double holdPower = 0.05;
+
     private double integral = 0.0;
     private double lastError = 0.0;
     private double filteredVoltage = 0;
-    private double targetVoltage;
+
     private ElapsedTime timer = new ElapsedTime();
 
     public CRServoPositionControl(CRServo servo, AnalogInput encoder) {
@@ -27,42 +30,53 @@ public class CRServoPositionControl {
     }
 
     private double getFilteredVoltage() {
-        filteredVoltage = (1 - filterAlpha) * filteredVoltage + filterAlpha * encoder.getVoltage();
+        filteredVoltage = 0.6 * filteredVoltage + 0.4 * encoder.getVoltage();
         return filteredVoltage;
     }
 
-
-    public double angleToVoltage(double angleDegrees) {
-        angleDegrees = Math.max(0, Math.min(360, angleDegrees)); // Clamp
-        return (angleDegrees / 360.0) * 3.3;
-        // REV Through-Bore analog encoders output 0–3.3V, not 0–3.2V apparently but we measured 3.2 so we will try
+    private double voltageToAngle(double v) {
+        return (v / 3.2) * 360.0;
     }
 
-    public void moveToAngle(double targetAngleDegrees) {
-        targetVoltage = angleToVoltage(targetAngleDegrees);
-        double currentVoltage = getFilteredVoltage();
+    private double wrapDegrees(double angle) {
+        angle %= 360;
+        if (angle > 180) angle -= 360;
+        if (angle < -180) angle += 360;
+        return angle;
+    }
 
-        double error = targetVoltage - currentVoltage;
+    public void moveToAngle(double target) {
+        //double current = voltageToAngle(getFilteredVoltage());
+        double currentVoltage = voltageToAngle(encoder.getVoltage());
+        double error = wrapDegrees(target - currentVoltage);
 
-        // Shortest path wrap handling, for continuous rotation (optional)
-        if (error > 1.65) { error -= 3.3; }
-        if (error < -1.65) { error += 3.3; }
+        // Hold state behavior
+        if (Math.abs(error) < deadband) {
+            crServo.setPower(holdPower * Math.signum(lastError));
+            lastError = error;
+            return;
+        }
 
-        double deltaTime = timer.seconds();
+        double dt = timer.seconds();
         timer.reset();
-        if (deltaTime <= 0.0001) deltaTime = 0.0001;
+        if (dt < 0.0001) dt = 0.0001;
 
-        integral += error * deltaTime;
+        integral += error * dt;
         integral = Math.max(-2, Math.min(2, integral));
-        double derivative = (error - lastError) / deltaTime;
 
-        double output = kp * error + ki * integral + kd * derivative + kf * Math.signum(error);
+        double derivative = (error - lastError) / dt;
+
+        double output = kp * error + ki * integral + kd * derivative;
+
+        // Minimum power to break stiction
+        if (Math.abs(output) < minPower)
+            output = minPower * Math.signum(output);
+
         output = Math.max(-1.0, Math.min(1.0, output));
+
         crServo.setPower(output);
+
         lastError = error;
-    }
-    public double getTargetVoltage() {
-        return targetVoltage;
     }
 }
 
