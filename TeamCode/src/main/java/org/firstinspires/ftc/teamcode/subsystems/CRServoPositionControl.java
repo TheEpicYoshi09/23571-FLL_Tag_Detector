@@ -43,21 +43,19 @@ public class CRServoPositionControl {
         double currentVoltage = getFilteredVoltage();
 
         double error = targetVoltage - currentVoltage;
+        error = ((error + 1.65) % 3.3) - 1.65;
 
-        // Shortest path wrap handling, for continuous rotation (optional)
-        if (error > 1.65) { error -= 3.3; }
-        if (error < -1.65) { error += 3.3; }
-
-        double deltaTime = timer.seconds();
+        double deltaTime = Math.max(timer.seconds(), 0.0001);
         timer.reset();
-        if (deltaTime <= 0.0001) deltaTime = 0.0001;
-
         integral += error * deltaTime;
         integral = Math.max(-2, Math.min(2, integral));
         double derivative = (error - lastError) / deltaTime;
 
-        double output = kp * error + ki * integral + kd * derivative + kf * Math.signum(error);
-        output = Math.max(-1.0, Math.min(1.0, output));
+        double output = kp * error + ki * integral + kd * derivative;
+
+        if (Math.abs(error) > 0.05) output += kf * Math.signum(error);
+
+        output = Math.max(-1, Math.min(1, output));
         crServo.setPower(output);
         lastError = error;
     }
