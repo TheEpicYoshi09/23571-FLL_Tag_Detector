@@ -1,80 +1,81 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.acmerobotics.dashboard.config.Config;
-import com.arcrobotics.ftclib.controller.PIDController;
 import com.arcrobotics.ftclib.hardware.motors.MotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
-import org.firstinspires.ftc.teamcode.R;
 @Config
 public class Outtake {
     private final MotorEx shooter;
-    private double power;
-    final double TICKS_PER_REV = 112.0;
-    public static double p=0.0002,i=0,d=0,f=0.0003;
-    public static int targetRPM;
-    public double RPM;
-    private final PIDController controller;
-    private final double TPR = 28; // ticks per rotation
-    public boolean shooterEnabled=false;
 
-    public Outtake(HardwareMap hardwareMap)
-    {
+    private double motorPower = 0.0;
+    public static int targetRPM = 0;
+    private double currentRPM = 0.0;
+    private final RpmPIDF rpmPIDF;
+
+    // Shooter state
+    public boolean shooterEnabled = false;
+
+    // Encoder ticks per rotation
+    private final double TPR = 28.0;
+
+    public static double f = 0.0003;
+
+    public Outtake(HardwareMap hardwareMap) {
         shooter = new MotorEx(hardwareMap, "outtake");
-        power = -1;
-        controller = new PIDController(p,i,d);
         shooter.setInverted(true);
 
-
+        // Initialize PIDF controller
+        rpmPIDF = new RpmPIDF();
+        rpmPIDF.Kp = 0.0002;
+        rpmPIDF.Ki = 0.0;
+        rpmPIDF.Kd = 0.0;
+        rpmPIDF.kV = f;
     }
 
-    public void stop()
-    {
+    public void stop() {
         shooter.stopMotor();
+        motorPower = 0.0;
     }
 
-    public void run()
-    {
-        shooter.set(power);
+    public void setPower(double power) {
+        motorPower = clamp(power, 0, 1.0);
+        shooter.set(motorPower);
     }
 
-    public void setPower(double newPower)
-    {
-        power = newPower;
-        shooter.set(power);
+    public void setTargetRPM(int rpm) {
+        targetRPM = rpm;
     }
 
-
-    public void periodic(){
-
-            controller.setPID(p, i, d);
-            RPM = shooter.getVelocity() / TPR * 60;
-            double pid =controller.calculate(RPM, targetRPM);
-            double ff = targetRPM * f;
-            power = pid + ff;
-
-            power = clamp(power, 1.0, 0);
-            shooter.set(power);
-
-    }
-
-    public void setTargetRPM(int target){
-        targetRPM=target;
-    }
-    public double getTargetRpm(){
+    public double getTargetRPM() {
         return targetRPM;
     }
-    public double getRPM(){
-        return RPM;
+
+    public double getRPM() {
+        return currentRPM;
     }
 
-    public double getPower()
-    {
-        return power;
-    }
-    public double clamp (double val,double max, double min){
-        return Math.max(min,Math.min(max,val) );
+    public double getPower() {
+        return motorPower;
     }
 
-    //TODO: Make algorithm to determine power needed based on distance
+    //call periodically to keep the pidf goin
+    public void periodic() {
+        if (!shooterEnabled) return;
+
+        // Read current motor velocity in ticks/sec, convert to RPM
+        currentRPM = shooter.getVelocity() / TPR * 60.0;
+
+        // Update PIDF controller
+        motorPower = rpmPIDF.update(targetRPM, currentRPM);
+
+        // Clamp and apply power
+        motorPower = clamp(motorPower, 0, 1.0);
+        shooter.set(motorPower);
+    }
+
+    //utility for clamping
+    private double clamp(double value, double min, double max) {
+        return Math.max(min, Math.min(max, value));
+    }
 }
