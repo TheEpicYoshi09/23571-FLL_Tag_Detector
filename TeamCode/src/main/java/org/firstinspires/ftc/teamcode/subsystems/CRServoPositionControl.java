@@ -20,22 +20,26 @@ public class CRServoPositionControl {
     private double targetVoltage;
     private ElapsedTime timer = new ElapsedTime();
 
+
+    private double range = 3.2;
+
+    private double voltageOffset = range/2.0; // middle of 0–3.2V range
+
+
     public CRServoPositionControl(CRServo servo, AnalogInput encoder) {
         this.crServo = servo;
         this.encoder = encoder;
         timer.reset();
     }
 
-    private double getFilteredVoltage() {
-        filteredVoltage = (1 - filterAlpha) * filteredVoltage + filterAlpha * encoder.getVoltage();
-        return filteredVoltage;
-    }
-
-
     public double angleToVoltage(double angleDegrees) {
         angleDegrees = Math.max(0, Math.min(360, angleDegrees)); // Clamp
-        return (angleDegrees / 360.0) * 3.3;
-        // REV Through-Bore analog encoders output 0–3.3V, not 0–3.2V apparently but we measured 3.2 so we will try
+        return (angleDegrees / 360.0) * range - voltageOffset; // subtract midpoint
+    }
+
+    private double getFilteredVoltage() {
+        filteredVoltage = (1 - filterAlpha) * filteredVoltage + filterAlpha * (encoder.getVoltage() - voltageOffset);
+        return filteredVoltage;
     }
 
     public void moveToAngle(double targetAngleDegrees) {
@@ -43,19 +47,22 @@ public class CRServoPositionControl {
         double currentVoltage = getFilteredVoltage();
 
         double error = targetVoltage - currentVoltage;
-        error = ((error + 1.65) % 3.3) - 1.65;
 
-        double deltaTime = Math.max(timer.seconds(), 0.0001);
+        // Shortest path wrap handling, for continuous rotation (optional)
+        if (error > 1.65) { error -= range; }
+        if (error < -1.65) { error += range; }
+
+
+        double deltaTime = timer.seconds();
         timer.reset();
+        if (deltaTime <= 0.0001) deltaTime = 0.0001;
+
         integral += error * deltaTime;
         integral = Math.max(-2, Math.min(2, integral));
         double derivative = (error - lastError) / deltaTime;
 
-        double output = kp * error + ki * integral + kd * derivative;
-
-        if (Math.abs(error) > 0.05) output += kf * Math.signum(error);
-
-        output = Math.max(-1, Math.min(1, output));
+        double output = kp * error + ki * integral + kd * derivative + kf * Math.signum(error);
+        output = Math.max(-1.0, Math.min(1.0, output));
         crServo.setPower(output);
         lastError = error;
     }
