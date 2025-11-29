@@ -64,7 +64,7 @@ public class Prototyping extends LinearOpMode {
             //indexer.quickSpin();
         }
         if(padTwo.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER)>0.01){
-            outtake.run();
+            outtake.setTargetRPM(5000);
         }
         else {
             outtake.stop();
