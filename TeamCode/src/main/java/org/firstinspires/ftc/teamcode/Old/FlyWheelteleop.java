@@ -11,7 +11,7 @@ import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 
 @TeleOp
-public class NewTeleOp extends OpMode {
+public class FlyWheelteleop extends OpMode {
     private DcMotorEx flywheel;
     private DcMotor feedRoller;
     private DcMotor leftDrive;
@@ -21,10 +21,10 @@ public class NewTeleOp extends OpMode {
     private float flyWheelVelocity = 1300;
     private float  ticksPerRev = 288;
     private float offset = 0;
-    private float FeedRollerSpeed = 65;
+    // private float FeedRollerSpeed = 65; // No longer needed
     private boolean flyWheelPowered;
     private boolean agitatorPowered;
-    private boolean feedRollerPowered;
+    // private boolean feedRollerPowered; // No longer needed
 
     public void init() {
         flywheel = hardwareMap.get(DcMotorEx.class, "flywheel");
@@ -44,8 +44,8 @@ public class NewTeleOp extends OpMode {
         agitator.setDirection(DcMotor.Direction.REVERSE);
         telemetry.addLine("a to turn on/off the flywheel");
         telemetry.addLine("b to turn on/off the agitator");
-        telemetry.addLine("x to turn on/off the feed roller");
-        telemetry.addLine("y to turn off flywheel agitator and set feed roller angle");
+        telemetry.addLine("RIGHT/LEFT TRIGGERS to run the feed roller");
+        telemetry.addLine("y to turn off flywheel/agitator and reset feed roller");
 
         telemetry.update();
     }
@@ -81,10 +81,14 @@ public class NewTeleOp extends OpMode {
         leftDrive.setPower(y - x);
         rightDrive.setPower(y + x);
     }
+
     public void turnOnMotors() {
+        // --- Flywheel (A button) ---
         if(gamepad1.aWasPressed()) {
             flyWheelPowered = !flyWheelPowered;
         }
+
+        // --- Agitator (B button) ---
         if(gamepad1.bWasPressed()) {
             if(agitatorPowered) {
                 agitatorPowered = false;
@@ -94,23 +98,38 @@ public class NewTeleOp extends OpMode {
                 agitator.setPower(1);
             }
         }
-        if(gamepad1.xWasPressed()) {
-            if(!feedRoller.isBusy()) {
-                if(feedRollerPowered) {
-                    feedRoller.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-                    feedRollerPowered = false;
-                    feedRoller.setPower(0);
-                } else {
-                    feedRoller.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-                    feedRollerPowered = true;
-                    feedRoller.setPower(FeedRollerSpeed);
-                }
+
+        // --- Feed Roller (Triggers) ---
+        // Get trigger values (0.0 to 1.0)
+        float forwardPower = gamepad1.right_trigger;
+        float reversePower = gamepad1.left_trigger;
+
+        // This check is important! It stops the triggers from fighting the 'Y' button command.
+        if (!feedRoller.isBusy()) {
+            // Ensure we are in the correct mode to accept power commands
+            feedRoller.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+            if (forwardPower > 0.1) {
+                // Right trigger pressed: run forward
+                // Your motor direction is REVERSE, so a positive power makes it run "reverse".
+                // If this is the wrong way, just make this -forwardPower
+                feedRoller.setPower(forwardPower);
+            } else if (reversePower > 0.1) {
+                // Left trigger pressed: run in reverse
+                // A negative power will make it run "forward" (opposite of REVERSE)
+                feedRoller.setPower(-reversePower);
+            } else {
+                // No trigger pressed: stop the motor
+                feedRoller.setPower(0);
             }
         }
+
+        // --- All Stop / Reset (Y button) ---
         if(gamepad1.yWasPressed()) {
             float angleOff = (feedRoller.getCurrentPosition() % ticksPerRev);
 
-            feedRollerPowered = false;
+            // feedRollerPowered is no longer needed
+            // feedRollerPowered = false;
 
             feedRoller.setTargetPosition((int)(feedRoller.getCurrentPosition() - angleOff));
             feedRoller.setPower(1);
@@ -120,6 +139,7 @@ public class NewTeleOp extends OpMode {
             agitator.setPower(0);
         }
     }
+
     public void flyWheel() {
         if(flyWheelPowered) {
             double multiplier = 14 / getLowestVoltage();
