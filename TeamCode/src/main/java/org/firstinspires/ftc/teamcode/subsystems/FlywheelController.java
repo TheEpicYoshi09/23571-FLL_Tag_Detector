@@ -26,6 +26,7 @@ public class FlywheelController {
 
     private static final double MID_ZONE_DISTANCE_FT = 3.5;
     private static final double FAR_ZONE_DISTANCE_FT = 5.5;
+    private static final double FAR_FAR_ZONE_DISTANCE_FT = 8.0;
 
     private final RobotHardware robot;
     private final Telemetry telemetry;
@@ -105,10 +106,14 @@ public class FlywheelController {
                     double distanceMeters = Math.sqrt(xMeters * xMeters + yMeters * yMeters + zMeters * zMeters);
                     double distanceFeet = distanceMeters * 3.28084;
 
-                    double clampedDistance = Range.clip(distanceFeet, MID_ZONE_DISTANCE_FT, FAR_ZONE_DISTANCE_FT);
-                    double distanceRatio = (clampedDistance - MID_ZONE_DISTANCE_FT) / (FAR_ZONE_DISTANCE_FT - MID_ZONE_DISTANCE_FT);
-                    rpm = Constants.LAUNCH_ZONE_MID_RPM
-                            + distanceRatio * (Constants.LAUNCH_ZONE_FAR_RPM - Constants.LAUNCH_ZONE_MID_RPM);
+                    if (distanceFeet >= FAR_FAR_ZONE_DISTANCE_FT) {
+                        rpm = Constants.LAUNCH_ZONE_FAR_FAR_RPM;
+                    } else {
+                        double clampedDistance = Range.clip(distanceFeet, MID_ZONE_DISTANCE_FT, FAR_ZONE_DISTANCE_FT);
+                        double distanceRatio = (clampedDistance - MID_ZONE_DISTANCE_FT) / (FAR_ZONE_DISTANCE_FT - MID_ZONE_DISTANCE_FT);
+                        rpm = Constants.LAUNCH_ZONE_MID_RPM
+                                + distanceRatio * (Constants.LAUNCH_ZONE_FAR_RPM - Constants.LAUNCH_ZONE_MID_RPM);
+                    }
 
                     telemetry.addData("Flywheel Distance (ft)", "%.2f", distanceFeet);
                     telemetry.addData("Flywheel Target RPM", rpm);

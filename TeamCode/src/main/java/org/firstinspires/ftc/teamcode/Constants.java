@@ -13,8 +13,9 @@ public class Constants {
     public static final double DEFAULT_RPM = 1500.0;
     public static final double LAUNCH_ZONE_MID_RPM = 2000.0; // ~3.5 ft
     public static final double LAUNCH_ZONE_FAR_RPM = 2200.0; // ~5.5 ft
+    public static final double LAUNCH_ZONE_FAR_FAR_RPM = 2300.0; // >8 ft
     public static final double FLYWHEEL_TOLERANCE_RPM = 50.0;
-    public static final double LAUNCHER_GEAR_REDUCTION = 24.0 / 16.0; // motor:flywheel = 1.5:1
+    public static final double LAUNCHER_GEAR_REDUCTION = 16.0 / 24.0; // motor:flywheel = 2:3
 
     /// LAUNCHER PIDF (base gains in motor units)
     // Free speed: 6000 rpm = 100 rps → 2,800 ticks/s (28 tpr encoder)
