@@ -29,9 +29,9 @@ public class Constants {
 
     ///  SPINDEXER SETPOINTS
     public static final double spindexerStart = 0.04;
-    public static final double spindexer1 = 0.04;
-    public static final double spindexer2 = 0.42;
-    public static final double spindexer3 = 0.78;
+    public static final double spindexer1 = 0.06;
+    public static final double spindexer2 = 0.43;
+    public static final double spindexer3 = 0.79;
 
     /// TURRET HOOD POSITIONS
     public static final double hoodMinimum = 0.0;
