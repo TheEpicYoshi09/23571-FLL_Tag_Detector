@@ -22,13 +22,13 @@ public class Constants {
     // Bump the base gains to improve spin-up authority after gear scaling and
     // compensate for wheel inertia; tune at the motor side, then scale by the
     // reduction before applying to the flywheel velocity loop.
-    public static final double LAUNCHER_F = 13.0;    // Stronger feedforward to reach setpoint
+    public static final double LAUNCHER_F = 18.0;    // Stronger feedforward to reach setpoint
     public static final double LAUNCHER_P = 12.0;    // Tighter proportional correction
     public static final double LAUNCHER_I = 0.05;    // Small I to clean steady-state error
     public static final double LAUNCHER_D = 0.6;     // Slightly more damping for step changes
 
     ///  SPINDEXER SETPOINTS
-    public static final double spindexerStart = 0.5;
+    public static final double spindexerStart = 0.04;
     public static final double spindexer1 = 0.04;
     public static final double spindexer2 = 0.42;
     public static final double spindexer3 = 0.78;
