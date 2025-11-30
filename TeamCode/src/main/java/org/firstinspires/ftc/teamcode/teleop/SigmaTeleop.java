@@ -38,7 +38,7 @@ public class SigmaTeleop extends LinearOpMode {
         intake = new Intake(hardwareMap);
         indexer = new Indexer(hardwareMap);
         actuator = new Actuator(hardwareMap);
-        outtake = new Outtake(hardwareMap);
+        outtake = new Outtake(hardwareMap, Outtake.Mode.RPM);
         movement = new Movement(hardwareMap);
 
         aprilTag = new AprilTag(hardwareMap);
@@ -123,11 +123,9 @@ public class SigmaTeleop extends LinearOpMode {
 
         //outtake control
         if (g2.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) > 0.01) {
-            outtake.shooterEnabled = true;
-            outtake.setTargetRPM(shooterRPM);
+            outtake.set(shooterRPM);
         } else {
-            outtake.shooterEnabled = false;
-            outtake.setPower(0);
+            outtake.stop();
         }
 
         // spindexer control

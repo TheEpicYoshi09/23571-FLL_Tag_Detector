@@ -6,10 +6,6 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.subsystems.Actuator;
-import org.firstinspires.ftc.teamcode.subsystems.Indexer;
-import org.firstinspires.ftc.teamcode.subsystems.Intake;
-import org.firstinspires.ftc.teamcode.subsystems.Movement;
 import org.firstinspires.ftc.teamcode.subsystems.Outtake;
 
 /**
@@ -30,7 +26,7 @@ public class Prototyping extends LinearOpMode {
         // indexer = new Indexer(hardwareMap);
         // actuator = new Actuator(hardwareMap);
         //movement = new Movement(hardwareMap);
-        outtake = new Outtake(hardwareMap);
+        outtake = new Outtake(hardwareMap, Outtake.Mode.RPM);
         GamepadEx gamePadOne = new GamepadEx(gamepad1);
         GamepadEx gamePadTwo = new GamepadEx(gamepad2);
 
@@ -64,7 +60,7 @@ public class Prototyping extends LinearOpMode {
             //indexer.quickSpin();
         }
         if(padTwo.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER)>0.01){
-            outtake.setTargetRPM(5000);
+            outtake.set(5000);
         }
         else {
             outtake.stop();
