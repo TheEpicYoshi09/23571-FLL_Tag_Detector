@@ -29,8 +29,7 @@ public class TeleOpWPS5 extends LinearOpMode {
                     gp1.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER)
                             - gp1.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER);
 
-            robot.shooter.setShooter();
-            //robot.loader.setLoaderMotor(triggerPower);
+            robot.shooter.shootArtifacts();
 
             if (gp1.isDown(GamepadKeys.Button.X)) { // down controller
                 robot.intake.intakeArtifacts(1);
