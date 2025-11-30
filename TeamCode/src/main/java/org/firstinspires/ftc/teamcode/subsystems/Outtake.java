@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.acmerobotics.dashboard.config.Config;
+import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.arcrobotics.ftclib.hardware.motors.MotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
@@ -19,6 +20,9 @@ public class Outtake {
     // Encoder ticks per rotation
     private final double TPR = 28.0;
 
+    public static double p = 0.0002;
+    public static double i = 0.0;
+    public static double d = 0.0;
     public static double f = 0.0003;
 
     public Outtake(HardwareMap hardwareMap) {
@@ -27,9 +31,9 @@ public class Outtake {
 
         // Initialize PIDF controller
         rpmPIDF = new RpmPIDF();
-        rpmPIDF.Kp = 0.0002;
-        rpmPIDF.Ki = 0.0;
-        rpmPIDF.Kd = 0.0;
+        rpmPIDF.Kp = p;
+        rpmPIDF.Ki = i;
+        rpmPIDF.Kd = d;
         rpmPIDF.kV = f;
     }
 
