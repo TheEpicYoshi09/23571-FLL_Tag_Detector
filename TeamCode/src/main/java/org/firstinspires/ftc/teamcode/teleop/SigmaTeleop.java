@@ -54,9 +54,6 @@ public class SigmaTeleop extends LinearOpMode {
             telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
             gp1.readButtons();
             gp2.readButtons();
-            outtake.periodic();
-
-
             teleopTick(gp1, gp2, telemetry);
         }
     }
