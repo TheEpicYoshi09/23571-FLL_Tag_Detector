@@ -12,7 +12,7 @@ public class Outtake {
     private double motorPower = 0.0;
     public static int targetRPM = 0;
     private double currentRPM = 0.0;
-    private final RpmPIDF rpmPIDF;
+    private final RpmController controller;
 
     // Shooter state
     public boolean shooterEnabled = false;
@@ -28,8 +28,8 @@ public class Outtake {
         shooter = new MotorEx(hardwareMap, "outtake");
         shooter.setInverted(true);
 
-        // Initialize PIDF controller
-        rpmPIDF = new RpmPIDF(p,s,v);
+        // Initialize PF controller
+        controller = new RpmController(p,s,v);
     }
 
     public void stop() {
@@ -64,8 +64,8 @@ public class Outtake {
         // Read current motor velocity in ticks/sec, convert to RPM
         currentRPM = shooter.getVelocity() / TPR * 60.0;
 
-        // Update PIDF controller
-        motorPower = rpmPIDF.update(targetRPM, currentRPM);
+        // Update controller
+        motorPower = controller.update(targetRPM, currentRPM);
 
         // Clamp and apply power
         motorPower = clamp(motorPower, 0, 1.0);
