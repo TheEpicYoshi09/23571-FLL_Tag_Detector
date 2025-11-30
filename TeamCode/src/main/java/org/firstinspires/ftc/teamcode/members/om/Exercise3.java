@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
  * This OpMode illustrates all the exercises from Section 3.3.
  */
 
-@TeleOp(name="Om - Basic Telemetry", group="Exercises")
+@TeleOp(name="Om - Exercise 3", group="Exercises")
 public class Exercise3 extends LinearOpMode {
 
     @Override
