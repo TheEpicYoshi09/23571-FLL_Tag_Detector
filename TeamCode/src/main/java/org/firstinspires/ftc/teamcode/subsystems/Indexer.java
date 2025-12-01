@@ -89,9 +89,10 @@ public class Indexer {
 
     public void scanArtifact() {
         ArtifactColor scanned = colorSensor.getColor();
-        int idx = stateToNum(IndexerState.one) - 1;  // sensor position always slot 1
+        int idx = stateToNum(state) - 1;  // store in current slot
         artifacts[idx] = scanned;
     }
+
 
     // shifts artifact arrangements to match rotation direction
     public void shiftArtifacts(IndexerState from, IndexerState to) {
