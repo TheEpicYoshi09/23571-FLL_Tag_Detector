@@ -9,22 +9,15 @@ public class CRServoPositionControl {
     private final CRServo crServo;
     private final AnalogInput encoder; // Analog input for position from 4th wire
 
-    public static double kp = 0.341;
+    public static double kp = 0.41;
     public static double ki = 0.0;
     public static double kd = 0.0;
-    public static double kf = 0.0167;
-    public static double filterAlpha = 0.8;
+    public static double kf = 0.01;
+    public static double filterAlpha = 0.9;
     private double integral = 0.0;
     private double lastError = 0.0;
     private double filteredVoltage = 0;
-    private double targetVoltage;
     private ElapsedTime timer = new ElapsedTime();
-
-
-    private double range = 3.2;
-
-    private double voltageOffset = range/4.0; // middle of 0–3.2V range
-
 
     public CRServoPositionControl(CRServo servo, AnalogInput encoder) {
         this.crServo = servo;
@@ -32,26 +25,26 @@ public class CRServoPositionControl {
         timer.reset();
     }
 
-    public double angleToVoltage(double angleDegrees) {
-        angleDegrees = Math.max(0, Math.min(360, angleDegrees)); // Clamp
-        return (angleDegrees / 360.0) * range - voltageOffset; // subtract midpoint
-    }
-
     private double getFilteredVoltage() {
-        filteredVoltage = (1 - filterAlpha) * filteredVoltage + filterAlpha * (encoder.getVoltage() - voltageOffset);
+        filteredVoltage = (1 - filterAlpha) * filteredVoltage + filterAlpha * encoder.getVoltage();
         return filteredVoltage;
     }
 
+
+    private double angleToVoltage(double angleDegrees) {
+        angleDegrees = Math.max(0, Math.min(360, angleDegrees)); // Clamp
+        return (angleDegrees / 360.0) * 3.3;
+    }
+
     public void moveToAngle(double targetAngleDegrees) {
-        targetVoltage = angleToVoltage(targetAngleDegrees);
+        double targetVoltage = angleToVoltage(targetAngleDegrees);
         double currentVoltage = getFilteredVoltage();
 
         double error = targetVoltage - currentVoltage;
 
         // Shortest path wrap handling, for continuous rotation (optional)
-        if (error > 1.65) { error -= range; }
-        if (error < -1.65) { error += range; }
-
+        if (error > 1.65) { error -= 3.3; }
+        if (error < -1.65) { error += 3.3; }
 
         double deltaTime = timer.seconds();
         timer.reset();
@@ -65,9 +58,6 @@ public class CRServoPositionControl {
         output = Math.max(-1.0, Math.min(1.0, output));
         crServo.setPower(output);
         lastError = error;
-    }
-    public double getTargetVoltage() {
-        return targetVoltage;
     }
 }
 
