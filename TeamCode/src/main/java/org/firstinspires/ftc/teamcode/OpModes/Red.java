@@ -123,9 +123,12 @@ public class Red extends OpMode {
         if (llResult != null && llResult.isValid()) {
             Pose3D botpose = llResult.getBotpose_MT2();
             double ty = llResult.getTy();
-            distance = -1.63 * ty + 47.45;
+            distance = -0.00382 * Math.pow(ty, 3)
+                    + 0.0856  * Math.pow(ty, 2)
+                    - 1.46    * ty
+                    + 36.7;
             double rpm = 27.78 * distance + 2277;
-            rpm = Math.max(3000, Math.min(rpm, 4000));
+            rpm = Math.max(3000, Math.min(rpm, 5000));
             targetRPM = rpm;
         }
         telemetry.addData("Ta", llResult.getTa());
@@ -185,12 +188,12 @@ public class Red extends OpMode {
 
         if (!flywheelOn) power = 0;
 
-        double minusTRPM = 200;
+        double minusTRPM = 300;
 
         if (gamepad1.b && !bPrev) {
 
             if (!intakeOn) {
-                if (avgRPM < (targetRPM + +100) && avgRPM > (targetRPM - minusTRPM)) {
+                if (avgRPM < (targetRPM + 300) && avgRPM > (targetRPM - minusTRPM)) {
                     intakeOn = true;
                 }
             } else {
