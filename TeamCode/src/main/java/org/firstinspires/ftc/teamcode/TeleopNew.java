@@ -53,8 +53,6 @@ public class TeleopNew extends OpMode {
         telemetry.addLine("X to start/stop the feed roller");
         telemetry.addLine("RIGHT/LEFT BUMPERS to change feed roller speed");
         telemetry.addLine("y to turn off all and reset feed roller");
-        telemetry.addLine("Different Debugging may show up, Abhi, ignore them, Eddie, you can see them if you understand them");
-
         telemetry.update();
     }
 
@@ -62,13 +60,6 @@ public class TeleopNew extends OpMode {
         basicMovement();
         turnOnMotors();
         flyWheel();
-
-        telemetry.addLine("Encoder Position: " + String.valueOf(feedRoller.getCurrentPosition()));
-        telemetry.addLine("Offset: " + offset);
-
-        // --- NEW TELEMETRY ---
-        telemetry.addLine("Feed Roller Speed: " + String.format("%.2f", feedRollerSpeed));
-        telemetry.addLine("Feed Roller Active: " + feedRollerActive);
         telemetry.update();
     }
 
