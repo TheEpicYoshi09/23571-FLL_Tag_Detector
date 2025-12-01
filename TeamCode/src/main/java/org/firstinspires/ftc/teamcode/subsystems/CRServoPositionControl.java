@@ -8,7 +8,6 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 public class CRServoPositionControl {
     private final CRServo crServo;
     private final AnalogInput encoder; // Analog input for position from 4th wire
-
     public static double kp = 0.41;
     public static double ki = 0.0;
     public static double kd = 0.0;
@@ -24,17 +23,6 @@ public class CRServoPositionControl {
         this.crServo = servo;
         this.encoder = encoder;
         timer.reset();
-    }
-
-    private double getFilteredVoltage() {
-        filteredVoltage = (1 - filterAlpha) * filteredVoltage + filterAlpha * encoder.getVoltage();
-        return filteredVoltage;
-    }
-
-
-    private double angleToVoltage(double angleDegrees) {
-        angleDegrees = Math.max(0, Math.min(360, angleDegrees)); // Clamp
-        return (angleDegrees / 360.0) * 3.3;
     }
 
     public void moveToAngle(double targetAngleDegrees) {
@@ -61,8 +49,22 @@ public class CRServoPositionControl {
         lastError = error;
     }
 
+    private double getFilteredVoltage() {
+        filteredVoltage = (1 - filterAlpha) * filteredVoltage + filterAlpha * encoder.getVoltage();
+        return filteredVoltage;
+    }
+
+    private double angleToVoltage(double angleDegrees) {
+        angleDegrees = Math.max(0, Math.min(360, angleDegrees)); // Clamp
+        return (angleDegrees / 360.0) * 3.3;
+    }
+
     public double getTargetVoltage() {
         return targetVoltage;
+    }
+
+    public double getCurrentAngle() {
+        return (getFilteredVoltage() / 3.3) * 360.0;
     }
 }
 

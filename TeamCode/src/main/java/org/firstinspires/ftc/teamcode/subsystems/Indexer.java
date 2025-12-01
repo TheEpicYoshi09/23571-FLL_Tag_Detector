@@ -21,6 +21,7 @@ public class Indexer {
     private final ColorSensorSystem colorSensor;
     private final CRServoPositionControl indexerServoControl;
     private final ElapsedTime scanTimer = new ElapsedTime();
+    public static final double DEADBAND = 1.67; // degrees
     private boolean scanPending = false;
     private double scanDelay;
     private final double msPerDegree = 0.6;
@@ -156,15 +157,20 @@ public class Indexer {
     // Only sets targetAngle and updates state and timing
     public void moveTo(IndexerState newState) {
         shiftArtifacts(state, newState);
-        double oldAngle = lastAngle;
+        double actualAngle = indexerServoControl.getCurrentAngle();
+
         if (intaking) {
             targetAngle = ((stateToNum(newState) - 1) * 120 + 180) % 360;
         } else {
             targetAngle = (stateToNum(newState) - 1) * 120;
         }
         targetAngle = (targetAngle + offsetAngle) % 360;
-        double angleDelta = Math.abs(targetAngle - oldAngle);
+        double angleDelta = Math.abs(targetAngle - actualAngle);
         if (angleDelta > 180) angleDelta = 360 - angleDelta;
+
+        if (angleDelta < DEADBAND) {
+            return;
+        }
 
         double waitTime = Math.min(maxWait, Math.max(minWait, angleDelta * msPerDegree));
         scanTimer.reset();
