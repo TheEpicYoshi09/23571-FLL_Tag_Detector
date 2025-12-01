@@ -5,35 +5,45 @@ import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 @Config
-public class CRServoPositionControl {
+public class CRServoPositionControl
+{
+    //objects
     private final CRServo crServo;
     private final AnalogInput encoder; // Analog input for position from 4th wire
-    public static double kp = 0.41;
-    public static double ki = 0.0;
-    public static double kd = 0.0;
-    public static double kf = 0.01;
-    public static double filterAlpha = 0.9;
-    private double integral = 0.0;
-    private double lastError = 0.0;
-    private double filteredVoltage = 0;
-    private double targetVoltage;
     private ElapsedTime timer = new ElapsedTime();
 
-    public CRServoPositionControl(CRServo servo, AnalogInput encoder) {
+    // tuning constants
+    public static double kp = 0.41;
+    public static double ki = 0.0;
+    public static double kf = 0.01;
+    public static double filterAlpha = 0.9;
+
+    // general constants
+    private static final double ticksPerRev = 3.3;
+    private static final double degreesPerRev = 360.0;
+
+    // usage variables
+    private double integral = 0.0;
+    private double filteredVoltage = 0;
+    private double targetVoltage;
+
+    public CRServoPositionControl(CRServo servo, AnalogInput encoder)
+    {
         this.crServo = servo;
         this.encoder = encoder;
         timer.reset();
     }
 
-    public void moveToAngle(double targetAngleDegrees) {
+    public void moveToAngle(double targetAngleDegrees)
+    {
         targetVoltage = angleToVoltage(targetAngleDegrees);
         double currentVoltage = getFilteredVoltage();
 
         double error = targetVoltage - currentVoltage;
 
         // Shortest path wrap handling, for continuous rotation (optional)
-        if (error > 1.65) { error -= 3.3; }
-        if (error < -1.65) { error += 3.3; }
+        if (error > (ticksPerRev /2)) { error -= ticksPerRev; }
+        if (error < -(ticksPerRev /2)) { error += ticksPerRev; }
 
         double deltaTime = timer.seconds();
         timer.reset();
@@ -41,30 +51,32 @@ public class CRServoPositionControl {
 
         integral += error * deltaTime;
         integral = Math.max(-2, Math.min(2, integral));
-        double derivative = (error - lastError) / deltaTime;
 
-        double output = kp * error + ki * integral + kd * derivative + kf * Math.signum(error);
+        double output = kp * error + ki * integral + kf * Math.signum(error);
         output = Math.max(-1.0, Math.min(1.0, output));
         crServo.setPower(output);
-        lastError = error;
     }
 
-    private double getFilteredVoltage() {
+    private double getFilteredVoltage()
+    {
         filteredVoltage = (1 - filterAlpha) * filteredVoltage + filterAlpha * encoder.getVoltage();
         return filteredVoltage;
     }
 
-    private double angleToVoltage(double angleDegrees) {
-        angleDegrees = Math.max(0, Math.min(360, angleDegrees)); // Clamp
-        return (angleDegrees / 360.0) * 3.3;
+    private double angleToVoltage(double angleDegrees)
+    {
+        angleDegrees = Math.max(0, Math.min(degreesPerRev, angleDegrees)); // Clamp
+        return (angleDegrees / degreesPerRev) * ticksPerRev;
     }
 
-    public double getTargetVoltage() {
+    public double getTargetVoltage()
+    {
         return targetVoltage;
     }
 
-    public double getCurrentAngle() {
-        return (getFilteredVoltage() / 3.3) * 360.0;
+    public double getCurrentAngle()
+    {
+        return (getFilteredVoltage() / ticksPerRev) * 360.0;
     }
 }
 
