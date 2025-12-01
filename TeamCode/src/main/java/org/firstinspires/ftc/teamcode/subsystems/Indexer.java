@@ -10,12 +10,27 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 public class Indexer {
 
     public enum ArtifactColor { unknown, purple, green }
-    public enum IndexerState { one, two, three }
+
+    public enum IndexerState {
+        zero(0),
+        one(1),
+        two(2);
+
+        public final int index;
+
+        IndexerState(int index) {
+            this.index = index;
+        }
+
+        public IndexerState next() {
+            return values()[(this.index + 1) % 3];
+        }
+    }
 
     // config
-    public static final double DEADBAND = 1.67;     // degrees
-    public static double offsetAngle = 105;         // offset degrees
-    public static double outtakeOffsetAngle = 5;    // extra offset for outtake
+    public static final double DEADBAND = 1.67;
+    public static double offsetAngle = 105;
+    public static double outtakeOffsetAngle = 5;
     public static double targetAngle = 0;
 
     // scan timing
@@ -30,7 +45,7 @@ public class Indexer {
     private final Actuator actuator;
 
     // internal state
-    private IndexerState state = IndexerState.one;
+    private IndexerState state = IndexerState.zero;
     private boolean intaking = true;
 
     private ArtifactColor[] artifacts = {
@@ -43,8 +58,6 @@ public class Indexer {
     private boolean scanPending = false;
     private double scanDelay;
 
-
-    // constructor
     public Indexer(HardwareMap hardwareMap) {
         CRServo servo = hardwareMap.get(CRServo.class, "index");
         indexerAnalog = hardwareMap.get(AnalogInput.class, "indexAnalog");
@@ -54,60 +67,53 @@ public class Indexer {
         colorSensor = new ColorSensorSystem(hardwareMap);
     }
 
-
-    // getters and state logic
+    // getters
     public IndexerState getState() { return state; }
     public boolean getIntaking() { return intaking; }
     public boolean isBusy() { return scanPending; }
     public double getVoltageAnalog() { return indexerAnalog.getVoltage(); }
     public double getTargetVoltage() { return indexerServoControl.getTargetVoltage(); }
 
-
     public void setIntaking(boolean isIntaking) {
         if (this.intaking != isIntaking) {
             this.intaking = isIntaking;
-            moveTo(state); // recompute targetAngle for new mode
+            moveTo(state);
         }
     }
 
     public void startIntake() {
         intaking = true;
-        moveTo(nextState());
+        moveTo(state.next());
     }
 
     public void startOuttake() {
         intaking = false;
-        moveTo(nextState());
+        moveTo(state.next());
     }
 
-
-    // scan handling
+    // artifact color helpers
     public ArtifactColor stateToColor(IndexerState s) {
-        int idx = stateToNum(s) - 1;
-        return artifacts[idx];
+        return artifacts[s.index];
     }
 
     public void scanArtifact() {
-        ArtifactColor scanned = colorSensor.getColor();
-        int idx = stateToNum(state) - 1;  // store in current slot
-        artifacts[idx] = scanned;
+        artifacts[state.index] = colorSensor.getColor();
     }
 
-
-    // shifts artifact arrangements to match rotation direction
     public void shiftArtifacts(IndexerState from, IndexerState to) {
-        int oldIdx = stateToNum(from) - 1;
-        int newIdx = stateToNum(to) - 1;
+        int oldIdx = from.index;
+        int newIdx = to.index;
 
         int diff = newIdx - oldIdx;
-
         if (diff < 0) diff += 3;
-        if (diff > 0) diff %= 3;
+        diff %= 3;
 
-        // Rotate array diff times (each rotation is one "slot" shift)
+        // Rotate artifacts diff times
         for (int i = 0; i < diff; i++) {
             artifacts = new ArtifactColor[]{
-                    artifacts[2], artifacts[0], artifacts[1]
+                    artifacts[2],
+                    artifacts[0],
+                    artifacts[1]
             };
         }
 
@@ -117,22 +123,23 @@ public class Indexer {
         }
     }
 
-
     // movement
     public void moveToColor(ArtifactColor color) {
-        if (stateToColor(IndexerState.one) == color) moveTo(IndexerState.one);
-        else if (stateToColor(IndexerState.two) == color) moveTo(IndexerState.two);
-        else if (stateToColor(IndexerState.three) == color) moveTo(IndexerState.three);
+        if (artifacts[0] == color) moveTo(IndexerState.zero);
+        else if (artifacts[1] == color) moveTo(IndexerState.one);
+        else if (artifacts[2] == color) moveTo(IndexerState.two);
     }
 
-    /** Moves the indexer to a new state (sets targetAngle only). */
     public void moveTo(IndexerState newState) {
 
         shiftArtifacts(state, newState);
 
         double actualAngle = indexerServoControl.getCurrentAngle();
-        int slot = stateToNum(newState) - 1;
 
+        // Slot = 0, 1, 2
+        int slot = newState.index;
+
+        // 120 per position
         targetAngle = slot * 120;
 
         if (!intaking) targetAngle += outtakeOffsetAngle;
@@ -143,7 +150,6 @@ public class Indexer {
         if (delta > 180) delta = 360 - delta;
         if (delta < DEADBAND) return;
 
-        // Schedule scanning
         double wait = Math.min(maxWait, Math.max(minWait, delta * msPerDegree));
         scanTimer.reset();
         scanDelay = wait;
@@ -152,7 +158,6 @@ public class Indexer {
         state = newState;
     }
 
-    /** Call every OpMode loop */
     public void update() {
         indexerServoControl.moveToAngle(targetAngle);
 
@@ -162,28 +167,7 @@ public class Indexer {
         }
     }
 
-    // utils
-
     public IndexerState nextState() {
-        int num = stateToNum(state);
-        return numToState((num % 3) + 1);
-    }
-
-    public IndexerState numToState(int num) {
-        switch (num) {
-            case 1: return IndexerState.one;
-            case 2: return IndexerState.two;
-            case 3: return IndexerState.three;
-        }
-        return IndexerState.one;
-    }
-
-    public int stateToNum(IndexerState s) {
-        switch (s) {
-            case one:   return 1;
-            case two:   return 2;
-            case three: return 3;
-        }
-        return 1;
+        return state.next();
     }
 }
