@@ -17,6 +17,7 @@ public class CRServoPositionControl {
     private double integral = 0.0;
     private double lastError = 0.0;
     private double filteredVoltage = 0;
+    private double targetVoltage;
     private ElapsedTime timer = new ElapsedTime();
 
     public CRServoPositionControl(CRServo servo, AnalogInput encoder) {
@@ -37,7 +38,7 @@ public class CRServoPositionControl {
     }
 
     public void moveToAngle(double targetAngleDegrees) {
-        double targetVoltage = angleToVoltage(targetAngleDegrees);
+        targetVoltage = angleToVoltage(targetAngleDegrees);
         double currentVoltage = getFilteredVoltage();
 
         double error = targetVoltage - currentVoltage;
@@ -58,6 +59,10 @@ public class CRServoPositionControl {
         output = Math.max(-1.0, Math.min(1.0, output));
         crServo.setPower(output);
         lastError = error;
+    }
+
+    public double getTargetVoltage() {
+        return targetVoltage;
     }
 }
 

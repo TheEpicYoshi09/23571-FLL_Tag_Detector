@@ -26,10 +26,9 @@ public class Indexer {
     private final double msPerDegree = 0.6;
     private final double minWait = 100;
     private final double maxWait = 300;
-    private final double DEADBAND = 1.67; // degrees
     public static double targetAngle = 0;
-    public static double offsetAngle = 79;
-    public static double outtakeOffsetAngle = 0;
+    public static double offsetAngle = 105;
+    public static double outtakeOffsetAngle = 5;
     private double lastAngle = offsetAngle;
     Actuator actuator;
     AnalogInput indexerAnalog;
@@ -154,53 +153,27 @@ public class Indexer {
         moveThread.start();
     }
 
-    // more readable
+    // Only sets targetAngle and updates state and timing
     public void moveTo(IndexerState newState) {
-
-        // Update artifact array
         shiftArtifacts(state, newState);
-
-        double previousAngle = lastAngle;
-
-        // compute baseangle
-        int baseAngle = (stateToNum(newState) - 1) * 120;
-
-        // Intake adds 180
+        double oldAngle = lastAngle;
         if (intaking) {
-            baseAngle = (baseAngle + 180) % 360;
+            targetAngle = ((stateToNum(newState) - 1) * 120 + 180) % 360;
+        } else {
+            targetAngle = (stateToNum(newState) - 1) * 120;
         }
+        targetAngle = (targetAngle + offsetAngle) % 360;
+        double angleDelta = Math.abs(targetAngle - oldAngle);
+        if (angleDelta > 180) angleDelta = 360 - angleDelta;
 
-        //calibration
-        double desiredAngle = (baseAngle + offsetAngle) % 360;
-
-        //compute effective delta
-        double delta = Math.abs(desiredAngle - previousAngle);
-
-        // shortest path (wrap around)
-        if (delta > 180) {
-            delta = 360 - delta;
-        }
-
-        // dont do anything for small angle change (idk if this is necessary we should look into it)
-        if (delta < DEADBAND) {
-            return;
-        }
-
-        // compute delay
-        double waitTime = delta * msPerDegree;
-        waitTime = Math.max(minWait, Math.min(maxWait, waitTime));
-
-        //reset timing
+        double waitTime = Math.min(maxWait, Math.max(minWait, angleDelta * msPerDegree));
         scanTimer.reset();
         scanDelay = waitTime;
         scanPending = true;
 
-        //update things
-        lastAngle = desiredAngle;
-        targetAngle = desiredAngle;
+        lastAngle = targetAngle;
         state = newState;
     }
-
 
     // Call this repeatedly in OpMode loop
     public void update() {
