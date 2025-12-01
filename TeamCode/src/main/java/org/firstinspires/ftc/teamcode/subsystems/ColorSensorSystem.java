@@ -16,27 +16,19 @@ public class ColorSensorSystem {
     }
 
     // checks if the int provided is less than a max and a min calculated using a starting int and a tolerance percent
-    private boolean checkRange(int num, int origin, double tolerance) {
-        int min = (int)(origin * (1 - tolerance));
-        int max = (int)(origin * (1 + tolerance));
-        return num > min && num < max;
+    private boolean checkColorRange(int[] rgb, int[] target, double tolerance) {
+        for (int i = 0; i < 3; i++) {
+            int min = (int)(target[i] * (1 - tolerance));
+            int max = (int)(target[i] * (1 + tolerance));
+            if (rgb[i] <= min || rgb[i] >= max) return false;
+        }
+        return true;
     }
 
     public Indexer.ArtifactColor getColor() {
         int[] rgb = {colorSensor.red(), colorSensor.green(), colorSensor.blue()};
-        boolean foundPurple = true;
-        for (int i = 0; i < 3; i++) {
-            foundPurple &&= checkRange(rgb[i], PURPLE_RGB[i], PURPLE_TOLERANCE);
-        }
-        if (foundPurple) {
-            return Indexer.ArtifactColor.purple;
-        } else {
-            boolean foundGreen = true;
-            for (int i = 0; i < 3; i++) {
-                foundGreen &&= checkRange(rgb[i], GREEN_RGB[i], GREEN_TOLERANCE);
-            }
-            if (foundGreen) return Indexer.ArtifactColor.green;
-        }
+        if (checkRange(rgb, PURPLE_RGB, PURPLE_TOLERANCE)) return Indexer.ArtifactColor.purple;
+        if (checkRange(rgb, GREEN_RGB, GREEN_TOLERANCE)) return Indexer.ArtifactColor.green;
         return Indexer.ArtifactColor.unknown;
     }
 }
