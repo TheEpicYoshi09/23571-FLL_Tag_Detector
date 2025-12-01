@@ -100,29 +100,6 @@ public class Indexer {
         artifacts[state.index] = colorSensor.getColor();
     }
 
-    public void shiftArtifacts(IndexerState from, IndexerState to) {
-        int oldIdx = from.index;
-        int newIdx = to.index;
-
-        int diff = newIdx - oldIdx;
-        if (diff < 0) diff += 3;
-        diff %= 3;
-
-        // Rotate artifacts diff times
-        for (int i = 0; i < diff; i++) {
-            artifacts = new ArtifactColor[]{
-                    artifacts[2],
-                    artifacts[0],
-                    artifacts[1]
-            };
-        }
-
-        // Clear slot if actuator fired
-        if (actuator.isActivated()) {
-            artifacts[newIdx] = ArtifactColor.unknown;
-        }
-    }
-
     // movement
     public void moveToColor(ArtifactColor color) {
         if (artifacts[0] == color) moveTo(IndexerState.zero);
@@ -131,9 +108,6 @@ public class Indexer {
     }
 
     public void moveTo(IndexerState newState) {
-
-        shiftArtifacts(state, newState);
-
         double actualAngle = indexerServoControl.getCurrentAngle();
 
         // Slot = 0, 1, 2
