@@ -76,7 +76,7 @@ public class CRServoPositionControl
 
     public double getCurrentAngle()
     {
-        return (getFilteredVoltage() / ticksPerRev) * 360.0;
+        return (getFilteredVoltage() / ticksPerRev) * degreesPerRev;
     }
 }
 
