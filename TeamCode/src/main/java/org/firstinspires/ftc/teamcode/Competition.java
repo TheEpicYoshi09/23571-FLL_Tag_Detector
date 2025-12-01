@@ -28,6 +28,7 @@ public class Competition extends LinearOpMode {
     RobotHardware robot = new RobotHardware(this);
     private TurretTracker turretTracker;
     private FlywheelController flywheelController;
+    private ArtifactTracker artifactTracker;
 
     private enum ShootState {
         IDLE,
@@ -75,6 +76,7 @@ public class Competition extends LinearOpMode {
 
         turretTracker = new TurretTracker(robot, telemetry);
         flywheelController = new FlywheelController(robot, telemetry);
+        artifactTracker = new ArtifactTracker(robot, telemetry);
 
         waitForStart();
         resetRuntime();
@@ -82,6 +84,7 @@ public class Competition extends LinearOpMode {
         while (opModeIsActive()) {
 
             robot.refreshLimelightResult();
+            artifactTracker.update();
 
             //Limelight Data
             LLResult result = robot.getLatestLimelightResult();
