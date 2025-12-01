@@ -50,24 +50,26 @@ public class TeleOpMode extends OpMode {
 
         if(speedSwitch) {
             speedMultiplier = 0.5;
-        }
-        else {
+        } else {
             speedMultiplier = 1;
         }
 
         if(intakeSwitch) {
             intake.intake(0);
-        }
-        else {
+        } else {
             intake.intake(1);
         }
 
         if(loadSwitch) {
-            intake.load(1, 75, 15);
+            intake.load(1, 2000, 1000);
+        } else {
+            intake.load(0, 0, 0);
         }
 
         if(shootSwitch > 0) {
-            shoot.shoot(0.355, 100, 50);
+            shoot.shoot(0.355);
+        } else {
+            shoot.shoot(0);
         }
 
         drive.driveFieldRelative(forward*speedMultiplier, strafe*speedMultiplier, rotate*speedMultiplier);

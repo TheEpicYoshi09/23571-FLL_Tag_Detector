@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 public class Intake {
 
     private DcMotor intakeMotor, loadMotor;
-    double timer;
+    double timer = 0;
 
     public void init(HardwareMap hwMap) {
 
