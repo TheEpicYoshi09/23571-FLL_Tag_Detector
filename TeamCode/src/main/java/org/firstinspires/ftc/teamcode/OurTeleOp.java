@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -10,7 +11,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 
 @TeleOp
-public class OurTeleOp extends OpMode {
+public class OurTeleOp extends LinearOpMode {
     private DcMotorEx flywheel;
     private DcMotor feedRoller;
     private DcMotor leftDrive;
@@ -23,7 +24,7 @@ public class OurTeleOp extends OpMode {
     private boolean flyWheelPowered;
     private boolean flapUp;
     private boolean feedRollerPowered;
-    public void init() {
+    public void runOpMode() {
         flywheel = hardwareMap.get(DcMotorEx.class, "flywheel");
         feedRoller = hardwareMap.get(DcMotor.class, "coreHex");
         leftDrive = hardwareMap.get(DcMotor.class, "leftDrive");
@@ -49,16 +50,16 @@ public class OurTeleOp extends OpMode {
         telemetry.addLine("Voltage control is on");
 
         telemetry.update();
-    }
 
-    public void loop() {
-        basicMovement();
-        turnOnMotors();
-        flyWheel();
+        while(opModeIsActive()) {
+            basicMovement();
+            turnOnMotors();
+            flyWheel();
 
-        telemetry.addLine("Encoder Position: " + String.valueOf(feedRoller.getCurrentPosition()));
-        telemetry.addLine("Offset: " + offset);
-        telemetry.update();
+            telemetry.addLine("Encoder Position: " + String.valueOf(feedRoller.getCurrentPosition()));
+            telemetry.addLine("Offset: " + offset);
+            telemetry.update();
+        }
     }
     public double getLowestVoltage() {
         double lowestValue = Double.POSITIVE_INFINITY;
