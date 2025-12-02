@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
+import com.qualcomm.robotcore.util.RobotLog;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.drivers.rgbIndicator;
@@ -23,6 +24,7 @@ public class ArtifactTracker {
     private final RobotHardware robot;
     private final Telemetry telemetry;
     private final SlotStatus[] slotStatuses = new SlotStatus[]{SlotStatus.VACANT, SlotStatus.VACANT, SlotStatus.VACANT};
+    private SlotStatus[] lastLoggedStatuses = null;
 
     public ArtifactTracker(RobotHardware robot, Telemetry telemetry) {
         this.robot = robot;
@@ -48,6 +50,8 @@ public class ArtifactTracker {
         slotStatuses[0] = evaluateSensor(robot.color1, robot.distance1, robot.rearRGB1, 0);
         slotStatuses[1] = evaluateSensor(robot.color2, robot.distance2, robot.rearRGB2, 1);
         slotStatuses[2] = evaluateSensor(robot.color3, robot.distance3, robot.rearRGB3, 2);
+
+        maybeLogStatusChange();
 
         telemetry.addData("Spindexer Slot 1", slotStatuses[0]);
         telemetry.addData("Spindexer Slot 2", slotStatuses[1]);
@@ -98,5 +102,24 @@ public class ArtifactTracker {
 
         telemetry.addData(String.format("Slot %d RGB", slot + 1), "R: %.0f, G: %.0f, B: %.0f, D: %.1fmm", red, green, blue, distance);
         return status;
+    }
+
+    private void maybeLogStatusChange() {
+        boolean changed = lastLoggedStatuses == null
+                || lastLoggedStatuses.length != slotStatuses.length;
+        if (!changed) {
+            for (int i = 0; i < slotStatuses.length; i++) {
+                if (lastLoggedStatuses[i] != slotStatuses[i]) {
+                    changed = true;
+                    break;
+                }
+            }
+        }
+
+        if (changed) {
+            RobotLog.ii("ArtifactTracker", "Detected Artifacts: %s, %s, %s",
+                    slotStatuses[0], slotStatuses[1], slotStatuses[2]);
+            lastLoggedStatuses = slotStatuses.clone();
+        }
     }
 }
