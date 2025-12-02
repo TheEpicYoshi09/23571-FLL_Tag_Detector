@@ -80,17 +80,6 @@ public class Indexer {
             moveTo(state);
         }
     }
-
-    public void startIntake() {
-        intaking = true;
-        moveTo(state.next());
-    }
-
-    public void startOuttake() {
-        intaking = false;
-        moveTo(state.next());
-    }
-
     // artifact color helpers
     public ArtifactColor stateToColor(IndexerState s) {
         return artifacts[s.index];
