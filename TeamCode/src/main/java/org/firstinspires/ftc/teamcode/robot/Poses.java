@@ -29,7 +29,7 @@ public class Poses {
         public abstract Pose get(NamedPose pose);
     }
 
-    private static class BluePoses extends AlliancePoses {
+    public static class BluePoses extends AlliancePoses {
         public static BluePoses INSTANCE = new BluePoses();
 
         private final EnumMap<NamedPose,Pose> posesByName = new EnumMap<>(Map.ofEntries(
@@ -42,9 +42,9 @@ public class Poses {
                         INSTANCE.get(NamedPose.STARTING_TOP_2)), // alias for the same pose
                 Map.entry(NamedPose.SHOOTING_GOAL_SIDE_1,
                         INSTANCE.get(NamedPose.STARTING_SIDE_1)), // alias for the same pose
-                Map.entry(NamedPose.INTAKE_ROW_1, new Pose(40, 37, Math.toRadians(180))),
-                Map.entry(NamedPose.INTAKE_ROW_2, new Pose(40, 61, Math.toRadians(180))),
-                Map.entry(NamedPose.INTAKE_ROW_3, new Pose(40, 82.625, Math.toRadians(180))),
+                Map.entry(NamedPose.INTAKE_ROW_1_START, new Pose(40, 37, Math.toRadians(180))),
+                Map.entry(NamedPose.INTAKE_ROW_2_START, new Pose(40, 61, Math.toRadians(180))),
+                Map.entry(NamedPose.INTAKE_ROW_3_START, new Pose(40, 82.625, Math.toRadians(180))),
                 Map.entry(NamedPose.LOADING, new Pose(15, 10, Math.toRadians(0))),
                 Map.entry(NamedPose.LEAVE_TOP, new Pose()),
                 Map.entry(NamedPose.LEAVE_LOW, new Pose(36, 8.5, Math.toRadians(90))),
@@ -58,7 +58,7 @@ public class Poses {
         }
     }
 
-    private static class RedPoses extends AlliancePoses {
+    public static class RedPoses extends AlliancePoses {
         public static RedPoses INSTANCE = new RedPoses();
 
         private final EnumMap<NamedPose,Pose> posesByName = new EnumMap<>(Map.ofEntries(
@@ -71,9 +71,9 @@ public class Poses {
                         INSTANCE.get(NamedPose.STARTING_TOP_2)), // alias for the same pose
                 Map.entry(NamedPose.SHOOTING_GOAL_SIDE_1,
                         INSTANCE.get(NamedPose.STARTING_SIDE_1)), // alias for the same pose                Map.entry(NamedPose.INTAKE_ROW_1, new Pose()),
-                Map.entry(NamedPose.INTAKE_ROW_1, new Pose(104, 37, Math.toRadians(0))),
-                Map.entry(NamedPose.INTAKE_ROW_2, new Pose(104, 61, Math.toRadians(0))),
-                Map.entry(NamedPose.INTAKE_ROW_3, new Pose(104, 85, Math.toRadians(0))),
+                Map.entry(NamedPose.INTAKE_ROW_1_START, new Pose(104, 37, Math.toRadians(0))),
+                Map.entry(NamedPose.INTAKE_ROW_2_START, new Pose(104, 61, Math.toRadians(0))),
+                Map.entry(NamedPose.INTAKE_ROW_3_START, new Pose(104, 85, Math.toRadians(0))),
                 Map.entry(NamedPose.LOADING, new Pose(130, 10, Math.toRadians(180))),
                 Map.entry(NamedPose.LEAVE_TOP, new Pose(126, 110, Math.toRadians(38))), // TODO - verify
                 Map.entry(NamedPose.LEAVE_LOW, new Pose(108 ,8.5, Math.toRadians(90))),
@@ -94,9 +94,12 @@ public class Poses {
         SHOOTING_GOAL_TOP_1,
         SHOOTING_GOAL_TOP_2,
         SHOOTING_GOAL_SIDE_1,
-        INTAKE_ROW_1,
-        INTAKE_ROW_2,
-        INTAKE_ROW_3,
+        INTAKE_ROW_1_START,
+        INTAKE_ROW_1_END,
+        INTAKE_ROW_2_START,
+        INTAKE_ROW_2_END,
+        INTAKE_ROW_3_START,
+        INTAKE_ROW_3_END,
         LOADING,
         LEAVE_TOP,
         LEAVE_LOW,
