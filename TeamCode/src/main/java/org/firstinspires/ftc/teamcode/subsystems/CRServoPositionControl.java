@@ -1,4 +1,5 @@
 package org.firstinspires.ftc.teamcode.subsystems;
+
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.AnalogInput;
@@ -7,25 +8,31 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 @Config
 public class CRServoPositionControl
 {
-    //objects
+    // Hardware
     private final CRServo crServo;
-    private final AnalogInput encoder; // Analog input for position from 4th wire
-    private ElapsedTime timer = new ElapsedTime();
+    private final AnalogInput encoder;
+    private final ElapsedTime timer = new ElapsedTime();
 
-    // tuning constants
+    // Tunables (Dashboard)
     public static double kp = 0.41;
-    public static double ki = 0.0;
-    public static double kf = 0.01;
-    public static double filterAlpha = 0.9;
+    public static double ki = 0.00;
+    public static double kf = 0.01;         // static feedforward
+    public static double filterAlpha = 0.9; // EMA strength
 
-    // general constants
-    private static final double ticksPerRev = 3.3;
-    private static final double degreesPerRev = 360.0;
+    // Encoder constants
+    private static final double ticksPerRev = 3.3;   // voltage range of encoder
+    private static final double degreesPerRev = 360; // full circle
 
-    // usage variables
+    // Target state
+    private double targetVoltage = 0.0;
+
+    // Internal integrator
     private double integral = 0.0;
-    private double filteredVoltage = 0;
-    private double targetVoltage;
+
+    // Filter + unwrapping state
+    private double filteredVoltage = 0.0;
+    private double lastRaw = 0.0;
+    private double offset = 0.0;
 
     public CRServoPositionControl(CRServo servo, AnalogInput encoder)
     {
@@ -34,39 +41,45 @@ public class CRServoPositionControl
         timer.reset();
     }
 
-    public void moveToAngle(double targetAngleDegrees)
+    // public api sigma boy
+
+    public void moveToAngle(double angleDeg)
     {
-        targetVoltage = angleToVoltage(targetAngleDegrees);
+        // Clamp physical command to 0–360
+        angleDeg = clamp(angleDeg, 0.0, degreesPerRev);
+
+        // Convert angle to target voltage (wrapped)
+        targetVoltage = angleToVoltage(angleDeg);
+
+        // Get filtered + unwrapped continuous voltage feedback
         double currentVoltage = getFilteredVoltage();
 
+        // Compute wrapped shortest-path error
         double error = targetVoltage - currentVoltage;
 
-        // Shortest path wrap handling, for continuous rotation (optional)
-        if (error > (ticksPerRev /2)) { error -= ticksPerRev; }
-        if (error < -(ticksPerRev /2)) { error += ticksPerRev; }
+        while (error >  ticksPerRev / 2.0) error -= ticksPerRev;
+        while (error < -ticksPerRev / 2.0) error += ticksPerRev;
 
-        double deltaTime = timer.seconds();
+        // dt
+        double dt = timer.seconds();
         timer.reset();
-        if (deltaTime <= 0.0001) deltaTime = 0.0001;
+        if (dt < 0.0001) dt = 0.0001;
 
-        integral += error * deltaTime;
-        integral = Math.max(-2, Math.min(2, integral));
+        // Integrator
+        integral += error * dt;
+        integral = clamp(integral, -2, 2);
 
+        // PIDF
         double output = kp * error + ki * integral + kf * Math.signum(error);
-        output = Math.max(-1.0, Math.min(1.0, output));
+        output = clamp(output, -1.0, 1.0);
+
         crServo.setPower(output);
     }
 
-    private double getFilteredVoltage()
+    // Get angle from unwrapped + filtered voltage
+    public double getCurrentAngle()
     {
-        filteredVoltage = (1 - filterAlpha) * filteredVoltage + filterAlpha * encoder.getVoltage();
-        return filteredVoltage;
-    }
-
-    private double angleToVoltage(double angleDegrees)
-    {
-        angleDegrees = Math.max(0, Math.min(degreesPerRev, angleDegrees)); // Clamp
-        return (angleDegrees / degreesPerRev) * ticksPerRev;
+        return (getFilteredVoltage() / ticksPerRev) * degreesPerRev;
     }
 
     public double getTargetVoltage()
@@ -74,9 +87,42 @@ public class CRServoPositionControl
         return targetVoltage;
     }
 
-    public double getCurrentAngle()
+    // eocoder procesing
+    private double getFilteredVoltage()
     {
-        return (getFilteredVoltage() / ticksPerRev) * degreesPerRev;
+        double raw = encoder.getVoltage(); // wrapped 0 → 3.3
+        double diff = raw - lastRaw;
+
+        // Detect wraparound and adjust offset
+        if (diff > ticksPerRev / 2.0) {
+            // 0.1 to 3.2 type shift
+            offset -= ticksPerRev;
+        } else if (diff < -ticksPerRev / 2.0) {
+            // 3.2 to 0.1 type shift
+            offset += ticksPerRev;
+        }
+
+        lastRaw = raw;
+
+        // Unwrapped = raw + offset
+        double unwrapped = raw + offset;
+
+        // Smooth EMA filter on continuous value
+        filteredVoltage = filteredVoltage * (1 - filterAlpha) + filterAlpha * unwrapped;
+
+        return filteredVoltage;
+    }
+
+    // utils
+
+    private double angleToVoltage(double deg)
+    {
+        return (deg / degreesPerRev) * ticksPerRev;
+    }
+
+    private static double clamp(double v, double min, double max)
+    {
+        return Math.max(min, Math.min(max, v));
     }
 }
 
