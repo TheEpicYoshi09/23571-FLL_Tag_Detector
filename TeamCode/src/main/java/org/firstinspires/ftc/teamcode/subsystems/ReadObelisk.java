@@ -7,6 +7,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import org.firstinspires.ftc.teamcode.Constants;
+import org.firstinspires.ftc.teamcode.SharedState;
 import org.firstinspires.ftc.teamcode.RobotHardware;
 import java.util.List;
 import java.util.Locale;
@@ -53,6 +54,9 @@ public class ReadObelisk {
     }
 
     public static ObeliskPattern getCachedPattern() {
+        if (cachedPattern == null) {
+            cachedPattern = SharedState.loadObeliskPattern();
+        }
         return cachedPattern;
     }
 
@@ -83,6 +87,7 @@ public class ReadObelisk {
             ObeliskPattern detected = decodePattern(robot.getLatestLimelightResult());
             if (detected != null) {
                 cachedPattern = detected;
+                SharedState.saveObeliskPattern(cachedPattern);
                 break;
             }
             opMode.idle();
@@ -90,6 +95,9 @@ public class ReadObelisk {
 
         if (cachedPattern == null) {
             cachedPattern = decodePattern(robot.getLatestLimelightResult());
+            if (cachedPattern != null) {
+                SharedState.saveObeliskPattern(cachedPattern);
+            }
         }
 
         driveTurretTo(Constants.turretHome);
