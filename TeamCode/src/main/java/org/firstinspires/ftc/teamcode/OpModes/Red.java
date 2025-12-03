@@ -125,10 +125,9 @@ public class Red extends OpMode {
             double ty = llResult.getTy();
             distance = ((17.44)/(Math.tan(((Math.PI)/180)*(ty + 25.11))));
             distance = Math.max(14.8, Math.min(distance, 130));
-//            33018e^{0.00444x}
-            double rpm = ((33018) * Math.pow(Math.E,(0.00444 * distance)));
-            rpm = Math.max(3000, Math.min(rpm, 5000));
-            targetRPM = rpm;
+//            double rpm = ((33018) * Math.pow(Math.E,(0.00444 * distance)));
+//            rpm = Math.max(3000, Math.min(rpm, 5000));
+//            targetRPM = rpm;
         }
         telemetry.addData("Ta", llResult.getTa());
         telemetry.addData("Tx", llResult.getTx());
