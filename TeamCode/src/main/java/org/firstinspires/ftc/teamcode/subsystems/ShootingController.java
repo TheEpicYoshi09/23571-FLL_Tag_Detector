@@ -29,8 +29,8 @@ public class ShootingController {
 
     private final double[] spindexerPositions = new double[]{Constants.spindexer1, Constants.spindexer2, Constants.spindexer3};
     private int spindexerIndex = 0;
+    private int shotsRemaining = 0;
     private final ElapsedTime shootTimer = new ElapsedTime();
-    private boolean hasFiredShot = false;
     private ShootState shootState = ShootState.IDLE;
 
     public ShootingController(RobotHardware robot, FlywheelController flywheelController, Telemetry telemetry) {
@@ -42,7 +42,8 @@ public class ShootingController {
     public void startShootSequence() {
         shootState = ShootState.WAIT_FOR_SPINUP;
         shootTimer.reset();
-        hasFiredShot = false;
+        shotsRemaining = spindexerPositions.length;
+        syncSpindexerIndex();
         robot.kicker.setPosition(Constants.kickerDown);
     }
 
@@ -54,7 +55,7 @@ public class ShootingController {
         if (!flywheelController.isEnabled() || flywheelController.getTargetRpm() <= 0) {
             robot.kicker.setPosition(Constants.kickerDown);
             shootState = ShootState.IDLE;
-            hasFiredShot = false;
+            shotsRemaining = 0;
             return;
         }
 
@@ -63,26 +64,27 @@ public class ShootingController {
                 if (flywheelController.isAtSpeed(Constants.FLYWHEEL_TOLERANCE_RPM) && isAimedAtTarget()) {
                     robot.kicker.setPosition(Constants.kickerUp);
                     shootTimer.reset();
-                    if (!hasFiredShot) {
-                        shootState = ShootState.FIRE;
-                        hasFiredShot = true;
-                    } else {
-                        shootState = ShootState.PRIME_NEXT;
-                    }
+                    shootState = ShootState.FIRE;
                 }
                 break;
             case FIRE:
                 if (shootTimer.milliseconds() >= 500) {
                     robot.kicker.setPosition(Constants.kickerDown);
                     shootTimer.reset();
+                    shotsRemaining = Math.max(0, shotsRemaining - 1);
                     shootState = ShootState.RETRACT;
                 }
                 break;
             case RETRACT:
                 if (shootTimer.milliseconds() >= 250) {
-                    advanceSpindexer();
-                    shootTimer.reset();
-                    shootState = ShootState.ADVANCE;
+                    if (shotsRemaining > 0) {
+                        advanceSpindexer();
+                        shootTimer.reset();
+                        shootState = ShootState.ADVANCE;
+                    } else {
+                        shootTimer.reset();
+                        shootState = ShootState.PRIME_NEXT;
+                    }
                 }
                 break;
             case ADVANCE:
@@ -102,6 +104,7 @@ public class ShootingController {
         }
 
         telemetry.addData("Shoot State", shootState);
+        telemetry.addData("Shots Remaining", shotsRemaining);
     }
 
     public boolean isIdle() {
@@ -130,6 +133,17 @@ public class ShootingController {
 
         double txDegrees = fiducials.get(0).getTargetXDegrees();
         return Math.abs(txDegrees) <= 5.0;
+    }
+
+    private void syncSpindexerIndex() {
+        double current = robot.spindexerPos;
+        for (int i = 0; i < spindexerPositions.length; i++) {
+            if (spindexerPositions[i] == current) {
+                spindexerIndex = i;
+                return;
+            }
+        }
+        spindexerIndex = 0;
     }
 
     private void advanceSpindexer() {
