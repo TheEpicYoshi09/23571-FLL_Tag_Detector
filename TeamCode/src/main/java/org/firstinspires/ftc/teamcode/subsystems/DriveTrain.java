@@ -1,26 +1,31 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.subsystems;
 
 import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
 
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 public class DriveTrain {
-    DcMotor leftMotor;
-    DcMotor rightMotor;
+    DcMotorEx leftMotor;
+    DcMotorEx rightMotor;
 
     public DriveTrain(){
-        leftMotor = hardwareMap.dcMotor.get("leftMotor");
-        rightMotor = hardwareMap.dcMotor.get("rightMotor");
+        leftMotor = (DcMotorEx) hardwareMap.dcMotor.get("leftMotor");
+        rightMotor = (DcMotorEx) hardwareMap.dcMotor.get("rightMotor");
 
+        leftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
     }
 
-    public void setLeftMotor(double power) {
-        leftMotor.setPower(power);
+    public void setLeftMotor(double velocity) {
+        leftMotor.setVelocity(velocity);
     }
 
-    public void setRightMotor(double power) {
-        rightMotor.setPower(power);
+    public void setRightMotor(double velocity) {
+        rightMotor.setPower(velocity);
     }
 }
