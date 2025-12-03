@@ -9,8 +9,8 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 public class DriveTrain {
-    DcMotorEx leftMotor;
-    DcMotorEx rightMotor;
+    private DcMotorEx leftMotor;
+    private DcMotorEx rightMotor;
 
     public DriveTrain(){
         leftMotor = (DcMotorEx) hardwareMap.dcMotor.get("leftMotor");
