@@ -77,11 +77,11 @@ public class MechController {
                 currentState = MechState.START;
                 setLifter(0);
                 setIndexer(0);
-                currentState = MechState.APRIL_TAG;
+                setState(MechState.APRIL_TAG);
                 break;
 
             case IDLE:
-                currentState = MechState.IDLE;
+                setState(MechState.IDLE);
                 break;
 
             case SHOOT_STATE:
@@ -103,7 +103,7 @@ public class MechController {
                     shootPatternIndex = 1;
                     slotToShoot = -1;
                     shootElapsed = 0;
-                    currentState = MechState.IDLE;
+                    setState(MechState.IDLE);
                     break;
                 }
 
@@ -188,7 +188,7 @@ public class MechController {
                     case 0:
                         intakeTargetIndex = getEmptyIndex();
                         if (intakeTargetIndex == -1) { // Stop intake stage
-                            currentState = MechState.IDLE;
+                            setState(MechState.IDLE);
                             break;
                         }
 
@@ -221,7 +221,7 @@ public class MechController {
 
                         if (System.currentTimeMillis() - intakeStageStart >= INTAKE_CUTOFF_MS) { // Timer cut-off
                             runIntakeMot(0);
-                            currentState = MechState.IDLE;
+                            setState(MechState.IDLE);
                             intakeStage = 0;
                             break;
                         }
@@ -247,7 +247,7 @@ public class MechController {
                         shootStageStart = System.currentTimeMillis();
                         shootStage = -1;
                     } else {
-                        currentState = MechState.IDLE;
+                        setState(MechState.IDLE);
                         break;
                     }
                 }
@@ -290,7 +290,7 @@ public class MechController {
                             artifactCount--;
                             shootStage = 0;
                             shootElapsed = 0;
-                            currentState = MechState.IDLE;
+                            setState(MechState.IDLE);
                         }
                         break;
                 }
@@ -307,7 +307,7 @@ public class MechController {
                         shootStageStart = System.currentTimeMillis();
                         shootStage = -1;
                     } else {
-                        currentState = MechState.IDLE;
+                        setState(MechState.IDLE);
                         break;
                     }
                 }
@@ -350,7 +350,7 @@ public class MechController {
                             artifactCount--;
                             shootStage = 0;
                             shootElapsed = 0;
-                            currentState = MechState.IDLE;
+                            setState(MechState.IDLE);
                         }
                         break;
                 }
@@ -368,7 +368,7 @@ public class MechController {
                     aprilTagRunning = false;
                     aprilTagStageStart = 0;
                     aprilTagElapsed = 0;
-                    currentState = MechState.IDLE; // Stop april tage state
+                    setState(MechState.IDLE); // Stop april tage state
                     break;
                 }
                 if (aprilTagElapsed >= APRIL_TAG_WAIT_MS) { // If timed out
@@ -376,7 +376,7 @@ public class MechController {
                     aprilTagRunning = false;
                     aprilTagStageStart = 0;
                     aprilTagElapsed = 0;
-                    currentState = MechState.IDLE; // Stop april tage state
+                    setState(MechState.IDLE); // Stop april tage state
                     break;
                 }
                 break;
@@ -391,7 +391,7 @@ public class MechController {
                         humanIntakeRunning = true;
 
                     } else {
-                        currentState = MechState.IDLE; // Stop human stage
+                        setState(MechState.IDLE); // Stop human stage
                         break;
                     }
 
