@@ -12,6 +12,8 @@ public class MechController {
     private final VisionController visionController;
     private MechState currentState;
 
+    private MechState previousState = MechState.IDLE;
+
 
     // Hardware constants
     public static final double[] INTAKE = {0, 116, 251}; // Indexer 0, 1, 2 @ Intake Post degrees
@@ -410,6 +412,65 @@ public class MechController {
         }
     }
 
+    // Cleanup State
+
+    private void onStateExit(MechState from, MechState to) {
+        switch (from) {
+            case INTAKE_STATE:
+                // Stop intake motor and reset intake state machine
+                robot.intakeMot.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                robot.intakeMot.setPower(0);
+                targetPos = robot.intakeMot.getCurrentPosition();
+                intakeStage = 0;
+                intakeTargetIndex = -1;
+                break;
+
+            case SHOOT_STATE:
+            case SHOOT_PURPLE:
+            case SHOOT_GREEN:
+                // Ensure shooter is off and shooting state is reset
+                runShootingMot(0);
+                shootingMotorRunning = false;
+                motorInitialWaitDone = false;
+                shootStage = 0;
+                shootPatternIndex = 1;
+                slotToShoot = -1;
+                shootElapsed = 0;
+                shootStageStart = 0;
+                break;
+
+            case APRIL_TAG:
+                aprilTagRunning = false;
+                aprilTagStageStart = 0;
+                aprilTagElapsed = 0;
+                break;
+
+            case HUMAN_STATE:
+                humanIntakeRunning = false;
+                humanIndex = -1;
+                humanStateStart = 0;
+                break;
+
+            default:
+                break;
+        }
+
+        // When we enter IDLE, make sure all actuators are safe
+        if (to == MechState.IDLE) {
+            // Stop intake
+            robot.intakeMot.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            robot.intakeMot.setPower(0);
+
+            // Stop shooter
+            runShootingMot(0);
+            shootingMotorRunning = false;
+            motorInitialWaitDone = false;
+
+            // Ensure lifter is down
+            setLifter(0);
+        }
+    }
+
     // State machine methods
 
     public MechState getCurrentState() {
@@ -417,11 +478,19 @@ public class MechController {
     }
 
     public void setState(MechState newState) {
-        currentState = newState;
+        if (newState == null) return;
+
+        if (this.currentState != newState) {
+            onStateExit(this.currentState, newState);
+            this.previousState = this.currentState;
+            this.currentState = newState;
+        }
     }
+
     public void update() {
-        handleMechState(currentState);
+        handleMechState(this.currentState);
     }
+
     public void setIndexer(double targetDegrees) {
         if (lastIndexer != targetDegrees) {
             double pos = targetDegrees / MAX_SERVO_ROTATION;

@@ -11,16 +11,16 @@ public class Blue {
     public static final Pose SCORE_POSE   = new Pose(58, 90, Math.toRadians(135));
 
     // Highest (First Set) of Artifacts from the Spike Mark.
-    public static final Pose ALIGN1_POSE  = new Pose(41.5, 84, Math.toRadians(0));
-    public static final Pose PICKUP1_POSE = new Pose(26.5, 84, Math.toRadians(0));
+    public static final Pose ALIGN1_POSE  = new Pose(50, 84, Math.toRadians(0));
+    public static final Pose PICKUP1_POSE = new Pose(24, 84, Math.toRadians(0));
 
     // Middle (Second Set) of Artifacts from the Spike Mark.
-    public static final Pose ALIGN2_POSE  = new Pose(41.5, 60, Math.toRadians(0));
-    public static final Pose PICKUP2_POSE = new Pose(26.5, 60, Math.toRadians(0));
+    public static final Pose ALIGN2_POSE  = new Pose(50, 60, Math.toRadians(0));
+    public static final Pose PICKUP2_POSE = new Pose(24, 60, Math.toRadians(0));
 
     // Lowest (Last Set) of Artifacts from the Spike Mark.
-    public static final Pose ALIGN3_POSE  = new Pose(41.5, 36, Math.toRadians(0));
-    public static final Pose PICKUP3_POSE = new Pose(26.5, 36, Math.toRadians(0));
+    public static final Pose ALIGN3_POSE  = new Pose(50, 36, Math.toRadians(0));
+    public static final Pose PICKUP3_POSE = new Pose(24, 36, Math.toRadians(0));
 
     // Teleop
     // Gate Start & End
