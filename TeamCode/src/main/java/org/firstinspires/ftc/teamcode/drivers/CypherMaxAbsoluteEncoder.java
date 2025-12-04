@@ -14,6 +14,13 @@ import com.qualcomm.robotcore.util.Range;
 public class CypherMaxAbsoluteEncoder {
 
     private static final double MAX_COUNTS = 4095.0;
+    /**
+     * The encoder transmits 12 high start pulses followed by 0-4095 high data pulses
+     * inside a 4119-pulse frame. Use these values to convert duty cycle into counts.
+     */
+    private static final double MAX_COUNTS = 4095.0;
+    private static final double START_PULSES = 12.0;
+    private static final double FRAME_PULSES = 4119.0;
 
     private final DigitalChannel pwmInput;
     private boolean lastState;
@@ -21,6 +28,8 @@ public class CypherMaxAbsoluteEncoder {
     private long lastFallingTimeNs;
     private double dutyCycle;
     private double lastPositionCounts;
+    private double zeroOffsetCounts;
+    private boolean validReading;
 
     /**
      * Create a new Cypher Max reader.
@@ -53,6 +62,10 @@ public class CypherMaxAbsoluteEncoder {
                 long highNs = lastFallingTimeNs - lastRisingTimeNs;
                 dutyCycle = (double) highNs / periodNs;
                 lastPositionCounts = Range.clip(dutyCycle * MAX_COUNTS, 0, MAX_COUNTS);
+                double encodedPulses = dutyCycle * FRAME_PULSES;
+                double decodedCounts = encodedPulses - START_PULSES;
+                validReading = encodedPulses >= START_PULSES && encodedPulses <= START_PULSES + MAX_COUNTS;
+                lastPositionCounts = Range.clip(decodedCounts, 0, MAX_COUNTS);
             }
             lastRisingTimeNs = now;
         }
@@ -80,9 +93,55 @@ public class CypherMaxAbsoluteEncoder {
     }
 
     /**
+     * @return absolute position in raw counts adjusted by any configured zero offset.
+     */
+    public double getZeroedPositionCounts() {
+        double adjusted = lastPositionCounts - zeroOffsetCounts;
+        if (adjusted < 0) {
+            adjusted += MAX_COUNTS + 1;
+        }
+        return Range.clip(adjusted, 0, MAX_COUNTS);
+    }
+
+    /**
      * @return absolute position in degrees (0-360)
      */
     public double getPositionDegrees() {
         return (lastPositionCounts / MAX_COUNTS) * 360.0;
+    }
+
+    /**
+     * @return absolute position in degrees (0-360) adjusted by any configured zero offset.
+     */
+    public double getZeroedPositionDegrees() {
+        return (getZeroedPositionCounts() / MAX_COUNTS) * 360.0;
+    }
+
+    /**
+     * Apply an offset that is subtracted from the raw absolute reading. Use this to
+     * align the factory-calibrated zero with your mechanical zero reference.
+     *
+     * @param offsetCounts value in counts (0-4095)
+     */
+    public void setZeroOffsetCounts(double offsetCounts) {
+        zeroOffsetCounts = Range.clip(offsetCounts, 0, MAX_COUNTS);
+    }
+
+    /**
+     * Apply an offset in degrees that is subtracted from the raw absolute reading.
+     *
+     * @param offsetDegrees value in degrees (0-360)
+     */
+    public void setZeroOffsetDegrees(double offsetDegrees) {
+        double offsetCounts = (offsetDegrees / 360.0) * MAX_COUNTS;
+        setZeroOffsetCounts(offsetCounts);
+    }
+
+    /**
+     * @return true if the measured duty cycle fell within the expected frame window
+     *         (i.e., at least the 12 start pulses and no more than the total frame)
+     */
+    public boolean isValid() {
+        return validReading;
     }
 }
