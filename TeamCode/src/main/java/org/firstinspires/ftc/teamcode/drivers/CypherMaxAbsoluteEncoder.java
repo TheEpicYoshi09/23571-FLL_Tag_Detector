@@ -13,7 +13,6 @@ import com.qualcomm.robotcore.util.Range;
  */
 public class CypherMaxAbsoluteEncoder {
 
-    private static final double MAX_COUNTS = 4095.0;
     /**
      * The encoder transmits 12 high start pulses followed by 0-4095 high data pulses
      * inside a 4119-pulse frame. Use these values to convert duty cycle into counts.

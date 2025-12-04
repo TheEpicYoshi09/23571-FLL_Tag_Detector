@@ -3,7 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import java.util.List;
@@ -120,11 +120,15 @@ public class ReadObelisk {
         }
 
         int id = fiducials.get(0).getFiducialId();
-        return switch (id) {
-            case 21 -> new ObeliskPattern(ArtifactColor.GREEN, ArtifactColor.PURPLE, ArtifactColor.PURPLE);
-            case 22 -> new ObeliskPattern(ArtifactColor.PURPLE, ArtifactColor.GREEN, ArtifactColor.PURPLE);
-            case 23 -> new ObeliskPattern(ArtifactColor.PURPLE, ArtifactColor.PURPLE, ArtifactColor.GREEN);
-            default -> null;
-        };
+        switch (id) {
+            case 21:
+                return new ObeliskPattern(ArtifactColor.GREEN, ArtifactColor.PURPLE, ArtifactColor.PURPLE);
+            case 22:
+                return new ObeliskPattern(ArtifactColor.PURPLE, ArtifactColor.GREEN, ArtifactColor.PURPLE);
+            case 23:
+                return new ObeliskPattern(ArtifactColor.PURPLE, ArtifactColor.PURPLE, ArtifactColor.GREEN);
+            default:
+                return null;
+        }
     }
 }
