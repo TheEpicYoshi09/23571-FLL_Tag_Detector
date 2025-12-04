@@ -13,6 +13,7 @@ import com.qualcomm.robotcore.util.Range;
  */
 public class CypherMaxAbsoluteEncoder {
 
+    private static final double MAX_COUNTS = 4095.0;
     /**
      * The encoder transmits 12 high start pulses followed by 0-4095 high data pulses
      * inside a 4119-pulse frame. Use these values to convert duty cycle into counts.
@@ -60,6 +61,7 @@ public class CypherMaxAbsoluteEncoder {
             if (periodNs > 0 && lastFallingTimeNs > lastRisingTimeNs) {
                 long highNs = lastFallingTimeNs - lastRisingTimeNs;
                 dutyCycle = (double) highNs / periodNs;
+                lastPositionCounts = Range.clip(dutyCycle * MAX_COUNTS, 0, MAX_COUNTS);
                 double encodedPulses = dutyCycle * FRAME_PULSES;
                 double decodedCounts = encodedPulses - START_PULSES;
                 validReading = encodedPulses >= START_PULSES && encodedPulses <= START_PULSES + MAX_COUNTS;
