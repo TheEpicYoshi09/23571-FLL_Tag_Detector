@@ -2,9 +2,6 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-
 import org.firstinspires.ftc.teamcode.subsystems.ReadObelisk;
 
 /**
@@ -30,65 +27,14 @@ public class ReadObeliskTest extends LinearOpMode {
             return;
         }
 
-        // Ensure the Limelight is on the obelisk-reading pipeline.
-        robot.limelight.pipelineSwitch(1);
+        ReadObelisk.ObeliskPattern detectedPattern = obeliskReader.scanForPattern();
 
-        boolean allianceRed = robot.refreshAllianceFromSwitchState();
-        int sweepTarget = allianceRed ? Constants.turret_OBELISK_LEFT_LIMIT : Constants.turret_OBELISK_RIGHT_LIMIT;
-        String sweepDirection = allianceRed ? "LEFT (negative)" : "RIGHT (positive)";
-
-        DcMotorEx turret = robot.turret;
-        ReadObelisk.ObeliskPattern detectedPattern = ReadObelisk.getCachedPattern();
-        boolean targetFound = detectedPattern != null;
-
-        // Sweep toward the appropriate alliance limit while checking for the tag.
-        turret.setTargetPosition(sweepTarget);
-        turret.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        turret.setPower(0.35);
-
-        while (opModeIsActive() && turret.isBusy() && !targetFound) {
-            detectedPattern = obeliskReader.decodeLatestAndCache();
-            targetFound = detectedPattern != null;
-
-            telemetry.addData("Alliance Color", allianceRed ? "RED" : "BLUE");
-            telemetry.addData("Turret Sweep", sweepDirection);
-            telemetry.addData("Turret Position", turret.getCurrentPosition());
-            telemetry.addData("Target Found", targetFound);
-            if (targetFound) {
-                telemetry.addData("Pattern", detectedPattern);
-            }
-            telemetry.update();
-            idle();
-        }
-
-        // One last decode in case the tag appeared as motion stopped.
-        if (!targetFound) {
-            detectedPattern = obeliskReader.decodeLatestAndCache();
-            targetFound = detectedPattern != null;
-        }
-
-        // Return the turret to home for the next mode.
-        turret.setTargetPosition(Constants.turretHome);
-        turret.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        turret.setPower(0.35);
-
-        while (opModeIsActive() && turret.isBusy()) {
-            telemetry.addData("Alliance Color", allianceRed ? "RED" : "BLUE");
-            telemetry.addData("Turret Sweep", "Returning to home");
-            telemetry.addData("Turret Position", turret.getCurrentPosition());
-            telemetry.addData("Target Found", targetFound);
-            if (targetFound) {
-                telemetry.addData("Pattern", detectedPattern);
-            }
-            telemetry.update();
-            idle();
-        }
-
-        telemetry.addData("Alliance Color", allianceRed ? "RED" : "BLUE");
+        boolean allianceColor = robot.refreshAllianceFromSwitchState();
+        telemetry.addData("Alliance Color", allianceColor ? "RED" : "BLUE");
         telemetry.addData("Turret Sweep", "Complete");
-        telemetry.addData("Turret Position", turret.getCurrentPosition());
-        telemetry.addData("Target Found", targetFound);
-        if (targetFound) {
+        telemetry.addData("Turret Position", robot.turret.getCurrentPosition());
+        telemetry.addData("Target Found", detectedPattern != null);
+        if (detectedPattern != null) {
             telemetry.addData("Pattern", detectedPattern);
         }
         telemetry.update();

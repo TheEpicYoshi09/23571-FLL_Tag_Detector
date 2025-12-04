@@ -90,36 +90,58 @@ public class ReadObelisk {
         }
 
         boolean allianceColor = robot.refreshAllianceFromSwitchState();
+        String sweepDirection = allianceColor ? "LEFT (negative)" : "RIGHT (positive)";
 
         robot.limelight.pipelineSwitch(1);
         robot.refreshLimelightResult();
 
         int targetTicks = allianceColor ? Constants.turret_OBELISK_LEFT_LIMIT : Constants.turret_OBELISK_RIGHT_LIMIT;
 
+        ObeliskPattern detected = cachedPattern;
+        boolean targetFound = detected != null;
+
         driveTurretTo(targetTicks);
 
         while (opMode.opModeIsActive() && robot.turret.isBusy()) {
             robot.refreshLimelightResult();
-            ObeliskPattern detected = decodePattern(robot.getLatestLimelightResult());
-            if (detected != null) {
+            detected = decodePattern(robot.getLatestLimelightResult());
+            targetFound = detected != null;
+            if (targetFound) {
                 cachedPattern = detected;
                 SharedState.saveObeliskPattern(cachedPattern);
+            }
+
+            telemetry.addData("Alliance Color", allianceColor ? "RED" : "BLUE");
+            telemetry.addData("Turret Sweep", sweepDirection);
+            telemetry.addData("Turret Position", robot.turret.getCurrentPosition());
+            telemetry.addData("Target Found", targetFound);
+            if (targetFound) {
+                telemetry.addData("Pattern", cachedPattern);
+            }
+            telemetry.update();
+
+            opMode.idle();
+            if (targetFound) {
                 break;
             }
-            opMode.idle();
         }
 
         if (cachedPattern == null) {
             cachedPattern = decodePattern(robot.getLatestLimelightResult());
             if (cachedPattern != null) {
                 SharedState.saveObeliskPattern(cachedPattern);
+                targetFound = true;
             }
         }
 
         driveTurretTo(Constants.turretHome);
 
+        telemetry.addData("Alliance Color", allianceColor ? "RED" : "BLUE");
+        telemetry.addData("Turret Sweep", "Returning to home");
+        telemetry.addData("Turret Position", robot.turret.getCurrentPosition());
+        telemetry.addData("Target Found", targetFound);
         if (cachedPattern != null) {
-            telemetry.addData("Obelisk Pattern", cachedPattern.toString());
+            telemetry.addData("Pattern", cachedPattern.toString());
         } else {
             telemetry.addLine("No valid obelisk tag detected");
         }
