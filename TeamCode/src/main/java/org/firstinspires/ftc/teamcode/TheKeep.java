@@ -98,7 +98,7 @@ public class TheKeep extends OpMode {
 
         // These lines set the intakes power to 100% if the square button is pressed otherwise it sets it to 0%
         if (gamepad1.square) {
-            intake.setPower(1);
+            intake.setPower(.5);
         } else intake.setPower(0);
 
         // These lines grab the april tag data then write any tags data to the telemetry

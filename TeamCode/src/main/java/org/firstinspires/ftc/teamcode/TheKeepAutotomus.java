@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
@@ -24,7 +25,7 @@ public class TheKeepAutotomus extends LinearOpMode {
     private DcMotor FrontR = null;
     private DcMotor BackL = null;
     private DcMotor BackR = null;
-    private CRServo intake = null;
+    private DcMotor intake = null;
     private DcMotor Shooter = null;
     private Servo ballEjector = null;
     private Servo fidgetTech = null;
@@ -46,7 +47,30 @@ public class TheKeepAutotomus extends LinearOpMode {
 
     @Override
     public void runOpMode() {
+        // Calls a function to initialize the camera
+        initAprilTag();
 
+        // Initialize the wheels
+        FrontL = hardwareMap.get(DcMotor.class,"FrontL");
+        FrontR = hardwareMap.get(DcMotor.class, "FrontR");
+        BackL = hardwareMap.get(DcMotor.class, "BackL");
+        BackR = hardwareMap.get(DcMotor.class, "BackR");
+
+        // Sets the wheels directions
+        FrontL.setDirection(DcMotorSimple.Direction.FORWARD);
+        FrontR.setDirection(DcMotorSimple.Direction.REVERSE);
+        BackL.setDirection(DcMotorSimple.Direction.FORWARD);
+        BackR.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        // Initialize the shooter and intake
+        Shooter = hardwareMap.get(DcMotor.class,"Shooter");
+        intake = hardwareMap.get(DcMotor.class,"intake");
+
+        // Initialize the ball ejector and fidget tech servos
+        ballEjector = hardwareMap.get(Servo.class, "ballEjector");
+        fidgetTech = hardwareMap.get(Servo.class, "spinIndexer");
+
+        waitForStart();
     }
 
     private void setWheelPower(double speed, double strafe, double turn, double multiplier) {
