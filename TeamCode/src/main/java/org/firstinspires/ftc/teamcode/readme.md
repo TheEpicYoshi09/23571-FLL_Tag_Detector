@@ -75,8 +75,8 @@ Driver Station's OpMode list.
 Each OpMode sample class begins with several lines of code like the ones shown below:
 
 ```
- @TeleOp(name="Template: Linear OpMode", group="Linear Opmode")
- @Disabled
+  (name="Template: Linear OpMode", group="Linear Opmode")
+  
 ```
 
 The name that will appear on the driver station's "opmode list" is defined by the code:
@@ -85,7 +85,7 @@ You can change what appears between the quotes to better describe your opmode.
 The "group=" portion of the code can be used to help organize your list of OpModes.
 
 As shown, the current OpMode will NOT appear on the driver station's OpMode list because of the
-  ``@Disabled`` annotation which has been included.
+  `` `` annotation which has been included.
 This line can simply be deleted , or commented out, to make the OpMode visible.
 
 
@@ -124,7 +124,7 @@ Note: Some names start with "Team" and others start with "team".  This is intent
 4)  In the new Team0417/src/main folder, edit the "AndroidManifest.xml" file, change the line that contains
          package="org.firstinspires.ftc.teamcode"
     to be
-         package="org.firstinspires.ftc.team0417"
+         package="org.firstinspires.ftc.team0417" 
 
 5)  Add:    include ':Team0417' to the "/settings.gradle" file.
     
