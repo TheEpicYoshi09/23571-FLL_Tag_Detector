@@ -1,5 +1,11 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
+import com.acmerobotics.roadrunner.Action;
+import com.acmerobotics.roadrunner.InstantAction;
+import com.acmerobotics.roadrunner.ParallelAction;
+import com.acmerobotics.roadrunner.SequentialAction;
+import com.acmerobotics.roadrunner.SleepAction;
+import com.acmerobotics.roadrunner.ftc.Actions;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.arcrobotics.ftclib.gamepad.GamepadKeys;
 import com.qualcomm.robotcore.hardware.Gamepad;
@@ -58,8 +64,6 @@ public class Bot {
         g1.readButtons();
         g2.readButtons();
 
-        handleMovement();
-
         if (g1.wasJustPressed(GamepadKeys.Button.LEFT_STICK_BUTTON)) {
             fieldCentric = !fieldCentric;
         }
@@ -109,7 +113,7 @@ public class Bot {
 
     private void handleQuickOuttakeState() {
         if (g2.wasJustPressed(GamepadKeys.Button.X)) {
-            //TODO:Start quickspin
+            Actions.runBlocking(actionQuickSpin());
         }
 
         if (g2.wasJustPressed(GamepadKeys.Button.A)) state = (FSM.Intake);
@@ -129,5 +133,29 @@ public class Bot {
     private void handleEndgameState() {
         // TODO: activate actuator to open slides or perform endgame actions
         if (g2.wasJustPressed(GamepadKeys.Button.A)) state = (FSM.Intake);
+    }
+
+    public Action periodics(){
+        return new ParallelAction(
+            new InstantAction(() -> outtake.periodic()),
+            new InstantAction(() -> indexer.update())
+
+                );
+    }
+
+
+    public Action actionQuickSpin() {
+        double ballRespinWait = 0.1;
+        return new SequentialAction(
+                new InstantAction(() -> outtake.regressionRPM()),
+                new InstantAction(() -> indexer.setIntaking(false)),
+                new SleepAction(1),
+                new InstantAction(() -> actuator.up()), //ball 1 already on indexer gets shot immediately
+                new SleepAction(actuator.getWaitTime()),
+                new InstantAction(()->indexer.moveTo(indexer.nextState())), // feed ball 2
+                new SleepAction(ballRespinWait),
+                new InstantAction(() -> indexer.moveTo(indexer.nextState())), //feed ball 3
+                new SleepAction(ballRespinWait)
+                );
     }
 }

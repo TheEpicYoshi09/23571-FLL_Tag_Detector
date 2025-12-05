@@ -14,6 +14,8 @@ public class Actuator {
 
     private final SimpleServo servo;
 
+    private double waitTime = 0.5; // seconds
+
     public Actuator(HardwareMap hardwareMap) {
         servo = new SimpleServo(hardwareMap, "actuator", 0, 360);
     }
@@ -39,5 +41,9 @@ public class Actuator {
             up();
         else
             down();
+    }
+
+    public double getWaitTime() {
+        return waitTime; // seconds
     }
 }
