@@ -185,6 +185,7 @@ public class SigmaTeleop extends LinearOpMode {
         telemetry.addData("April Lock", continuousAprilTagLock);
         telemetry.addData("Turn Correction", turnCorrection);
         telemetry.addData("Indexer State", indexer.getState());
+        telemetry.addData("Is", indexer.getIntakingOrOuttaking());
         telemetry.addData("Next State", indexer.nextState());
         telemetry.addData("Indexer Voltage", indexer.getVoltageAnalog());
         telemetry.addData("target voltage", indexer.getTargetVoltage());

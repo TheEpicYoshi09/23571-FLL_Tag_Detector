@@ -133,4 +133,8 @@ public class Indexer {
     public IndexerState nextState() {
         return state.next();
     }
+
+    public String getIntakingOrOuttaking() {
+        return intaking ? "Intaking" : "Outtaking";
+    }
 }
