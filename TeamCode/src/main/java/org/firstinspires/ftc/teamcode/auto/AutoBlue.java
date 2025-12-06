@@ -228,7 +228,7 @@ public class AutoBlue extends OpMode {
 
         // These loop the movements of the robot, these must be called continuously in order to work
         mechController.update(); // Keeps running states till IDLE
-        if (mechController.getCurrentState() != MechState.SHOOT_STATE ) { //|| !visionController.distanceSensor()) {
+        if (mechController.getCurrentState() != MechState.SHOOT_STATE && !visionController.distanceSensor()) {
             follower.update();
             autonomousPathUpdate();
         }
