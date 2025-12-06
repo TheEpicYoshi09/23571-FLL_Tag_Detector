@@ -29,6 +29,8 @@ public class TheKeep extends OpMode {
     private Servo ballEjector = null;
     private Servo fidgetTech = null;
 
+    private boolean intakeUse = false;
+
     // Sets up a variable to store what snap point the fidget tech is at
     private int number = 13;
     private final double[] spinPosition = {0.03,0.06,0.1,0.14,0.17,0.21,0.25,0.28,0.32,0.36,0.4,0.43,0.47,0.51,0.55,0.58,0.62,0.66,0.7,0.73,0.77,0.8,0.83,0.87,0.91,0.94,0.98};
@@ -43,7 +45,7 @@ public class TheKeep extends OpMode {
     private boolean purpleGreenPurple = false;
     private boolean purplePurpleGreen = false;
     private AprilTagDetection redBase = null;
-    
+
 
     @Override
     public void init() {
@@ -77,34 +79,44 @@ public class TheKeep extends OpMode {
     public void loop() {
 
         // This calls a function which, controls the wheels
-        setWheelPower(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x,0.5);
+        setWheelPower(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x*.6,1);
 
         // These lines check to make sure the fidget tech is not at the maximum or minimum range
         // and if its not move it to the next snap point right or left depending on the trigger you pressed
         if (gamepad1.leftBumperWasPressed() && number != 0) number -= 1;
         if (gamepad1.rightBumperWasPressed() && number != 26) number += 1;
+        if (number == 0) {
+            number = 12;
+        }
+        if (number == 26) {
+            number = 14;
+        }
         fidgetTech.setPosition(spinPosition[number]);
 
         // These lines set the shooter's power to 100% if the circle button is pressed and 0% if its not
-        if (gamepad1.circle) {
+        if (gamepad1.left_trigger > 0) {
             Shooter.setPower(1);
         } else Shooter.setPower(0);
 
         // These lines check to see if the fidget tech is in the way of the ball ejector if it's not when
         // you press the triangle it will swing knocking out the ball
-        if (gamepad1.triangle && number % 2 == 1) {
+        if (gamepad1.right_trigger > 0 && number % 2 == 1) {
             ballEjector.setPosition(.3);
         } else ballEjector.setPosition(0);
-
-        // These lines set the intakes power to 100% if the square button is pressed otherwise it sets it to 0%
-        if (gamepad1.square) {
+        if (gamepad1.circleWasPressed()) {
             intake.setPower(1);
-        } else intake.setPower(0);
+        }
+        if (gamepad1.squareWasPressed()) {
+            intake.setPower(0);
+        }
+        // These lines set the intakes power to 100% if the square button is pressed otherwise it sets it to 0%
 
         // These lines grab the april tag data then write any tags data to the telemetry
         getAprilTagData();
         if (blueBase != null) telemetry.addData("Blue Base Range", blueBase.ftcPose.range);
         if (redBase != null) telemetry.addData("Red Base Range", redBase.ftcPose.range);
+        if (blueBase != null) telemetry.addData("Blue Base Bearing", blueBase.ftcPose.bearing);
+        if (redBase != null) telemetry.addData("Red Base Bearing", redBase.ftcPose.bearing);
         if (greenPurplePurple) {
             telemetry.addData("Pattern Is","Green Purple Purple" );
         } else if (purpleGreenPurple) {
@@ -162,7 +174,7 @@ public class TheKeep extends OpMode {
         VisionPortal.Builder builder = new VisionPortal.Builder();
 
         // Set the camera (webcam vs. built-in RC phone camera).
-            builder.setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"));
+        builder.setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"));
 
         // Choose a camera resolution. Not all cameras support all resolutions.
         //builder.setCameraResolution(new Size(640, 480));
@@ -224,4 +236,3 @@ public class TheKeep extends OpMode {
     }   // end method telemetryAprilTag()
 
 }
-
