@@ -4,6 +4,7 @@ import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -21,6 +22,7 @@ public class RobotHardware {
     public final IMU imu;
     public final Telemetry telemetry;
     public final RevColorSensorV3 sensorR, sensorL;
+    public DigitalChannel laserInputR, laserInputL;
     public final WebcamName camera;
     /*
      * Position:
@@ -56,9 +58,12 @@ public class RobotHardware {
 
         sensorL = hwMap.get(RevColorSensorV3.class, "sensorL"); // EI2C 2
         sensorR = hwMap.get(RevColorSensorV3.class, "sensorR"); // EI2C 3
+        laserInputR = hwMap.get(DigitalChannel.class, "laserDigitalInputR"); // Digital 0-1
+        laserInputL = hwMap.get(DigitalChannel.class, "laserDigitalInputL"); // Digital 2-3
         camera = hwMap.get(WebcamName.class, "Webcam 1");
 
         setMotorDirections();
+        setLaserInputMode();
     }
 
     private void setMotorDirections() {
@@ -66,5 +71,9 @@ public class RobotHardware {
         intakeMot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         intakeMot.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         shootingMot.setDirection(DcMotor.Direction.FORWARD);
+    }
+    private void setLaserInputMode() {
+        laserInputR.setMode(DigitalChannel.Mode.INPUT);
+        laserInputL.setMode(DigitalChannel.Mode.INPUT);
     }
 }

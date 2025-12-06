@@ -81,7 +81,7 @@ public class MechController {
                 break;
 
             case IDLE:
-                setState(MechState.IDLE);
+                currentState = MechState.IDLE;
                 break;
 
             case SHOOT_STATE:

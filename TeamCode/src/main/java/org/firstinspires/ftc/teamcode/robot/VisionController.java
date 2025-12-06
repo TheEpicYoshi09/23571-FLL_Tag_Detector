@@ -3,6 +3,8 @@ package org.firstinspires.ftc.teamcode.robot;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import android.graphics.Color;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
+
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
@@ -64,6 +66,9 @@ public class VisionController {
             telemetry.addData("Tag ", "ID: %d | X: %.1f | Y: %.1f | Heading: %.1f°",
                     tag.id, tag.ftcPose.x, tag.ftcPose.y, tag.ftcPose.yaw);
         }
+    }
+    public boolean distanceSensor() {
+        return robot.laserInputL.getState() || robot.laserInputR.getState();
     }
     public int artifactColor() {
         return isFinalColor(isColor(robot.sensorL), isColor(robot.sensorR));
