@@ -29,10 +29,10 @@ public class Constants {
     public static final double LAUNCHER_D = 0.6;     // Slightly more damping for step changes
 
     ///  SPINDEXER SETPOINTS
-    public static final double spindexerStart = 0.04;
-    public static final double spindexer1 = 0.06;
-    public static final double spindexer2 = 0.43;
-    public static final double spindexer3 = 0.79;
+    public static final double spindexerStart = 0.015;
+    public static final double spindexer1 = 0.015;
+    public static final double spindexer2 = 0.39;
+    public static final double spindexer3 = 0.76;
 
     /// TURRET HOOD POSITIONS
     public static final double hoodMinimum = 0.0;
