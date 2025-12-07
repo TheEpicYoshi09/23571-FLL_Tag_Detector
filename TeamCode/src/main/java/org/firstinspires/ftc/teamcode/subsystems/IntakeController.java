@@ -17,8 +17,17 @@ public class IntakeController {
 
     private boolean spindexerFull = false;
 
+    private final ArtifactTracker.SlotStatus[] cachedSlots = new ArtifactTracker.SlotStatus[]{
+            ArtifactTracker.SlotStatus.VACANT,
+            ArtifactTracker.SlotStatus.VACANT,
+            ArtifactTracker.SlotStatus.VACANT
+    };
+    private long sensorReadAllowedAtNanos = 0L;
+
     private final double[] spindexerPositions = new double[]{Constants.spindexer1, Constants.spindexer2};
     private int spindexerIndex = 0;
+
+    private static final long SENSOR_SETTLE_TIME_NANOS = 500_000_000L; // 0.5 seconds
 
     public IntakeController(RobotHardware robot, ArtifactTracker artifactTracker, Telemetry telemetry) {
         this.robot = robot;
@@ -33,13 +42,27 @@ public class IntakeController {
      * artifacts, the spindexer is returned to position 1.
      */
     public void update() {
-        artifactTracker.update();
-        ArtifactTracker.SlotStatus[] slots = artifactTracker.getSlotStatuses();
+        boolean allowSensorRead = System.nanoTime() >= sensorReadAllowedAtNanos;
+        ArtifactTracker.SlotStatus[] slots = cachedSlots;
+
+        if (allowSensorRead) {
+            artifactTracker.update();
+            ArtifactTracker.SlotStatus[] latest = artifactTracker.getSlotStatuses();
+            System.arraycopy(latest, 0, cachedSlots, 0, cachedSlots.length);
+            slots = cachedSlots;
+        } else {
+            telemetry.addLine("Spindexer settling; holding position");
+        }
 
         spindexerFull = allSlotsFilled(slots);
         if (spindexerFull) {
             moveToPosition(0);
             telemetry.addLine("Spindexer full; returned to position 1");
+            return;
+        }
+
+        if (!allowSensorRead) {
+            telemetry.addData("Spindexer Facing", spindexerIndex + 1);
             return;
         }
 
@@ -93,5 +116,6 @@ public class IntakeController {
         spindexerIndex = index;
         robot.spindexerPos = spindexerPositions[index];
         robot.spindexer.setPosition(robot.spindexerPos);
+        sensorReadAllowedAtNanos = System.nanoTime() + SENSOR_SETTLE_TIME_NANOS;
     }
 }
