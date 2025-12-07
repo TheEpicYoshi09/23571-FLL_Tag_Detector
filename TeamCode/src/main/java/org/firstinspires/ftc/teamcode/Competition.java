@@ -47,8 +47,6 @@ public class Competition extends LinearOpMode {
         boolean aPressed = false;
         boolean bPressed = false;
 
-        boolean dpadLeftPressed = false;
-        boolean dpadRightPressed = false;
         boolean dpadLeft2PreviouslyPressed = false;
         boolean dpadRight2PreviouslyPressed = false;
         boolean backButtonPreviouslyPressed = false;
@@ -202,6 +200,7 @@ public class Competition extends LinearOpMode {
                 }
             }
 
+            /*
             // --- Toggle Close Shot ---
             if (gamepad1.a && !aPressed) {
                 robot.toggleFlywheel(Constants.launcherClose);
@@ -217,6 +216,8 @@ public class Competition extends LinearOpMode {
             } else if (!gamepad1.b) {
                 bPressed = false;
             }
+
+             */
 
             telemetry.addData("Turret Flywheel Enabled", flywheelController.isEnabled());
             telemetry.addData("Turret Target RPM", "%.0f", flywheelController.getTargetRpm());
