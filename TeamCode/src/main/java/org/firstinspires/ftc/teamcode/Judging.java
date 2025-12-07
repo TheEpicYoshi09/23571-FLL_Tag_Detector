@@ -49,7 +49,7 @@ public class Judging extends LinearOpMode {
             // Run turret tracking when enabled
             if (turretTrackingEnabled) {
                 turretTracker.update();
-                robot.headlight.setPosition(0.25);
+                robot.headlight.setPosition(Constants.headlightPower);
             } else {
                 robot.turret.setPower(0);
                 robot.headlight.setPosition(0.0);

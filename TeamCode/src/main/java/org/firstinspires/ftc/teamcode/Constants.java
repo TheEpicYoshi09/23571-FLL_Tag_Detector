@@ -2,6 +2,8 @@ package org.firstinspires.ftc.teamcode;
 
 public class Constants {
 
+    public static final double headlightPower = 0.10;
+
     ///INTAKE SETPOINTS
 
     public static final double intakeForwardPower = 0.75;
