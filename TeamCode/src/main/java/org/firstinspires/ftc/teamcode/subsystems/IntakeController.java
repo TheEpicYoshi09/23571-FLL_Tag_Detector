@@ -23,6 +23,7 @@ public class IntakeController {
             ArtifactTracker.SlotStatus.VACANT
     };
     private long sensorReadAllowedAtNanos = 0L;
+    private long autoRotateAllowedAtNanos = 0L;
 
     private final double[] spindexerPositions = new double[]{Constants.spindexer1, Constants.spindexer2};
     private int spindexerIndex = 0;
@@ -43,6 +44,7 @@ public class IntakeController {
      */
     public void update() {
         boolean allowSensorRead = System.nanoTime() >= sensorReadAllowedAtNanos;
+        boolean allowAutoRotation = System.nanoTime() >= autoRotateAllowedAtNanos;
         ArtifactTracker.SlotStatus[] slots = cachedSlots;
 
         if (allowSensorRead) {
@@ -56,8 +58,12 @@ public class IntakeController {
 
         spindexerFull = allSlotsFilled(slots);
         if (spindexerFull) {
-            moveToPosition(0);
-            telemetry.addLine("Spindexer full; returned to position 1");
+            if (allowAutoRotation) {
+                moveToPosition(0);
+                telemetry.addLine("Spindexer full; returned to position 1");
+            } else {
+                telemetry.addLine("Spindexer full; waiting to rotate to position 1");
+            }
             return;
         }
 
@@ -70,14 +76,22 @@ public class IntakeController {
         if (spindexerIndex == 0) {
             boolean hiddenSlotVacant = slots[2] == ArtifactTracker.SlotStatus.VACANT;
             if (hiddenSlotVacant && slotsFilled(slots, 0, 1)) {
-                moveToPosition(1);
-                telemetry.addLine("Slots 1 & 2 full; rotating to position 2");
+                if (allowAutoRotation) {
+                    moveToPosition(1);
+                    telemetry.addLine("Slots 1 & 2 full; rotating to position 2");
+                } else {
+                    telemetry.addLine("Slots 1 & 2 full; waiting to rotate to position 2");
+                }
             }
         } else {
             boolean hiddenSlotVacant = slots[0] == ArtifactTracker.SlotStatus.VACANT;
             if (hiddenSlotVacant && slotsFilled(slots, 1, 2)) {
-                moveToPosition(0);
-                telemetry.addLine("Slots 2 & 3 full; rotating to position 1");
+                if (allowAutoRotation) {
+                    moveToPosition(0);
+                    telemetry.addLine("Slots 2 & 3 full; rotating to position 1");
+                } else {
+                    telemetry.addLine("Slots 2 & 3 full; waiting to rotate to position 1");
+                }
             }
         }
 
@@ -116,6 +130,8 @@ public class IntakeController {
         spindexerIndex = index;
         robot.spindexerPos = spindexerPositions[index];
         robot.spindexer.setPosition(robot.spindexerPos);
-        sensorReadAllowedAtNanos = System.nanoTime() + SENSOR_SETTLE_TIME_NANOS;
+        long now = System.nanoTime();
+        sensorReadAllowedAtNanos = now + SENSOR_SETTLE_TIME_NANOS;
+        autoRotateAllowedAtNanos = now + SENSOR_SETTLE_TIME_NANOS;
     }
 }
