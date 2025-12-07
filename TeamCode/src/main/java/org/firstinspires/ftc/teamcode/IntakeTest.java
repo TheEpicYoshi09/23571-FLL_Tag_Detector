@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.teamcode.Constants;
 import org.firstinspires.ftc.teamcode.subsystems.ArtifactTracker;
 import org.firstinspires.ftc.teamcode.subsystems.IntakeController;
 
@@ -28,6 +29,18 @@ public class IntakeTest extends LinearOpMode {
                 robot.runIntake(RobotHardware.IntakeDirection.OUT);
             } else {
                 robot.runIntake(RobotHardware.IntakeDirection.STOP);
+            }
+
+            // Spindexer positions on gamepad1 B/X/Y
+            if (gamepad1.b) {
+                robot.spindexer.setPosition(Constants.spindexer1);
+                robot.spindexerPos = Constants.spindexer1;
+            } else if (gamepad1.y) {
+                robot.spindexer.setPosition(Constants.spindexer2);
+                robot.spindexerPos = Constants.spindexer2;
+            } else if (gamepad1.x) {
+                robot.spindexer.setPosition(Constants.spindexer3);
+                robot.spindexerPos = Constants.spindexer3;
             }
 
             telemetry.update();
