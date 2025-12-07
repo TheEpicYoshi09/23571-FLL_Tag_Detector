@@ -54,7 +54,7 @@ public class Constants {
     /// COLOR SENSOR
     public static final double COLOR_SENSOR_PURPLE_RATIO = 1.25; // Blue must exceed red and green by this factor
     public static final double COLOR_SENSOR_GREEN_RATIO = 1.10;   // Green must exceed blue by this factor
-    public static final double COLOR_SENSOR_DETECTION_DISTANCE_MM = 40.0;
+    public static final double COLOR_SENSOR_DETECTION_DISTANCE_MM = 55.0;
 
     ///AUTONOMOUS SETPOINTS
 
