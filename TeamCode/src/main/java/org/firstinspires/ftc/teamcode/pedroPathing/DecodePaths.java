@@ -22,6 +22,6 @@ public class DecodePaths {
 
     ///  RED CLOSE
 
-    public final pose RedNearStart = new Pose (121,120, Math.toRadians(90));
+    public final Pose RedNearStart = new Pose (121,120, Math.toRadians(90));
     public final Pose RedNearShoot = new Pose (96,95, Math.toRadians(90));
 }
