@@ -151,12 +151,12 @@ public class SigmaTeleop extends LinearOpMode {
 
         // Set intaking ON
         if (g2.wasJustPressed(GamepadKeys.Button.A) && !actuator.isActivated()) {
-            if (!indexer.isBusy()) indexer.setIntaking(true);
+            indexer.setIntaking(true);
         }
 
         // Set intaking OFF
         if (g2.wasJustPressed(GamepadKeys.Button.B)) {
-            if (!indexer.isBusy()) indexer.setIntaking(false);
+            indexer.setIntaking(false);
         }
 
         indexer.update();
@@ -185,6 +185,7 @@ public class SigmaTeleop extends LinearOpMode {
         telemetry.addData("April Lock", continuousAprilTagLock);
         telemetry.addData("Turn Correction", turnCorrection);
         telemetry.addData("Indexer State", indexer.getState());
+        telemetry.addData("Is", indexer.getIntakingOrOuttaking());
         telemetry.addData("Next State", indexer.nextState());
         telemetry.addData("Indexer Voltage", indexer.getVoltageAnalog());
         telemetry.addData("target voltage", indexer.getTargetVoltage());
