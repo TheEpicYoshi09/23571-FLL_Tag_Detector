@@ -26,7 +26,7 @@ public class Starter_DriveTrain extends OpMode {
         backRight.setDirection(DcMotor.Direction.REVERSE);
 
         telemetry.addLine("DriveTrain init complete");
-        telemetry.update()
+        telemetry.update();
     }
 
     @Override
