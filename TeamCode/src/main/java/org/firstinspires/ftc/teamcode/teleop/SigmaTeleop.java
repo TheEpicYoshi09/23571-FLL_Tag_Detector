@@ -187,8 +187,10 @@ public class SigmaTeleop extends LinearOpMode {
         telemetry.addData("Indexer State", indexer.getState());
         telemetry.addData("Is", indexer.getIntakingOrOuttaking());
         telemetry.addData("Next State", indexer.nextState());
-        telemetry.addData("Indexer Voltage", indexer.getVoltageAnalog());
-        telemetry.addData("target voltage", indexer.getTargetVoltage());
+        telemetry.addData("Indexer Voltage", indexer.getActualMeasuredVoltage());
+        telemetry.addData("target voltage", indexer.getActualTargetVoltage());
+        telemetry.addData("offset measured voltage", indexer.getOffsetMeasuredVoltage());
+        telemetry.addData("offset target voltage", indexer.getOffsetTargetVoltage());
         telemetry.addData("Outtake Power", outtake.getPower());
         telemetry.addData("measured RPM",outtake.getRPM());
         telemetry.addData("target RPM",outtake.getTargetRPM());

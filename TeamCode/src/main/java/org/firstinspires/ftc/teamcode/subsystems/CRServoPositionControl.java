@@ -1,4 +1,5 @@
 package org.firstinspires.ftc.teamcode.subsystems;
+
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.AnalogInput;
@@ -7,78 +8,123 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 @Config
 public class CRServoPositionControl
 {
-    //objects
     private final CRServo crServo;
-    private final AnalogInput encoder; // Analog input for position from 4th wire
+    private final AnalogInput encoder;
     private ElapsedTime timer = new ElapsedTime();
 
-    // tuning constants
+    // Gains
     public static double kp = 0.41;
     public static double ki = 0.0;
     public static double kf = 0.01;
     public static double filterAlpha = 0.9;
 
-    // general constants
-    private static final double ticksPerRev = 3.3;
-    private static final double degreesPerRev = 360.0;
+    // Encoder constants
+    public static double ticksPerRev = 3.3;     // full voltage range
+    public static double degreesPerRev = 360.0;
 
-    // usage variables
-    private double integral = 0.0;
+    // GLOBAL OFFSET APPLIED ONLY DURING CONTROL
+    public static double constantOffset = 0.15;
+
+    // Internal state
+    private double integral = 0;
     private double filteredVoltage = 0;
-    private double targetVoltage;
+
+    private double targetVoltage_actual = 0;   // true target
+    private double targetVoltage_offset = 0;   // target + offset
 
     public CRServoPositionControl(CRServo servo, AnalogInput encoder)
     {
         this.crServo = servo;
         this.encoder = encoder;
-        timer.reset();
     }
 
     public void moveToAngle(double targetAngleDegrees)
     {
-        targetVoltage = angleToVoltage(targetAngleDegrees);
-        double currentVoltage = getFilteredVoltage();
+        // Real target voltage
+        targetVoltage_actual = angleToVoltage(targetAngleDegrees);
 
-        double error = targetVoltage - currentVoltage;
+        // Offset target voltage used by PID
+        targetVoltage_offset = applyOffset(targetVoltage_actual);
 
-        // Shortest path wrap handling, with offset to avoid error spikes
-        double wrapPoint = (ticksPerRev / 2) + (ticksPerRev / 4); // Add offset
-        if (error > wrapPoint) { error -= ticksPerRev; }
-        if (error < -wrapPoint) { error += ticksPerRev; }
+        // Measured voltage (raw)
+        double measured = getFilteredVoltage();
 
-        double deltaTime = timer.seconds();
+        // Offset measured voltage used by PID
+        double measured_offset = applyOffset(measured);
+
+        // Compute shortest-path error
+        double error = shortestError(targetVoltage_offset, measured_offset);
+
+        double dt = timer.seconds();
         timer.reset();
-        if (deltaTime <= 0.0001) deltaTime = 0.0001;
+        if (dt < 1e-4) dt = 1e-4;
 
-        integral += error * deltaTime;
+        integral += error * dt;
         integral = Math.max(-2, Math.min(2, integral));
 
         double output = kp * error + ki * integral + kf * Math.signum(error);
-        output = Math.max(-1.0, Math.min(1.0, output));
+        output = Math.max(-1, Math.min(1, output));
+
         crServo.setPower(output);
     }
 
+    /** FILTERED REAL VOLTAGE */
     private double getFilteredVoltage()
     {
-        filteredVoltage = (1 - filterAlpha) * filteredVoltage + filterAlpha * encoder.getVoltage();
+        filteredVoltage =
+                (1 - filterAlpha) * filteredVoltage +
+                        filterAlpha * encoder.getVoltage();
         return filteredVoltage;
     }
 
+    /** GLOBAL OFFSET APPLICATION (with wrap-around) */
+    private double applyOffset(double voltage)
+    {
+        double v = voltage + constantOffset;
+        if (v >= ticksPerRev) v -= ticksPerRev;
+        if (v < 0) v += ticksPerRev;
+        return v;
+    }
+
+    /** Minimal difference on circular space */
+    private double shortestError(double target, double current)
+    {
+        double diff = target - current;
+
+        if (diff > ticksPerRev / 2) diff -= ticksPerRev;
+        if (diff < -ticksPerRev / 2) diff += ticksPerRev;
+
+        return diff;
+    }
+
+    /** DEG → VOLTAGE (real-world) */
     private double angleToVoltage(double angleDegrees)
     {
-        angleDegrees = Math.max(0, Math.min(degreesPerRev, angleDegrees)); // Clamp
-        return (angleDegrees / degreesPerRev) * ticksPerRev;
+        double a = Math.max(0, Math.min(degreesPerRev, angleDegrees));
+        return (a / degreesPerRev) * ticksPerRev;
     }
 
-    public double getTargetVoltage()
+    /** GETTERS */
+    public double getActualTargetVoltage()
     {
-        return targetVoltage;
+        return targetVoltage_actual;
     }
 
+    public double getOffsetTargetVoltage()
+    {
+        return targetVoltage_offset;
+    }
+
+    public double getOffsetMeasuredVoltage()
+    {
+        return applyOffset(getFilteredVoltage());
+    }
     public double getCurrentAngle()
     {
-        return (getFilteredVoltage() / ticksPerRev) * degreesPerRev;
+        double realVoltage = getFilteredVoltage();
+        return (realVoltage / ticksPerRev) * degreesPerRev;
     }
+
 }
 
 /*

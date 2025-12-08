@@ -72,8 +72,10 @@ public class Indexer {
 
     // Only use isBusy() when color sensing fully works
     public boolean isBusy() { return scanPending; }
-    public double getVoltageAnalog() { return indexerAnalog.getVoltage(); }
-    public double getTargetVoltage() { return indexerServoControl.getTargetVoltage(); }
+    public double getActualMeasuredVoltage() { return indexerAnalog.getVoltage(); }
+    public double getActualTargetVoltage() { return indexerServoControl.getActualTargetVoltage(); }
+    public double getOffsetMeasuredVoltage() {return indexerServoControl.getOffsetMeasuredVoltage();}
+    public double getOffsetTargetVoltage() {return indexerServoControl.getOffsetTargetVoltage();}
     public String getIntakingOrOuttaking() {
         return intaking ? "Intaking" : "Outtaking";
     }
