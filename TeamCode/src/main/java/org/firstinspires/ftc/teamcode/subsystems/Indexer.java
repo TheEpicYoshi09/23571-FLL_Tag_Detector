@@ -28,8 +28,7 @@ public class Indexer {
     }
 
     // config
-    public static final double DEADBAND = 1.67;
-    public static double offsetAngle = 105;
+    public static double offsetAngle = 17;
     public static double outtakeOffsetAngle = 5;
     public static double targetAngle = 0;
 
@@ -116,7 +115,6 @@ public class Indexer {
 
         double delta = Math.abs(targetAngle - actualAngle);
         if (delta > 180) delta = 360 - delta;
-        //if (delta < DEADBAND) return;
 
         double wait = Math.min(maxWait, Math.max(minWait, delta * msPerDegree));
         scanTimer.reset();

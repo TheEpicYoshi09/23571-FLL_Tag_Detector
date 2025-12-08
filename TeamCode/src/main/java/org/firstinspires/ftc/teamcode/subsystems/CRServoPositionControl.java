@@ -12,7 +12,6 @@ public class CRServoPositionControl
     private final CRServo crServo;
     private final AnalogInput encoder;
     private final ElapsedTime timer = new ElapsedTime();
-
     // Tunables (Dashboard)
     public static double kp = 0.41;
     public static double ki = 0.00;
@@ -22,6 +21,7 @@ public class CRServoPositionControl
     // Encoder constants
     private static final double ticksPerRev = 3.3;   // voltage range of encoder
     private static final double degreesPerRev = 360; // full circle
+    public static final double DEADBAND = 1.67 / degreesPerRev * ticksPerRev;
 
     // Target state
     private double targetVoltage = 0.0;
@@ -62,6 +62,12 @@ public class CRServoPositionControl
             error -= ticksPerRev;
         } else if (error < -ticksPerRev / 2.0) {
             error += ticksPerRev;
+        }
+
+        // If deadband is ever an issue, tune the size
+        if (Math.abs(error) < DEADBAND) {
+            crServo.setPower(0);
+            return;
         }
 
         // dt
