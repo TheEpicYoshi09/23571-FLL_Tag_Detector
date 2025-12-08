@@ -52,6 +52,10 @@ public class StateMachine {
 
     public State getState() { return currentState; }
 
+    public void init() {
+        //TODO: build our paths here
+    }
+    
     public void update() {
         //TODO: adjust auto pathTimer values, and add sleeps if needed
         //TODO: currently thisll put it in infinite recursion of getting the "closest" balls to the goal, while it should do the first step correctly, i want to minimize time needed to go from a->b, and possibly make time to get another set
