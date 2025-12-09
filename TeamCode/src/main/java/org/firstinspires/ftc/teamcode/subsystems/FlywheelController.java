@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import com.bylazar.telemetry.TelemetryManager;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -32,6 +33,7 @@ public class FlywheelController {
 
     private final RobotHardware robot;
     private final Telemetry telemetry;
+    private final TelemetryManager panelsTelemetry;
     private boolean flywheelEnabled = false;
     private double targetRpm = 0.0;
 
@@ -43,6 +45,7 @@ public class FlywheelController {
                               Telemetry telemetry) {
         this.robot = robot;
         this.telemetry = telemetry;
+        this.panelsTelemetry = robot.getPanelsTelemetry();
     }
 
      /**
@@ -85,6 +88,7 @@ public class FlywheelController {
      */
     public void update() {
         if (!flywheelEnabled) {
+            publishPanelsFlywheelTelemetry(targetRpm, getCurrentRpm());
             return;
         }
 
@@ -130,6 +134,8 @@ public class FlywheelController {
         rpm = Math.max(rpm, Constants.DEFAULT_RPM);
         setFlywheelRpm(rpm);
 
+        publishPanelsFlywheelTelemetry(targetRpm, getCurrentRpm());
+
         if (measuringSpinup && isAtSpeed(Constants.FLYWHEEL_TOLERANCE_RPM)) {
             double elapsedSeconds = spinupTimer.seconds();
             RobotLog.ii("FlywheelController", "Spin-up to %.0f RPM reached in %.2f s", spinupSetpointRpm, elapsedSeconds);
@@ -145,6 +151,8 @@ public class FlywheelController {
             launcherMotor.setVelocity(0);
             launcherMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         }
+
+        publishPanelsFlywheelTelemetry(targetRpm, getCurrentRpm());
     }
 
     private void setFlywheelRpm(double rpm) {
@@ -168,5 +176,15 @@ public class FlywheelController {
 
     private double rpmToTicksPerSecond(double rpm) {
         return (rpm * TICKS_PER_REV) / 60.0;
+    }
+
+    private void publishPanelsFlywheelTelemetry(double target, double current) {
+        if (panelsTelemetry == null) {
+            return;
+        }
+
+        panelsTelemetry.debug("Flywheel Target RPM", String.format("%.0f", target));
+        panelsTelemetry.debug("Flywheel Current RPM", String.format("%.0f", current));
+        panelsTelemetry.update(telemetry);
     }
 }
