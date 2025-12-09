@@ -16,6 +16,7 @@ import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.drivers.rgbIndicator;
 import org.firstinspires.ftc.teamcode.drivers.rgbIndicator.LEDColors;
@@ -86,6 +87,20 @@ public class RobotHardware {
 
     public TelemetryManager getPanelsTelemetry() {
         return panelsTelemetry;
+    }
+
+    /**
+     * Flush any queued Panels telemetry entries. Call this once per loop after all subsystems
+     * have contributed their debug values so the dashboard renders a single coherent packet.
+     */
+    public void flushPanelsTelemetry(Telemetry telemetry) {
+        if (panelsTelemetry == null) {
+            panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
+        }
+
+        if (panelsTelemetry != null) {
+            panelsTelemetry.update(telemetry);
+        }
     }
 
     /**
@@ -198,6 +213,7 @@ public class RobotHardware {
         panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
         PanelsConfigurables.INSTANCE.refreshClass(FlywheelPidfConfig.class);
         refreshLauncherPidfFromConfig();
+        flushPanelsTelemetry(myOpMode.telemetry);
 
         //Telemetry Data
         myOpMode.telemetry.addData("Status", "Initialized");
@@ -350,7 +366,6 @@ public class RobotHardware {
         panelsTelemetry.debug("Launcher PIDF base (P,I,D,F)",
                 String.format("%.2f, %.2f, %.2f, %.2f",
                         lastLauncherBaseP, lastLauncherBaseI, lastLauncherBaseD, lastLauncherBaseF));
-        panelsTelemetry.update(myOpMode.telemetry);
     }
 
     /**

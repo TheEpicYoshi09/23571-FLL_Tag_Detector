@@ -91,6 +91,7 @@ public class FlywheelController {
 
         if (!flywheelEnabled) {
             publishPanelsFlywheelTelemetry(targetRpm, getCurrentRpm());
+            robot.flushPanelsTelemetry(telemetry);
             return;
         }
 
@@ -137,6 +138,7 @@ public class FlywheelController {
         setFlywheelRpm(rpm);
 
         publishPanelsFlywheelTelemetry(targetRpm, getCurrentRpm());
+        robot.flushPanelsTelemetry(telemetry);
 
         if (measuringSpinup && isAtSpeed(Constants.FLYWHEEL_TOLERANCE_RPM)) {
             double elapsedSeconds = spinupTimer.seconds();
@@ -155,6 +157,7 @@ public class FlywheelController {
         }
 
         publishPanelsFlywheelTelemetry(targetRpm, getCurrentRpm());
+        robot.flushPanelsTelemetry(telemetry);
     }
 
     private void setFlywheelRpm(double rpm) {
@@ -191,6 +194,5 @@ public class FlywheelController {
 
         panelsTelemetry.debug("Flywheel Target RPM", String.format("%.0f", target));
         panelsTelemetry.debug("Flywheel Current RPM", String.format("%.0f", current));
-        panelsTelemetry.update(telemetry);
     }
 }
