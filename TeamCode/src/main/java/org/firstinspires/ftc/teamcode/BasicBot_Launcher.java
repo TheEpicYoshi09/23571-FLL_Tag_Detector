@@ -26,7 +26,7 @@ public class BasicBot_Launcher
         flywheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         //sleep(250);
-        
+
 
         shooterIntake.setDirection(DcMotor.Direction.REVERSE);
         shooterIntake.setPower(0);
