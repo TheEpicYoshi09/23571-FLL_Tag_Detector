@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 # Cursor Rules
 
 ## Code Editing Restrictions
@@ -6,3 +7,20 @@
 - Do not modify files in FtcRobotController or other project folders
 - All code changes should be limited to files within TeamCode/
 
+=======
+# Cursor Rules for DECODE-FTC
+
+## Code Modification Policy
+
+**IMPORTANT: Only make code changes to files in the TeamCode directory.**
+
+- All code modifications, edits, and new file creation must be limited to the `TeamCode/` directory and its subdirectories.
+- Do not modify files outside of TeamCode, including but not limited to:
+  - Files in `FtcRobotController/`
+  - Build configuration files (`build.gradle`, `build.common.gradle`, `build.dependencies.gradle`, `settings.gradle`, `gradle.properties`)
+  - Git configuration files
+  - Documentation files outside TeamCode
+  - Any other files outside the TeamCode directory
+
+- If a user requests changes outside TeamCode, inform them that only TeamCode modifications are allowed and suggest alternative approaches within TeamCode if applicable.
+>>>>>>> Stashed changes

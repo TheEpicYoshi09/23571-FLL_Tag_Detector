@@ -1,5 +1,5 @@
 package Constants;
 
 public class Drive {
-    public double robotSpeed = 1.0;
+    public static final double ROBOT_SPEED = 1.0;
 }

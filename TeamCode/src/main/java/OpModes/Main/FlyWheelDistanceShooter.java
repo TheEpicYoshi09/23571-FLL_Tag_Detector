@@ -4,9 +4,13 @@ import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import Constants.Shooter;
 import ProgrammingBoard.ProgrammingBoardOTHER;
+
+import java.util.LinkedList;
+import java.util.Queue;
 
 @TeleOp(name = "FlyWheel Distance Shooter", group = "Main")
 public class FlyWheelDistanceShooter extends OpMode {
@@ -16,6 +20,12 @@ public class FlyWheelDistanceShooter extends OpMode {
 
     private double flywheelPower = 0.1;  // starting power
     private boolean spinning = false;    // flywheel state
+
+    // Rolling average for distance calculation
+    private static final int MAX_SAMPLES = 20; // Sample over ~2 seconds at ~10Hz
+    private static final long SAMPLE_INTERVAL_MS = 100; // Sample every 100ms
+    private Queue<Double> distanceSamples = new LinkedList<>();
+    private ElapsedTime sampleTimer = new ElapsedTime();
 
     // Use shared Shooter constants
     private static final double CAMERA_HEIGHT_METERS = Shooter.CAMERA_HEIGHT_METERS;

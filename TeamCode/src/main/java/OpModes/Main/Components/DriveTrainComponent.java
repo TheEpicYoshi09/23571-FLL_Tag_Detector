@@ -11,8 +11,6 @@ public class DriveTrainComponent {
     private DcMotor backRightDrive;
     private Telemetry telemetry;
 
-    private boolean crossPressedLast = false;
-
     public void initialize(HardwareMap hardwareMap, Telemetry telemetry) {
         this.telemetry = telemetry;
         
@@ -33,8 +31,6 @@ public class DriveTrainComponent {
     }
 
     public void update(double forward, double right, double rotate, boolean crossPressed) {
-        crossPressedLast = crossPressed;
-
         // Mecanum wheel math
         double frontLeftPower = forward + right + rotate;
         double frontRightPower = forward - right - rotate;

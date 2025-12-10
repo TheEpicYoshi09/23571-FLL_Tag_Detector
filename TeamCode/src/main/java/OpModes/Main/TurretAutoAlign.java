@@ -28,7 +28,8 @@ public class TurretAutoAlign extends OpMode {
     private static final double SERVO_MAX = 1.0;
     private static final double TARGET_TX = 11.5;  // ideal tx
     private static final double IDEAL_RANGE = 0.05; // tight tolerance
-    private static boolean CHECK = false;
+    private static final double INTEGRAL_WINDUP_LIMIT = 100.0; // Prevent integral windup
+    private boolean CHECK = false; // Instance variable, not static
     private double servoPos = 0.5;
     private boolean aligned = false;
     private boolean appliedLeadOffset = false;

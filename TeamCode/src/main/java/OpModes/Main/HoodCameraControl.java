@@ -26,8 +26,12 @@ public class HoodCameraControl extends LinearOpMode {
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
         hoodServo = hardwareMap.get(Servo.class, "hoodservo");
 
-        hoodServo.setPosition(servoPosition);
-        limelight.start();
+        if (hoodServo != null) {
+            hoodServo.setPosition(servoPosition);
+        }
+        if (limelight != null) {
+            limelight.start();
+        }
 
         telemetry.addLine("Robot Ready. Press Play.");
         telemetry.update();

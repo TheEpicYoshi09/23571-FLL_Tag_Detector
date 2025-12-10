@@ -21,7 +21,6 @@ public class SpindexerComponent {
     private NormalizedColorSensor intakeColorSensor;
     private Servo indexServo;
     private CRServo intakeServo;
-    private CRServo intakeServo2;
     private Servo kickerServo;
 
     // State
@@ -178,11 +177,9 @@ public class SpindexerComponent {
         }
         moveToDivision(goalDiv);
         rotateOneDivision();
-        //rotateOneDivision();
         targetDegrees -= SHOOTING_DEGREE_ADJUSTMENT;
         smoothMoveTo(targetDegrees);
         indexColors.put(flag, "none");
-        //kickerWheelServo.setPower(1.0); //Run kicker wheel servo
 
         try {
             // Pause execution for 1.3 seconds (1500 milliseconds)
@@ -211,8 +208,6 @@ public class SpindexerComponent {
         }
         targetDegrees += SHOOTING_DEGREE_ADJUSTMENT;
         smoothMoveTo(targetDegrees);
-        //reset kickerServo position
-        //kickerWheelServo.setPower(0); // set kicker wheel servo back to zero
 
         telemetry.addLine("Ball shot!");
         // "Shoot" the ball
