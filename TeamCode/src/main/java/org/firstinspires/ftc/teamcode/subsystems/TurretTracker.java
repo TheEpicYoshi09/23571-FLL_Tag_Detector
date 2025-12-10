@@ -6,6 +6,9 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
+import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.teamcode.Constants;
 import org.firstinspires.ftc.teamcode.RobotHardware;
 import java.util.List;
@@ -58,14 +61,17 @@ public class TurretTracker {
         double tx = fid.getTargetXDegrees();
 
         // Compute distance to target from camera pose (meters → feet)
-        double[] cameraSpacePose = fid.getTargetPoseCameraSpace();
+        Pose3D cameraSpacePose = fid.getTargetPoseCameraSpace();
         double distanceFeet = Double.NaN;
-        if (cameraSpacePose != null && cameraSpacePose.length >= 3) {
-            double distanceMeters = Math.sqrt(
-                    cameraSpacePose[0] * cameraSpacePose[0]
-                            + cameraSpacePose[1] * cameraSpacePose[1]
-                            + cameraSpacePose[2] * cameraSpacePose[2]);
-            distanceFeet = distanceMeters * 3.28084;
+        if (cameraSpacePose != null) {
+            Position position = cameraSpacePose.getPosition();
+            if (position != null) {
+                double x = position.getX(DistanceUnit.METER);
+                double y = position.getY(DistanceUnit.METER);
+                double z = position.getZ(DistanceUnit.METER);
+                double distanceMeters = Math.sqrt(x * x + y * y + z * z);
+                distanceFeet = distanceMeters * 3.28084;
+            }
         }
 
         double aimOffset = 0.0;
