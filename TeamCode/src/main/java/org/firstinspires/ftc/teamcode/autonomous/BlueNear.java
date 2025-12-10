@@ -46,14 +46,14 @@ public class BlueNear extends LinearOpMode {
             panelsTelemetry.debug("Pose Y", follower.getPose().getY());
             panelsTelemetry.debug("Heading", follower.getPose().getHeading());
 
+            panelsTelemetry.update(telemetry);
+
             telemetry.addData("TIMER", stateMachine.getTimerInSeconds());
             telemetry.addData("STATE", stateMachine.getState());
             telemetry.addData("X POS", follower.getPose().getX());
             telemetry.addData("Y POS", follower.getPose().getY());
             telemetry.addData("HEADING", follower.getPose().getHeading());
             telemetry.update();
-
-            hardware.flushPanelsTelemetry(telemetry);
         }
     }
 }
