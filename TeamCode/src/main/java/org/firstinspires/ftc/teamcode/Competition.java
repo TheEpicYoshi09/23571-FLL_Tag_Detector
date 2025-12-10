@@ -96,7 +96,7 @@ public class Competition extends LinearOpMode {
 
             telemetry.addData("Velocities (mm/s,deg/s)", "X: %.0f  Y: %.0f  H: %.1f", VelX, VelY, headingVel);
 
-            telemetry.addData("Status", robot.pinpoint.getDeviceStatus());
+            //telemetry.addData("Status", robot.pinpoint.getDeviceStatus());
             //telemetry.addData("Pinpoint Frequency", robot.pinpoint.getFrequency()); //prints/gets the current refresh rate of the Pinpoint
             //telemetry.addData("REV Hub Frequency: ", frequency); //prints the control system refresh rate
 
