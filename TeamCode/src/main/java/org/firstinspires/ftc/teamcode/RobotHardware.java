@@ -1,5 +1,9 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.bylazar.configurables.PanelsConfigurables;
+import com.bylazar.telemetry.PanelsTelemetry;
+import com.bylazar.telemetry.TelemetryManager;
+import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -9,14 +13,15 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
-
-import com.qualcomm.hardware.limelightvision.LLResult;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.drivers.rgbIndicator;
 import org.firstinspires.ftc.teamcode.drivers.rgbIndicator.LEDColors;
+import org.firstinspires.ftc.teamcode.subsystems.FlywheelPidfConfig;
+import org.firstinspires.ftc.teamcode.subsystems.TurretAimConfig;
 
 public class RobotHardware {
 
@@ -44,6 +49,8 @@ public class RobotHardware {
     public DistanceSensor distance3;
     //private AnalogInput turretPos;
 
+    private TelemetryManager panelsTelemetry;
+
     public enum IntakeDirection {
         IN,
         OUT,
@@ -61,6 +68,14 @@ public class RobotHardware {
     private boolean flywheelOn = false;
     private int turretTargetPosition = 0;
     public double spindexerPos = Constants.spindexerStart;
+    private double lastLauncherBaseP = Double.NaN;
+    private double lastLauncherBaseI = Double.NaN;
+    private double lastLauncherBaseD = Double.NaN;
+    private double lastLauncherBaseF = Double.NaN;
+    private double lastLauncherScaledP = Double.NaN;
+    private double lastLauncherScaledI = Double.NaN;
+    private double lastLauncherScaledD = Double.NaN;
+    private double lastLauncherScaledF = Double.NaN;
 
     // Example: GoBilda 5202/5203/5204 encoder = 28 ticks/rev
     private static final double TICKS_PER_REV = 28.0;
@@ -69,6 +84,24 @@ public class RobotHardware {
     // Define a constructor that allows the OpMode to pass a reference to itself.
     public RobotHardware(LinearOpMode opmode) {
         myOpMode = opmode;
+    }
+
+    public TelemetryManager getPanelsTelemetry() {
+        return panelsTelemetry;
+    }
+
+    /**
+     * Flush any queued Panels telemetry entries. Call this once per loop after all subsystems
+     * have contributed their debug values so the dashboard renders a single coherent packet.
+     */
+    public void flushPanelsTelemetry(Telemetry telemetry) {
+        if (panelsTelemetry == null) {
+            panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
+        }
+
+        if (panelsTelemetry != null) {
+            panelsTelemetry.update(telemetry);
+        }
     }
 
     /**
@@ -178,6 +211,12 @@ public class RobotHardware {
         color3 = myOpMode.hardwareMap.get(RevColorSensorV3.class, "color3");
         distance3 = myOpMode.hardwareMap.get(DistanceSensor.class, "color3");
 
+        panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
+        PanelsConfigurables.INSTANCE.refreshClass(FlywheelPidfConfig.class);
+        PanelsConfigurables.INSTANCE.refreshClass(TurretAimConfig.class);
+        refreshLauncherPidfFromConfig();
+        flushPanelsTelemetry(myOpMode.telemetry);
+
         //Telemetry Data
         myOpMode.telemetry.addData("Status", "Initialized");
         myOpMode.telemetry.addData("X offset", pinpoint.getXOffset(DistanceUnit.MM));
@@ -263,10 +302,10 @@ public class RobotHardware {
         // Scale the motor-side PIDF gains by the gear reduction so the feedforward
         // and proportional response still match the flywheel-side setpoints that are
         // converted into motor ticks/second.
-        double gearScaledP = Constants.LAUNCHER_P * Constants.LAUNCHER_GEAR_REDUCTION;
-        double gearScaledI = Constants.LAUNCHER_I * Constants.LAUNCHER_GEAR_REDUCTION;
-        double gearScaledD = Constants.LAUNCHER_D * Constants.LAUNCHER_GEAR_REDUCTION;
-        double gearScaledF = Constants.LAUNCHER_F * Constants.LAUNCHER_GEAR_REDUCTION;
+        double gearScaledP = FlywheelPidfConfig.launcherP * Constants.LAUNCHER_GEAR_REDUCTION;
+        double gearScaledI = FlywheelPidfConfig.launcherI * Constants.LAUNCHER_GEAR_REDUCTION;
+        double gearScaledD = FlywheelPidfConfig.launcherD * Constants.LAUNCHER_GEAR_REDUCTION;
+        double gearScaledF = FlywheelPidfConfig.launcherF * Constants.LAUNCHER_GEAR_REDUCTION;
 
         PIDFCoefficients pidf = new PIDFCoefficients(
                 gearScaledP,
@@ -280,12 +319,48 @@ public class RobotHardware {
                 pidf.d,
                 pidf.f);
 
-        myOpMode.telemetry.addData("Launcher PIDF (P,I,D,F)",
-                "%.2f, %.2f, %.2f, %.2f", pidf.p, pidf.i, pidf.d, pidf.f);
-        myOpMode.telemetry.addData("Launcher PIDF base (P,I,D,F)",
-                "%.2f, %.2f, %.2f, %.2f",
-                Constants.LAUNCHER_P, Constants.LAUNCHER_I,
-                Constants.LAUNCHER_D, Constants.LAUNCHER_F);
+        lastLauncherBaseP = FlywheelPidfConfig.launcherP;
+        lastLauncherBaseI = FlywheelPidfConfig.launcherI;
+        lastLauncherBaseD = FlywheelPidfConfig.launcherD;
+        lastLauncherBaseF = FlywheelPidfConfig.launcherF;
+        lastLauncherScaledP = pidf.p;
+        lastLauncherScaledI = pidf.i;
+        lastLauncherScaledD = pidf.d;
+        lastLauncherScaledF = pidf.f;
+
+        publishLauncherPidfTelemetry();
+    }
+
+    /**
+     * Reapply launcher PIDF values if the Panels-configured base values changed.
+     * Always publishes the latest scaled/base values to Panels so they appear live
+     * even when the setpoint is not being updated.
+     */
+    public void refreshLauncherPidfFromConfig() {
+        boolean baseChanged = FlywheelPidfConfig.launcherP != lastLauncherBaseP
+                || FlywheelPidfConfig.launcherI != lastLauncherBaseI
+                || FlywheelPidfConfig.launcherD != lastLauncherBaseD
+                || FlywheelPidfConfig.launcherF != lastLauncherBaseF;
+
+        if (baseChanged || !Double.isFinite(lastLauncherScaledP) || !Double.isFinite(lastLauncherScaledF)) {
+            applyLauncherPidfTuning();
+            return;
+        }
+
+        publishLauncherPidfTelemetry();
+    }
+
+    private void publishLauncherPidfTelemetry() {
+        if (panelsTelemetry == null || !Double.isFinite(lastLauncherScaledP) || !Double.isFinite(lastLauncherScaledF)) {
+            return;
+        }
+
+        panelsTelemetry.debug("Launcher PIDF scaled (P,I,D,F)",
+                String.format("P=%.3f I=%.3f D=%.3f F=%.3f",
+                        lastLauncherScaledP, lastLauncherScaledI, lastLauncherScaledD, lastLauncherScaledF));
+        panelsTelemetry.debug("Launcher PIDF base (P,I,D,F)",
+                String.format("P=%.3f I=%.3f D=%.3f F=%.3f",
+                        lastLauncherBaseP, lastLauncherBaseI, lastLauncherBaseD, lastLauncherBaseF));
     }
 
     /**
@@ -387,6 +462,8 @@ public class RobotHardware {
     }
 
     public void setTargetRPM(double rpm) {
+        applyLauncherPidfTuning();
+
         targetRPM = rpm;
         flywheelOn = rpm > 0;
 
@@ -415,6 +492,7 @@ public class RobotHardware {
         return (launcher.getVelocity() * 60.0) / (TICKS_PER_REV * Constants.LAUNCHER_GEAR_REDUCTION);
     }
 
+
     public int getTurretTarget() {
         return turretTargetPosition;
     }
@@ -435,13 +513,12 @@ public class RobotHardware {
     }
 
     public void runIntake(IntakeDirection Direction) {
-            if (Direction == IntakeDirection.OUT) {
-                intake.setPower(Constants.intakeReversePower);
-            } else if (Direction == IntakeDirection.IN){
-                intake.setPower(Constants.intakeForwardPower);
-            } else if (Direction == IntakeDirection.STOP) {
-                intake.setPower(0.0);
-            }
+        if (Direction == IntakeDirection.OUT) {
+            intake.setPower(Constants.intakeReversePower);
+        } else if (Direction == IntakeDirection.IN){
+            intake.setPower(Constants.intakeForwardPower);
+        } else if (Direction == IntakeDirection.STOP) {
+            intake.setPower(0.0);
         }
     }
-
+}

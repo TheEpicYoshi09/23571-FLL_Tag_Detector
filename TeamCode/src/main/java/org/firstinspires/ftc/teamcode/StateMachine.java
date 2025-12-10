@@ -67,6 +67,10 @@ public class StateMachine {
 
     public State getState() { return currentState; }
 
+    public double getTimerInSeconds() {
+        return pathTimer.getElapsedTimeSeconds();
+    }
+
     private void buildPath(AUTO_PATHS name, Pose blueFrom, Pose blueTo, Pose redFrom, Pose redTo) {
         Pose from = robot.allianceColorBlue ? blueFrom : redFrom;
         Pose to = robot.allianceColorBlue ? blueTo : redTo;
@@ -86,11 +90,11 @@ public class StateMachine {
                 DecodePaths.BLUE_NEAR_GOTO_ARTIFACTS, DecodePaths.BLUE_NEAR_PICKUP_ARTIFACTS,
                 DecodePaths.RED_NEAR_GOTO_ARTIFACTS, DecodePaths.RED_NEAR_PICKUP_ARTIFACTS);
 
-        buildPath(AUTO_PATHS.NEAR_PATH_TO_SHOOT_AREA,
+        buildPath(AUTO_PATHS.NEAR_PICKUP_TO_SHOOT_AREA,
                 DecodePaths.BLUE_NEAR_PICKUP_ARTIFACTS, DecodePaths.BLUE_NEAR_SHOOT,
                 DecodePaths.RED_NEAR_PICKUP_ARTIFACTS, DecodePaths.RED_NEAR_SHOOT);
 
-        buildPath(AUTO_PATHS.NEAR_PATH_TO_SHOOT_AREA,
+        buildPath(AUTO_PATHS.NEAR_LEAVE_SHOOT_AREA,
                 DecodePaths.BLUE_NEAR_SHOOT, DecodePaths.BLUE_NEAR_LEAVE,
                 DecodePaths.RED_NEAR_SHOOT, DecodePaths.RED_NEAR_LEAVE);
     }
@@ -100,10 +104,11 @@ public class StateMachine {
             case HOME:
                 break;
             case AUTO_HOME_NEAR:
-                follower.setPose(DecodePaths.BLUE_NEAR_START);
+                this.follower.setStartingPose(DecodePaths.BLUE_NEAR_START);
+                //follower.setPose(DecodePaths.BLUE_NEAR_START);
                 // reset the spindexer here if its needed
-                robot.spindexer.setPosition(spindexerPositions[spindexerIndex]);
-                robot.spindexerPos = spindexerPositions[spindexerIndex];
+                this.robot.spindexer.setPosition(spindexerPositions[spindexerIndex]);
+                this.robot.spindexerPos = spindexerPositions[spindexerIndex];
                 break;
             case AUTO_NEAR:
                 //TODO: adjust auto pathTimer values, and add sleeps if needed

@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.autonomous;
 
+import com.bylazar.field.PanelsField;
+import com.bylazar.telemetry.PanelsTelemetry;
 import com.pedropathing.follower.Follower;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -24,6 +26,17 @@ public class BlueNear extends LinearOpMode {
         stateMachine.setState(StateMachine.State.AUTO_HOME_NEAR, true);
         //follower.setStartingPose(DecodePaths.BLUE_NEAR_START);
 
+        telemetry.addData("TIMER", stateMachine.getTimerInSeconds());
+        telemetry.addData("STATE", stateMachine.getState());
+        telemetry.addData("X POS", follower.getPose().getX());
+        telemetry.addData("Y POS", follower.getPose().getY());
+        telemetry.addData("HEADING", follower.getPose().getHeading());
+
+        //hardware.getPanelsTelemetry().debug("Y", follower.getPose().getX());
+        //hardware.getPanelsTelemetry().debug("", follower.getPose().getX());
+
+        telemetry.update();
+
         waitForStart();
 
         // start our auto state
@@ -33,10 +46,12 @@ public class BlueNear extends LinearOpMode {
             follower.update();
             stateMachine.update();
 
+            telemetry.addData("TIMER", stateMachine.getTimerInSeconds());
             telemetry.addData("STATE", stateMachine.getState());
             telemetry.addData("X POS", follower.getPose().getX());
             telemetry.addData("Y POS", follower.getPose().getY());
             telemetry.addData("HEADING", follower.getPose().getHeading());
+            telemetry.update();
         }
     }
 }
