@@ -13,6 +13,8 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import org.firstinspires.ftc.teamcode.RobotHardware;
 import org.firstinspires.ftc.teamcode.StateMachine;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+import org.firstinspires.ftc.teamcode.subsystems.FlywheelController;
+import org.firstinspires.ftc.teamcode.subsystems.ShootingController;
 
 // testing if im publishing this right
 @Autonomous(name = "Auto Proto", group = "Auto Test")
@@ -28,8 +30,10 @@ public class BlueNear extends LinearOpMode {
         panelsField.setOffsets(PanelsField.INSTANCE.getPresets().getPEDRO_PATHING());
 
         hardware.init();
+        FlywheelController flywheelController = new FlywheelController(hardware, telemetry);
+        ShootingController shootingController = new ShootingController(hardware, flywheelController, telemetry);
         Follower follower = Constants.createFollower(hardwareMap);
-        StateMachine stateMachine = new StateMachine(hardware, follower);
+        StateMachine stateMachine = new StateMachine(hardware, follower, shootingController);
         stateMachine.init();
 
         // set our home position
@@ -44,18 +48,17 @@ public class BlueNear extends LinearOpMode {
         while (opModeIsActive()) {
             stateMachine.update();
             follower.update();
+            flywheelController.update();
 
             drawRobot(panelsField, follower.getPose());
 
             panelsTelemetry.debug("State", stateMachine.getState());
-            panelsTelemetry.debug("Timer", stateMachine.getTimerInSeconds());
             panelsTelemetry.debug("Pose X", follower.getPose().getX());
             panelsTelemetry.debug("Pose Y", follower.getPose().getY());
             panelsTelemetry.debug("Heading", follower.getPose().getHeading());
 
             panelsTelemetry.update(telemetry);
 
-            telemetry.addData("TIMER", stateMachine.getTimerInSeconds());
             telemetry.addData("STATE", stateMachine.getState());
             telemetry.addData("X POS", follower.getPose().getX());
             telemetry.addData("Y POS", follower.getPose().getY());

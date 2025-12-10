@@ -3,10 +3,10 @@ package org.firstinspires.ftc.teamcode;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
-import com.pedropathing.util.Timer;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.pedroPathing.DecodePaths;
+import org.firstinspires.ftc.teamcode.subsystems.ShootingController;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -29,34 +29,36 @@ public class StateMachine {
     private State currentState;
     private final RobotHardware robot;
     private final Follower follower;
-
-    private Timer pathTimer = new Timer();
-    private Timer opModeTimer = new Timer();
+    private final ShootingController shootingController;
 
     private int autoNearSubStep = 0;
+    private boolean autoNearShootStarted = false;
 
     private final double[] spindexerPositions = new double[]{org.firstinspires.ftc.teamcode.Constants.spindexer1, org.firstinspires.ftc.teamcode.Constants.spindexer2, org.firstinspires.ftc.teamcode.Constants.spindexer3};
     private int spindexerIndex = 0;
 
     private Map<AUTO_PATHS, PathChain> paths = new HashMap<>();
 
-    public StateMachine(RobotHardware hardware, Follower follower) {
+    public StateMachine(RobotHardware hardware, Follower follower, ShootingController shootingController) {
         this.robot = hardware;
         this.currentState = State.HOME;
         this.follower = follower;
+        this.shootingController = shootingController;
+    }
+
+    public StateMachine(RobotHardware hardware, Follower follower) {
+        this(hardware, follower, null);
     }
 
     public StateMachine(RobotHardware hardware) {
-        this(hardware, null);
+        this(hardware, null, null);
     }
     public void setState(State state, boolean doUpdate) {
         this.currentState = state;
 
         // reset blah blah
         autoNearSubStep = 0;
-
-        pathTimer.resetTimer();
-        opModeTimer.resetTimer();
+        autoNearShootStarted = false;
 
         if (doUpdate) { update(); }
     }
@@ -66,10 +68,6 @@ public class StateMachine {
     }
 
     public State getState() { return currentState; }
-
-    public double getTimerInSeconds() {
-        return pathTimer.getElapsedTimeSeconds();
-    }
 
     private void buildPath(AUTO_PATHS name, Pose blueFrom, Pose blueTo, Pose redFrom, Pose redTo) {
         Pose from = robot.allianceColorBlue ? blueFrom : redFrom;
@@ -112,8 +110,6 @@ public class StateMachine {
                 this.robot.spindexerPos = spindexerPositions[spindexerIndex];
                 break;
             case AUTO_NEAR:
-                //TODO: adjust auto pathTimer values, and add sleeps if needed
-                //TODO: what i wrote above
                 switch (autoNearSubStep) {
                     case 0:
                         // Go from near goal to shooting point
@@ -122,34 +118,46 @@ public class StateMachine {
                         break;
                     case 1:
                         // Auto shoot preloaded artifacts
-                        if (!this.follower.isBusy() && pathTimer.getElapsedTimeSeconds() > 5) {
-                            //TODO: Shoot sequence here
-                            autoNearSubStep++;
+                        if (!this.follower.isBusy()) {
+                            if (shootingController != null) {
+                                if (!autoNearShootStarted) {
+                                    shootingController.startShootSequence();
+                                    autoNearShootStarted = true;
+                                }
+
+                                boolean finishedShooting = shootingController.updateAndIsComplete();
+                                if (finishedShooting) {
+                                    autoNearSubStep++;
+                                    autoNearShootStarted = false;
+                                }
+                            } else {
+                                autoNearSubStep++;
+                            }
                         }
                         break;
                     case 2:
-                        if (!this.follower.isBusy() && pathTimer.getElapsedTimeSeconds() > 6.5) {
+                        if (!this.follower.isBusy()) {
                             this.follower.followPath(paths.get(AUTO_PATHS.NEAR_SHOOT_AREA_TO_CLOSEST_ARTIFACTS), true);
                             //TODO: run intake
                             autoNearSubStep++;
                         }
                         break;
                     case 3:
-                        if (!this.follower.isBusy() && pathTimer.getElapsedTimeSeconds() > 7.5) {
+                        if (!this.follower.isBusy()) {
                             this.follower.followPath(paths.get(AUTO_PATHS.NEAR_PICKUP_CLOSEST_ARTIFACTS), true);
                             //TODO: stop intake after path is finished
                             autoNearSubStep++;
                         }
                         break;
                     case 4:
-                        if (!this.follower.isBusy() && pathTimer.getElapsedTimeSeconds() > 8.5) {
+                        if (!this.follower.isBusy()) {
                             this.follower.followPath(paths.get(AUTO_PATHS.NEAR_PICKUP_TO_SHOOT_AREA), true);
                             //TODO: Shoot sequence here
                             autoNearSubStep++;
                         }
                         break;
                     case 5:
-                        if (!this.follower.isBusy() && pathTimer.getElapsedTimeSeconds() > 10) {
+                        if (!this.follower.isBusy()) {
                             this.follower.followPath(paths.get(AUTO_PATHS.NEAR_LEAVE_SHOOT_AREA), true);
                             autoNearSubStep++;
                         }
