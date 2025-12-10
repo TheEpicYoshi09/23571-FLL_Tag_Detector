@@ -126,6 +126,8 @@ public class RobotHardware {
         allianceButton.setMode(DigitalChannel.Mode.INPUT);
         configureAllianceFromSwitch();
 
+
+
         ///GoBilda Odometry Pod Setup
         //Deploy to Control Hub to make Odometry Pod show in hardware selection list
         pinpoint = myOpMode.hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
@@ -250,6 +252,10 @@ public class RobotHardware {
     public void configureAllianceFromSwitch() {
         refreshAllianceFromSwitchState();
         rgbIndicatorMain.setColor(allianceColorRed ? LEDColors.RED : LEDColors.BLUE);
+        rearRGB1.setColor(allianceColorRed ? LEDColors.RED : LEDColors.BLUE);
+        rearRGB2.setColor(allianceColorRed ? LEDColors.RED : LEDColors.BLUE);
+        rearRGB3.setColor(allianceColorRed ? LEDColors.RED : LEDColors.BLUE);
+
     }
 
     /**
