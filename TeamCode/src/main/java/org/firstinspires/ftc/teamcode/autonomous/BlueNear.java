@@ -1,9 +1,13 @@
 package org.firstinspires.ftc.teamcode.autonomous;
 
+import com.bylazar.field.FieldManager;
 import com.bylazar.field.PanelsField;
+import com.bylazar.field.Style;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.Pose;
+import com.pedropathing.geometry.Vector;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
@@ -16,11 +20,13 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 public class BlueNear extends LinearOpMode {
     RobotHardware hardware = new RobotHardware(this);
     private TelemetryManager panelsTelemetry;
+    private FieldManager panelsField;
 
     @Override
     public void runOpMode() {
         panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
-        PanelsField.INSTANCE.getField().setOffsets(PanelsField.INSTANCE.getPresets().getPEDRO_PATHING());
+        panelsField = PanelsField.INSTANCE.getField();
+        panelsField.setOffsets(PanelsField.INSTANCE.getPresets().getPEDRO_PATHING());
 
         hardware.init();
         Follower follower = Constants.createFollower(hardwareMap);
@@ -40,6 +46,8 @@ public class BlueNear extends LinearOpMode {
             stateMachine.update();
             follower.update();
 
+            drawRobot(panelsField, follower.getPose());
+
             panelsTelemetry.debug("State", stateMachine.getState());
             panelsTelemetry.debug("Timer", stateMachine.getTimerInSeconds());
             panelsTelemetry.debug("Pose X", follower.getPose().getX());
@@ -55,5 +63,28 @@ public class BlueNear extends LinearOpMode {
             telemetry.addData("HEADING", follower.getPose().getHeading());
             telemetry.update();
         }
+    }
+
+    private void drawRobot(FieldManager field, Pose pose) {
+        if (pose == null || Double.isNaN(pose.getX()) || Double.isNaN(pose.getY()) || Double.isNaN(pose.getHeading())) {
+            return;
+        }
+
+        Style robotLook = new Style("", "#3F51B5", 0.75);
+        field.setStyle(robotLook);
+        field.moveCursor(pose.getX(), pose.getY());
+        field.circle(9);
+
+        Vector heading = pose.getHeadingAsUnitVector();
+        heading.setMagnitude(heading.getMagnitude() * 9);
+        double x1 = pose.getX() + heading.getXComponent() / 2;
+        double y1 = pose.getY() + heading.getYComponent() / 2;
+        double x2 = pose.getX() + heading.getXComponent();
+        double y2 = pose.getY() + heading.getYComponent();
+
+        field.setStyle(robotLook);
+        field.moveCursor(x1, y1);
+        field.line(x2, y2);
+        field.update();
     }
 }
