@@ -125,19 +125,28 @@ public class StateMachine {
                     case 0:
                         // Go from near goal to shooting point
                         this.follower.followPath(paths.get(AUTO_PATHS.NEAR_PATH_TO_SHOOT_AREA), true);
+
+                        if (flywheelController != null) {
+                            if (!flywheelController.isEnabled()) {
+                                flywheelController.toggle();
+                            }
+                            flywheelController.update();
+                        }
+
                         autoNearSubStep++;
                         break;
                     case 1:
                         // Auto shoot preloaded artifacts
                         if (!this.follower.isBusy()) {
+                            // update the tracker
                             if (turretTracker != null) {
+                                robot.refreshLimelightResult();
                                 turretTracker.update();
                             }
 
+                            // toggle and update flywheel
+                            // problem: the robot limelight result return boolean is false
                             if (flywheelController != null) {
-                                if (!flywheelController.isEnabled()) {
-                                    flywheelController.toggle();
-                                }
                                 flywheelController.update();
                             }
 
@@ -152,11 +161,11 @@ public class StateMachine {
 
                                 boolean finishedShooting = autoNearShootStarted && shootingController.updateAndIsComplete();
                                 if (finishedShooting) {
-                                    autoNearSubStep++;
+                                    //autoNearSubStep++;
                                     autoNearShootStarted = false;
                                 }
                             } else {
-                                autoNearSubStep++;
+                                //autoNearSubStep++;
                             }
                         }
                         break;
