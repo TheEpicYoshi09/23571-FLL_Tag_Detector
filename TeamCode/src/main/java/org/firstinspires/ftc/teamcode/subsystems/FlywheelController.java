@@ -128,7 +128,6 @@ public class FlywheelController {
                     }
 
                     telemetry.addData("Flywheel Distance (ft)", "%.2f", distanceFeet);
-                    telemetry.addData("Flywheel Target RPM", rpm);
                 }
             }
         }
