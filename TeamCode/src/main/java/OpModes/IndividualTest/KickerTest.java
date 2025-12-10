@@ -4,8 +4,8 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
 
-@TeleOp(name="Test: Kicker Servo Control", group="Individual Test")
-public class kicker extends OpMode {
+@TeleOp(name="Test: Kicker", group="Test")
+public class KickerTest extends OpMode {
 
     private Servo kickerServo;
     private double servoPosition;      // Current servo position

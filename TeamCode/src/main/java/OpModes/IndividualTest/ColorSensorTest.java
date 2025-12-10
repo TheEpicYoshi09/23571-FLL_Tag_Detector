@@ -1,14 +1,16 @@
 package org.firstinspires.ftc.teamcode.OpModes.IndividualTest;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
 import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.hardware.OpticalDistanceSensor;
-
 import org.firstinspires.ftc.robotcore.external.JavaUtil;
-@TeleOp(name="Test: ColorSensor Individual Test", group="Individual Test")
-public class ColorSensor extends LinearOpMode {
+
+@Disabled
+@TeleOp(name="Test: ColorSensor", group="Individual Test")
+public class ColorSensorTest extends LinearOpMode {
     private NormalizedColorSensor test_color;
     double hue;
 

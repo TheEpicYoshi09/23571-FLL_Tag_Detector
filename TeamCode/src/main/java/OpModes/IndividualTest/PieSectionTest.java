@@ -1,10 +1,12 @@
 package org.firstinspires.ftc.teamcode.OpModes.IndividualTest;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
 
-@TeleOp(name = "Test: Pie Section Test", group = "Test")
+@Disabled
+@TeleOp(name = "Test: PieSection", group = "Test")
 public class PieSectionTest extends LinearOpMode {
 
     private Servo pieServo = null;

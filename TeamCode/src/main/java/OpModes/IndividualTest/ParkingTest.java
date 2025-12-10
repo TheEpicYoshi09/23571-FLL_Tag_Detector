@@ -4,8 +4,8 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.OpModes.Main.Components.Lift;
 
-@TeleOp(name="Test: Parking", group="Individual Test")
-public class Parking extends OpMode {
+@TeleOp(name="Test: Parking", group="Test")
+public class ParkingTest extends OpMode {
 
     private Lift lift;
 

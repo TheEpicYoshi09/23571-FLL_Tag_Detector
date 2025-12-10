@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 @TeleOp(name="Test: Limelight Individual Test", group="Main")
-public class Limelight extends OpMode {
+public class LimelightTest extends OpMode {
     private Limelight3A limelight;
 
     @Override

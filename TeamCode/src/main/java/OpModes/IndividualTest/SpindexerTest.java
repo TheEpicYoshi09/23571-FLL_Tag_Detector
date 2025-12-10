@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.OpModes.Main.Components.Spindexer;
 
-@TeleOp(name = "Test: SpindexerTest (Positional 720°)", group = "Linear OpMode")
+@TeleOp(name = "Test: Spindexer (Positional 720°)", group = "Test")
 public class SpindexerTest extends LinearOpMode {
 
     private Spindexer spindexer;

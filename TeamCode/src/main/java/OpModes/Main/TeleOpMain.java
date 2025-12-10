@@ -4,38 +4,18 @@ package org.firstinspires.ftc.teamcode.OpModes.Main;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import org.firstinspires.ftc.teamcode.OpModes.Main.Components.Turret;
-import org.firstinspires.ftc.teamcode.OpModes.Main.Components.Launcher;
-import org.firstinspires.ftc.teamcode.OpModes.Main.Components.Spindexer;
-import org.firstinspires.ftc.teamcode.OpModes.Main.Components.DriveTrain;
-import org.firstinspires.ftc.teamcode.OpModes.Main.Components.ParkingComponent;
+import org.firstinspires.ftc.teamcode.OpModes.Main.Components.Robot;
 
 @TeleOp(name = "TeleOpMain", group = "Linear OpMode")
 public class TeleOpMain extends LinearOpMode {
-    // Components
-    private Turret turret;
-    private Launcher launcher;
-    private Spindexer spindexer;
-    private DriveTrain driveTrain;
-    private ParkingComponent parking;
+    // Robot instance containing all components
+    private Robot robot;
 
     @Override
     public void runOpMode() {
-        // Initialize components
-        turret = new Turret();
-        turret.initialize(hardwareMap, telemetry);
-
-        launcher = new Launcher();
-        launcher.initialize(hardwareMap, telemetry);
-
-        spindexer = new Spindexer();
-        spindexer.initialize(hardwareMap, telemetry, this);
-
-        driveTrain = new DriveTrain();
-        driveTrain.initialize(hardwareMap, telemetry);
-
-        parking = new ParkingComponent();
-        parking.initialize(hardwareMap, telemetry);
+        // Initialize robot (all components initialized within)
+        robot = new Robot();
+        robot.initialize(hardwareMap, telemetry, this);
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();
@@ -43,10 +23,10 @@ public class TeleOpMain extends LinearOpMode {
 
         while (opModeIsActive()) {
             // Update launcher (flywheel)
-            launcher.update();
+            robot.updateLauncher();
 
             // Update turret alignment - exit OpMode if limelight not connected (matches original behavior)
-            if (!turret.update()) {
+            if (!robot.updateTurret()) {
                 return;
             }
             telemetry.update();
@@ -55,7 +35,7 @@ public class TeleOpMain extends LinearOpMode {
             double forward = -gamepad1.left_stick_y;
             double right = gamepad1.left_stick_x;
             double rotate = gamepad1.right_stick_x;
-            driveTrain.update(forward, right, rotate, gamepad1.cross);
+            robot.updateDriveTrain(forward, right, rotate, gamepad1.cross);
             telemetry.update();
 
             // Update spindexer
@@ -66,20 +46,20 @@ public class TeleOpMain extends LinearOpMode {
             boolean gamepadLeftBumper = gamepad1.left_bumper;
 
             // Handle shooting button - start flywheel when X is pressed (before shooting sequence)
-            if (gamepadX && !spindexer.isPrevX()) {
-                launcher.setSpinning(true);
-                launcher.update(); // Update flywheel power immediately
+            if (gamepadX && !robot.getSpindexer().isPrevX()) {
+                robot.getLauncher().setSpinning(true);
+                robot.updateLauncher(); // Update flywheel power immediately
             }
 
-            spindexer.update(gamepadA, gamepadB, gamepadX, gamepadY, gamepadLeftBumper);
+            robot.updateSpindexer(gamepadA, gamepadB, gamepadX, gamepadY, gamepadLeftBumper);
 
             // Stop flywheel after 3 shots
-            if (spindexer.shouldStopFlywheel()) {
-                launcher.setSpinning(false);
+            if (robot.getSpindexer().shouldStopFlywheel()) {
+                robot.getLauncher().setSpinning(false);
             }
 
-            // Update parking component
-            parking.update(gamepad1.dpad_up, gamepad1.dpad_down);
+            // Update parking (uses Lift component)
+            robot.updateParking(gamepad1.dpad_up, gamepad1.dpad_down);
 
             telemetry.update();
             idle();

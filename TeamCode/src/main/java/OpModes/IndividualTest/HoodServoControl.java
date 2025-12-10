@@ -4,7 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
 
-@TeleOp(name="Test: Hood Servo Individual Control", group="Individual Test")
+@TeleOp(name="Test: Hood Servo", group="Test")
 public class HoodServoControl extends OpMode {
 
     private Servo hoodServo;

@@ -1,10 +1,12 @@
 package org.firstinspires.ftc.teamcode.OpModes.IndividualTest;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 
+@Disabled
 @TeleOp(name = "Test: Axon Micro CR: Button Direction", group = "ProgrammingBoardShooter")
-public class BallLauncherServo extends LinearOpMode {
+public class BallLauncherServoTest extends LinearOpMode {
 
     private CRServo BallLauncher;
 

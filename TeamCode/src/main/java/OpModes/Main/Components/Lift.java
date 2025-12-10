@@ -4,19 +4,21 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
-public class ParkingComponent {
+public class Lift {
+    // Hardware
     private DcMotor leftViper;
     private DcMotor rightViper;
     private Telemetry telemetry;
 
+    // Constants
     private static final int TOP_POSITION = 12373;  // top encoder ticks
     private static final int BOTTOM_POSITION = 0;   // bottom encoder ticks
-
     private static final double UP_POWER = 0.8;     // fast up
     private static final double DOWN_POWER = 0.3;   // slower down
     private static final double HOLD_POWER = 0.2;   // hold power after stopping
 
-    private enum State { IDLE, MOVING_UP, MOVING_DOWN, HOLDING }
+    // State management
+    public enum State { IDLE, MOVING_UP, MOVING_DOWN, HOLDING }
     private State state = State.IDLE;
 
     // To detect button clicks
@@ -45,31 +47,39 @@ public class ParkingComponent {
         leftViper.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rightViper.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        telemetry.addLine("Parking Component Initialized");
+        telemetry.addLine("Lift Component Initialized");
         telemetry.addLine("D-Pad Up = go up, D-Pad Down = go down (click once)");
+    }
+
+    public void moveUp() {
+        state = State.MOVING_UP;
+        leftViper.setTargetPosition(TOP_POSITION);
+        rightViper.setTargetPosition(TOP_POSITION);
+        leftViper.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        rightViper.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        leftViper.setPower(UP_POWER);
+        rightViper.setPower(UP_POWER);
+    }
+
+    public void moveDown() {
+        state = State.MOVING_DOWN;
+        leftViper.setTargetPosition(BOTTOM_POSITION);
+        rightViper.setTargetPosition(BOTTOM_POSITION);
+        leftViper.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        rightViper.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        leftViper.setPower(DOWN_POWER);
+        rightViper.setPower(DOWN_POWER);
     }
 
     public void update(boolean dpadUp, boolean dpadDown) {
         // D-Pad Up clicked
         if (dpadUp && !dpadUpPrev) {
-            state = State.MOVING_UP;
-            leftViper.setTargetPosition(TOP_POSITION);
-            rightViper.setTargetPosition(TOP_POSITION);
-            leftViper.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            rightViper.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            leftViper.setPower(UP_POWER);
-            rightViper.setPower(UP_POWER);
+            moveUp();
         }
 
         // D-Pad Down clicked
         if (dpadDown && !dpadDownPrev) {
-            state = State.MOVING_DOWN;
-            leftViper.setTargetPosition(BOTTOM_POSITION);
-            rightViper.setTargetPosition(BOTTOM_POSITION);
-            leftViper.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            rightViper.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            leftViper.setPower(DOWN_POWER);
-            rightViper.setPower(DOWN_POWER);
+            moveDown();
         }
 
         // Update previous button states
@@ -90,8 +100,20 @@ public class ParkingComponent {
         }
 
         // Telemetry
-        telemetry.addData("Parking State", state);
+        telemetry.addData("Lift State", state);
         telemetry.addData("Left Viper Pos", leftViper.getCurrentPosition());
         telemetry.addData("Right Viper Pos", rightViper.getCurrentPosition());
+    }
+
+    public State getState() {
+        return state;
+    }
+
+    public int getLeftPosition() {
+        return leftViper != null ? leftViper.getCurrentPosition() : 0;
+    }
+
+    public int getRightPosition() {
+        return rightViper != null ? rightViper.getCurrentPosition() : 0;
     }
 }
