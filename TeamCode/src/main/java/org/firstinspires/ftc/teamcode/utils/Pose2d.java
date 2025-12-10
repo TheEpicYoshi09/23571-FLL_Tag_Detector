@@ -231,4 +231,7 @@ public class Pose2d {
     public double getHeading() {
         return m_rotation.getRadians();
     }
+    public double getHeadingDegrees() {
+        return m_rotation.getDegrees();
+    }
 }

@@ -4,7 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.subsystems.ActiveOpMode;
+import org.firstinspires.ftc.teamcode.opmodes.auto.AutoSettings;
 import org.firstinspires.ftc.teamcode.subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.subsystems.Drive;
 import org.firstinspires.ftc.teamcode.subsystems.Intake;
@@ -12,7 +12,6 @@ import org.firstinspires.ftc.teamcode.subsystems.Lift;
 import org.firstinspires.ftc.teamcode.subsystems.Odometry;
 import org.firstinspires.ftc.teamcode.subsystems.PinPoint;
 import org.firstinspires.ftc.teamcode.subsystems.Vision;
-import org.firstinspires.ftc.teamcode.opmodes.auto.AutoSettings;
 
 @TeleOp(name = "Teleop")
 public class RunTeleop extends OpMode {
@@ -35,8 +34,8 @@ public class RunTeleop extends OpMode {
         Intake.INSTANCE.init(hardwareMap);
         PinPoint.INSTANCE.init(hardwareMap);
         Odometry.INSTANCE.teleinit();
-        telemetry.update();
         telemetry.addData(">", "Initialization complete.");
+        telemetry.update();
     }
 
     /*
@@ -67,86 +66,77 @@ public class RunTeleop extends OpMode {
                 endGameWarning = ! endGameWarning;
             }
             if (Math.round(blinkTimer.seconds()) % 2 == 1) {
-                Vision.INSTANCE.ledOn();
-            } else {
-                Vision.INSTANCE.ledOff();
+                gamepad1.rumble(250);
             }
-        } else {
-            Vision.INSTANCE.ledOn();
         }
 
-        boolean intakeInButton = gamepad1.dpad_up;
-        boolean intakeOutButton = gamepad1.dpad_down;
+       // boolean intakeInButton = gamepad1.left_trigger > 0.2;
+        //boolean intakeOutButton = gamepad1.left_bumper;
+        boolean intakeInButton = gamepad1.a;
+        boolean intakeOutButton = gamepad1.b;
         if (intakeOutButton && intakeInButton) {
             intakeInButton = false;
             intakeOutButton = false;
         }
 
-        boolean liftOutButton = gamepad1.a;
-        boolean liftUpButton = gamepad1.b;
-        if (liftOutButton && liftUpButton) {
-            liftOutButton = false;
+        boolean kickerOffButton = gamepad1.dpad_down;
+        boolean kickerOnButton = gamepad1.dpad_up;
+        if (kickerOnButton && kickerOffButton) {
+            kickerOnButton = false;
         }
 
-        boolean shooterLaunchButton = gamepad1.right_bumper;
-        boolean shooterBackButton = gamepad1.right_trigger > 0.2;
-        if (shooterLaunchButton && shooterBackButton) {
-            shooterLaunchButton = false;
+        boolean catapultLaunchButton = gamepad1.right_trigger > 0.2;
+        boolean catapultLoadButton = gamepad1.right_bumper;
+        if (catapultLaunchButton && catapultLoadButton) {
+            catapultLaunchButton = false;
         }
-
-        boolean kickerButton = gamepad1.left_bumper;
 
         // INTAKE CODE
         if (intakeInButton) {
             Intake.INSTANCE.intakein();
+            telemetry.addLine("Intake: In");
         } else if (intakeOutButton) {
             Intake.INSTANCE.intakeout();
+            telemetry.addLine("Intake: Out");
         } else {
             Intake.INSTANCE.intakeoff();
+            telemetry.addLine("Intake: Off");
+        }
+
+        if (catapultLaunchButton) {
+            Shooter.INSTANCE.launch();
+            telemetry.addLine("Shooter: Launch");
+        } else if (catapultLoadButton) {
+            Shooter.INSTANCE.back();
+            telemetry.addLine("Shooter: Back");
+        } else {
+            Shooter.INSTANCE.stop();
+            telemetry.addLine("Shooter: Stop");
         }
 
         // LIFT CODE
-        if (liftOutButton) {
-            Lift.INSTANCE.tip();
-        } else if (liftUpButton) {
-            Lift.INSTANCE.stow();
-        } else {
-            Lift.INSTANCE.hold();
-        }
-
-        // lift uses button a to tip and b to stow
-        if(gamepad1.a && !lift_press){
-            telemetry.addLine("Lifting");
-            Lift.INSTANCE.tip();
-            lift_press = true;
-        } else if(lift_press && !gamepad1.a) {
-            lift_press = false;
-            telemetry.addLine("Lift off");
-        }
-
-        if (shooterLaunchButton) {
-            Shooter.INSTANCE.launch();
-        } else if (shooterBackButton) {
-            Shooter.INSTANCE.back();
-        } else {
-            Shooter.INSTANCE.stop();
-        }
-
-        if (kickerButton) {
+        if (kickerOnButton) {
             Shooter.INSTANCE.kickeron();
+            telemetry.addLine("Lift: Tip");
+        } else if (kickerOffButton) {
+            Shooter.INSTANCE.kickeroff();
+            telemetry.addLine("Lift: Stow");
         } else {
             Shooter.INSTANCE.kickeroff();
+            telemetry.addLine("Lift: Off");
         }
+        telemetry.addData("Lift: position:",Lift.INSTANCE.getPosition());
 
-        telemetry.addData("Shooter Speed:",Shooter.INSTANCE.getSpeed());
-        telemetry.addData("Lift Position:",Lift.INSTANCE.getPosition());
-
-        double drive = -1. * gamepad1.left_stick_y;
-        double strafe = -1. * gamepad1.left_stick_x;
-        double turn = -1. * gamepad1.right_stick_x;
-
-        telemetry.addData("Manual","Drive %5.2f / %5.2f / %5.2f",drive,strafe,turn);
-        telemetry.update();
+        double drive = -1. * squareInput(gamepad1.left_stick_y);
+        double strafe = -1. * squareInput(gamepad1.left_stick_x);
+        double turn = -1. * squareInput(gamepad1.right_stick_x);
         Drive.INSTANCE.moveRobot(drive, strafe, turn);
+
+        telemetry.addData("Drive: ","powers: %5.2f / %5.2f / %5.2f",drive,strafe,turn);
+        telemetry.update();
+    }
+
+    public double squareInput(double stick) {
+        return stick*stick*stick;
     }
 }

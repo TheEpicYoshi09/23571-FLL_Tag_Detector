@@ -19,7 +19,7 @@ public class Shooter {
     private String right_name = "right_shooter";
     private String servo_name = "kicker";
 
-    private static double POWER_TO_LAUNCH = -.80;
+    private static double POWER_TO_LAUNCH = -.50;
     private static double POWER_TO_BACK = -.25;
 
     public void back() {
@@ -51,15 +51,13 @@ public class Shooter {
     public void init(HardwareMap hMap) {
         kicker = hMap.get(CRServo.class,servo_name);
         left_motor = hMap.get(DcMotorEx.class,left_name);
-        right_motor = hMap.get(DcMotorEx.class,left_name);
-        left_motor.setDirection(DcMotorSimple.Direction.FORWARD);
-        right_motor.setDirection(DcMotorSimple.Direction.REVERSE);
+        right_motor = hMap.get(DcMotorEx.class,right_name);
+        left_motor.setDirection(DcMotorSimple.Direction.REVERSE);
+        right_motor.setDirection(DcMotorSimple.Direction.FORWARD);
         left_motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         right_motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         left_motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         right_motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        left_motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        right_motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         stop();
     }
 

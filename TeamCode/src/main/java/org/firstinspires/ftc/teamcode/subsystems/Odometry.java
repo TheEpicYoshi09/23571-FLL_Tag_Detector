@@ -11,7 +11,6 @@ public class Odometry {
     public static final Odometry INSTANCE = new Odometry();
 
     PinPoint pinpoint;
-    LimeLight limelight;
     private Odometry() { }
 
     private double robot_x;
@@ -70,7 +69,6 @@ public class Odometry {
 
     public void update() {
         Pose2d pose = pinpoint.getPose2d();
-        Pose2d llpose = pinpoint.getPose2d();
         robot_x = pose.getX();
         robot_y = pose.getY();
         robot_heading = radToDeg(fixRot(pose.getHeading()));
@@ -133,7 +131,6 @@ public class Odometry {
 
     public void teleinit() {
         pinpoint = PinPoint.INSTANCE;
-        limelight = LimeLight.INSTANCE;
         update();
     }
 

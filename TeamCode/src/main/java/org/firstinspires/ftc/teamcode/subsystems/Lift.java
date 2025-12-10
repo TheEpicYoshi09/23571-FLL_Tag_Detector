@@ -13,13 +13,14 @@ public class Lift {
     private static final String motor_name = "lift";
 
     private static final int STOW_POSITION = 0;
-    private static final int TIP_POSITION = 10;
+    private static final int TIP_POSITION = 4800;
     private static final double POWER_TO_STOW = -1.;
-    private static final double POWER_TO_TIP = 1.;
+    private static final double POWER_TO_TIP = +1.;
 
     public void stow() {
-        lift_motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         lift_motor.setTargetPosition(STOW_POSITION);
+        lift_motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        //lift_motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         lift_motor.setPower(POWER_TO_STOW);
     }
 
@@ -29,8 +30,9 @@ public class Lift {
     }
 
     public void tip() {
-        lift_motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         lift_motor.setTargetPosition(TIP_POSITION);
+        lift_motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        //lift_motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         lift_motor.setPower(POWER_TO_TIP);
     }
 
@@ -40,7 +42,7 @@ public class Lift {
 
     public void init(HardwareMap hMap) {
         lift_motor = hMap.get(DcMotorEx.class, motor_name);
-        lift_motor.setDirection(DcMotorSimple.Direction.FORWARD);
+        lift_motor.setDirection(DcMotorSimple.Direction.REVERSE);
         lift_motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         lift_motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         lift_motor.setTargetPosition(0);
