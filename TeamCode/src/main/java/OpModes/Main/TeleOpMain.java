@@ -58,6 +58,7 @@ public class TeleOpMain extends LinearOpMode {
             boolean gamepadB = gamepad1.b;
             boolean gamepadX = gamepad1.x;
             boolean gamepadY = gamepad1.y;
+            boolean gamepadLeftBumper = gamepad1.left_bumper;
 
             // Handle shooting button - start flywheel when X is pressed (before shooting sequence)
             if (gamepadX && !spindexerComponent.isPrevX()) {
@@ -65,7 +66,7 @@ public class TeleOpMain extends LinearOpMode {
                 launcherComponent.update(); // Update flywheel power immediately
             }
 
-            spindexerComponent.update(gamepadA, gamepadB, gamepadX, gamepadY);
+            spindexerComponent.update(gamepadA, gamepadB, gamepadX, gamepadY, gamepadLeftBumper);
 
             // Stop flywheel after 3 shots
             if (spindexerComponent.shouldStopFlywheel()) {

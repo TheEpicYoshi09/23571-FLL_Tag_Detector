@@ -34,8 +34,11 @@ public class SpindexerComponent {
     private boolean prevB = false;
     private boolean prevX = false;
     private boolean prevY = false;
+    private boolean prevLeftBumper = false;
     private double targetDegrees = 0.0;
     private boolean intakeOn = false;
+    private boolean rapidFireMode = true;  // Start in rapid fire mode
+    private boolean allBallsIntaked = false;  // Track if all three balls are intaked
 
     // Constants
     public static final double MAX_DEGREES = 720.0;
@@ -69,7 +72,14 @@ public class SpindexerComponent {
         kickerServo.setPosition(KICKER_RESET_POSITION);
     }
 
-    public void update(boolean gamepadA, boolean gamepadB, boolean gamepadX, boolean gamepadY) {
+    public void update(boolean gamepadA, boolean gamepadB, boolean gamepadX, boolean gamepadY, boolean gamepadLeftBumper) {
+        // ---------------- MODE TOGGLE (LEFT BUMPER) -----------------
+        if (gamepadLeftBumper && !prevLeftBumper) {
+            rapidFireMode = !rapidFireMode;
+            telemetry.addLine("Mode switched to: " + (rapidFireMode ? "RAPID FIRE" : "INDEXING"));
+        }
+        prevLeftBumper = gamepadLeftBumper;
+
         // ---------------- COLOR DETECTION -----------------
         NormalizedRGBA colors = intakeColorSensor.getNormalizedColors();
         float hue = JavaUtil.colorToHue(colors.toColor());
@@ -88,14 +98,33 @@ public class SpindexerComponent {
         if (found) {
             indexColors.put(currentDivision, detectedColor);
             telemetry.addData("Detected new ball:", detectedColor);
-            try {
-                // Pause execution for 3 seconds (3000 milliseconds)
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                // Handle the InterruptedException if the thread is interrupted while sleeping
-                e.printStackTrace();
+            
+            // Check if all three balls are intaked
+            int ballCount = 0;
+            for (int i = 0; i < 3; i++) {
+                if (!indexColors.get(i).equals("none")) {
+                    ballCount++;
+                }
             }
-            rotateOneDivision();
+            allBallsIntaked = (ballCount >= 3);
+            
+            if (rapidFireMode) {
+                // Rapid fire mode: go to closest ball (next division)
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                rotateOneDivision();
+            } else {
+                // Indexing mode: original behavior
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                rotateOneDivision();
+            }
         }
 
         // ---------------- BUTTON Y -------------------------
@@ -128,8 +157,13 @@ public class SpindexerComponent {
 
         // ---------------- BUTTON X -------------------------
         if (gamepadX && !prevX) {
-            // Shooting sequence handled by shootBall method
-            shootBall();
+            if (rapidFireMode) {
+                // Rapid fire mode shooting sequence
+                shootBallRapidFire();
+            } else {
+                // Indexing mode shooting sequence (original)
+                shootBall();
+            }
         }
         prevX = gamepadX;
 
@@ -201,6 +235,79 @@ public class SpindexerComponent {
             currentDivision = 0;
             xPressCount = 0;
             flag = 0;
+            allBallsIntaked = false;
+        }
+    }
+
+    public void shootBallRapidFire() {
+        // Rapid fire mode shooting sequence
+        // First press: just shoot (faster kicker sequence)
+        // Second press: move one division and shoot
+        // Third press: move one division, shoot, then reset
+        
+        if (xPressCount == 0) {
+            // First shot: if all balls are intaked, move by SHOOTING_DEGREE_ADJUSTMENT before shooting
+            if (allBallsIntaked) {
+                targetDegrees = clipDeg(targetDegrees - SHOOTING_DEGREE_ADJUSTMENT);
+                smoothMoveTo(targetDegrees);
+            }
+            performKickerSequence();
+        } else if (xPressCount == 1) {
+            // Second shot: move one division and shoot
+            rotateOneDivision();
+            performKickerSequence();
+        } else if (xPressCount == 2) {
+            // Third shot: move one division, shoot, then reset
+            rotateOneDivision();
+            performKickerSequence();
+            
+            // Check if all balls were intaked before resetting
+            boolean wereAllBallsIntaked = allBallsIntaked;
+            
+            // Reset after third shot
+            indexColors.put(0, "none");
+            indexColors.put(1, "none");
+            indexColors.put(2, "none");
+            
+            targetDegrees = MAX_DEGREES - INITIAL_POSITION_OFFSET;
+            smoothMoveTo(targetDegrees);
+            
+            // Only after three balls are intaked, subtract SHOOTING_DEGREE_ADJUSTMENT
+            if (wereAllBallsIntaked) {
+                targetDegrees = clipDeg(targetDegrees - SHOOTING_DEGREE_ADJUSTMENT);
+                smoothMoveTo(targetDegrees);
+            }
+            
+            currentDivision = 0;
+            xPressCount = -1;  // Will be incremented to 0 below
+            flag = 0;
+            allBallsIntaked = false;
+        }
+        
+        xPressCount++;
+        telemetry.addLine("Ball shot! (Rapid Fire)");
+    }
+    
+    private void performKickerSequence() {
+        // Faster kicker sequence for rapid fire mode
+        try {
+            Thread.sleep(1000);  // Reduced from 1300
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        
+        kickerServo.setPosition(KICKER_FLICK_POSITION);
+        try {
+            Thread.sleep(1200);  // Reduced from 1500
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        kickerServo.setPosition(KICKER_RESET_POSITION);
+        
+        try {
+            Thread.sleep(1000);  // Reduced from 1300
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 
@@ -214,6 +321,7 @@ public class SpindexerComponent {
 
     // Telemetry helper
     public void addTelemetry() {
+        telemetry.addData("Mode", rapidFireMode ? "RAPID FIRE" : "INDEXING");
         telemetry.addData("Target°", "%.1f", targetDegrees);
         telemetry.addData("Servo Pos", "%.3f", indexServo.getPosition());
         telemetry.addData("Division", currentDivision);
@@ -222,9 +330,11 @@ public class SpindexerComponent {
         telemetry.addData("Div1", indexColors.get(1));
         telemetry.addData("Div2", indexColors.get(2));
         telemetry.addData("Need Next", need_colors[flag]);
+        telemetry.addData("All Balls Intaked", allBallsIntaked);
 
         telemetry.addLine("A = Move 1 division");
         telemetry.addLine("B = Reset");
+        telemetry.addLine("Left Bumper = Toggle Mode");
     }
 
     // ---------------- SMOOTH SERVO MOVEMENT (FIXED) -------------------
