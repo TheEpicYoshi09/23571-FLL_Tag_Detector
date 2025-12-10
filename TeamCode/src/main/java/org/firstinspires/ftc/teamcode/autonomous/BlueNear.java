@@ -15,6 +15,7 @@ import org.firstinspires.ftc.teamcode.StateMachine;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.subsystems.FlywheelController;
 import org.firstinspires.ftc.teamcode.subsystems.ShootingController;
+import org.firstinspires.ftc.teamcode.subsystems.TurretTracker;
 
 // testing if im publishing this right
 @Autonomous(name = "Auto Proto", group = "Auto Test")
@@ -32,8 +33,9 @@ public class BlueNear extends LinearOpMode {
         hardware.init();
         FlywheelController flywheelController = new FlywheelController(hardware, telemetry);
         ShootingController shootingController = new ShootingController(hardware, flywheelController, telemetry);
+        TurretTracker turretTracker = new TurretTracker(hardware, telemetry);
         Follower follower = Constants.createFollower(hardwareMap);
-        StateMachine stateMachine = new StateMachine(hardware, follower, shootingController);
+        StateMachine stateMachine = new StateMachine(hardware, follower, shootingController, flywheelController, turretTracker);
         stateMachine.init();
 
         // set our home position
@@ -48,6 +50,9 @@ public class BlueNear extends LinearOpMode {
         while (opModeIsActive()) {
             stateMachine.update();
             follower.update();
+            if (flywheelController.isEnabled()) {
+                turretTracker.update();
+            }
             flywheelController.update();
 
             drawRobot(panelsField, follower.getPose());

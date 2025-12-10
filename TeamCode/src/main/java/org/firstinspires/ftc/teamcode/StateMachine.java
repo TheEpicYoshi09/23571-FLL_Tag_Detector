@@ -6,7 +6,9 @@ import com.pedropathing.paths.PathChain;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.pedroPathing.DecodePaths;
+import org.firstinspires.ftc.teamcode.subsystems.FlywheelController;
 import org.firstinspires.ftc.teamcode.subsystems.ShootingController;
+import org.firstinspires.ftc.teamcode.subsystems.TurretTracker;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,6 +32,8 @@ public class StateMachine {
     private final RobotHardware robot;
     private final Follower follower;
     private final ShootingController shootingController;
+    private final FlywheelController flywheelController;
+    private final TurretTracker turretTracker;
 
     private int autoNearSubStep = 0;
     private boolean autoNearShootStarted = false;
@@ -39,19 +43,26 @@ public class StateMachine {
 
     private Map<AUTO_PATHS, PathChain> paths = new HashMap<>();
 
-    public StateMachine(RobotHardware hardware, Follower follower, ShootingController shootingController) {
+    public StateMachine(RobotHardware hardware, Follower follower, ShootingController shootingController,
+                       FlywheelController flywheelController, TurretTracker turretTracker) {
         this.robot = hardware;
         this.currentState = State.HOME;
         this.follower = follower;
         this.shootingController = shootingController;
+        this.flywheelController = flywheelController;
+        this.turretTracker = turretTracker;
+    }
+
+    public StateMachine(RobotHardware hardware, Follower follower, ShootingController shootingController) {
+        this(hardware, follower, shootingController, null, null);
     }
 
     public StateMachine(RobotHardware hardware, Follower follower) {
-        this(hardware, follower, null);
+        this(hardware, follower, null, null, null);
     }
 
     public StateMachine(RobotHardware hardware) {
-        this(hardware, null, null);
+        this(hardware, null, null, null, null);
     }
     public void setState(State state, boolean doUpdate) {
         this.currentState = state;
@@ -119,13 +130,27 @@ public class StateMachine {
                     case 1:
                         // Auto shoot preloaded artifacts
                         if (!this.follower.isBusy()) {
+                            if (turretTracker != null) {
+                                turretTracker.update();
+                            }
+
+                            if (flywheelController != null) {
+                                if (!flywheelController.isEnabled()) {
+                                    flywheelController.toggle();
+                                }
+                                flywheelController.update();
+                            }
+
                             if (shootingController != null) {
-                                if (!autoNearShootStarted) {
+                                if (!autoNearShootStarted
+                                        && flywheelController != null
+                                        && flywheelController.isEnabled()
+                                        && flywheelController.getTargetRpm() > 0) {
                                     shootingController.startShootSequence();
                                     autoNearShootStarted = true;
                                 }
 
-                                boolean finishedShooting = shootingController.updateAndIsComplete();
+                                boolean finishedShooting = autoNearShootStarted && shootingController.updateAndIsComplete();
                                 if (finishedShooting) {
                                     autoNearSubStep++;
                                     autoNearShootStarted = false;
