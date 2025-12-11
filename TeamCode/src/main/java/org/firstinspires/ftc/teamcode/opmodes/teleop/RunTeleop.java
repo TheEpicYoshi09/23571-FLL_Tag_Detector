@@ -79,17 +79,18 @@ public class RunTeleop extends OpMode {
             intakeOutButton = false;
         }
 
-        boolean kickerOffButton = gamepad1.dpad_down;
-        boolean kickerOnButton = gamepad1.dpad_up;
-        if (kickerOnButton && kickerOffButton) {
+        boolean kickerBackButton = gamepad1.right_bumper;
+        boolean kickerOnButton = gamepad1.right_trigger > 0.3;
+        if (kickerOnButton && kickerBackButton) {
             kickerOnButton = false;
         }
 
-        boolean catapultLaunchButton = gamepad1.right_trigger > 0.2;
-        boolean catapultLoadButton = gamepad1.right_bumper;
-        if (catapultLaunchButton && catapultLoadButton) {
-            catapultLaunchButton = false;
-        }
+
+
+        boolean shooterButtonHigh =  gamepad1.dpad_up;
+        boolean shooterButtonMedium = gamepad1.dpad_right;
+        boolean shooterButtonLow = gamepad1.dpad_down;
+        boolean shooterButtonOff = gamepad1.dpad_left;
 
         // INTAKE CODE
         if (intakeInButton) {
@@ -103,13 +104,19 @@ public class RunTeleop extends OpMode {
             telemetry.addLine("Intake: Off");
         }
 
-        if (catapultLaunchButton) {
-            Shooter.INSTANCE.launch();
-            telemetry.addLine("Shooter: Launch");
-        } else if (catapultLoadButton) {
-            Shooter.INSTANCE.back();
-            telemetry.addLine("Shooter: Back");
-        } else {
+        if (shooterButtonHigh) {
+            Shooter.INSTANCE.high();
+            telemetry.addLine("Shooter: ShootHigh");
+        }
+        if (shooterButtonMedium) {
+            Shooter.INSTANCE.medium();
+            telemetry.addLine("Shooter: shootMid");
+        }
+        if (shooterButtonLow) {
+            Shooter.INSTANCE.high();
+            telemetry.addLine("Shooter: ShootLow");
+        }
+        if (shooterButtonOff) {
             Shooter.INSTANCE.stop();
             telemetry.addLine("Shooter: Stop");
         }
@@ -118,8 +125,8 @@ public class RunTeleop extends OpMode {
         if (kickerOnButton) {
             Shooter.INSTANCE.kickeron();
             telemetry.addLine("Lift: Tip");
-        } else if (kickerOffButton) {
-            Shooter.INSTANCE.kickeroff();
+        } else if (kickerBackButton) {
+            Shooter.INSTANCE.kickerout();
             telemetry.addLine("Lift: Stow");
         } else {
             Shooter.INSTANCE.kickeroff();

@@ -19,7 +19,11 @@ public class Shooter {
     private String right_name = "right_shooter";
     private String servo_name = "kicker";
 
+
     private static double POWER_TO_LAUNCH = -.50;
+    private static double SHOOTER_SPEED_LOW = -.25;
+    private static double SHOOTER_SPEED_MED = -.50;
+    private static double SHOOTER_SPEED_HIGH = .75;
     private static double POWER_TO_BACK = -.25;
 
     public void back() {
@@ -30,6 +34,20 @@ public class Shooter {
     public void launch() {
         left_motor.setPower(POWER_TO_LAUNCH);
         right_motor.setPower(POWER_TO_LAUNCH);
+    }
+    public void medium() {
+        left_motor.setPower(SHOOTER_SPEED_MED);
+        right_motor.setPower(SHOOTER_SPEED_MED);
+    }
+
+    public void low() {
+      left_motor.setPower(SHOOTER_SPEED_LOW);
+      right_motor.setPower(SHOOTER_SPEED_LOW);
+    }
+
+    public void high() {
+        left_motor.setPower(SHOOTER_SPEED_HIGH);
+        right_motor.setPower(SHOOTER_SPEED_HIGH);
     }
 
     public void stop() {
@@ -43,6 +61,9 @@ public class Shooter {
 
     public void kickeron() {
         kicker.setPower(0.5);
+    }
+    public void kickerout() {
+        kicker.setPower(-0.5);
     }
     public void kickeroff() {
         kicker.setPower(0.);
