@@ -1,7 +1,9 @@
-package OpModes.pedroPathing;
+package org.firstinspires.ftc.teamcode.OpModes.pedroPathing;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+
+import org.firstinspires.ftc.teamcode.OpModes.pedroPathing.AutonomousMain;
 
 /**
  * Autonomous OpMode for Red Alliance, Right Starting Position
