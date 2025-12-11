@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.OpModes.Main;
+package OpModes.pedroPathing;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;

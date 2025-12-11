@@ -1,18 +1,18 @@
-package org.firstinspires.ftc.teamcode.OpModes.Main;
+package OpModes.pedroPathing;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 /**
- * Autonomous OpMode for Blue Alliance, Right Starting Position
+ * Autonomous OpMode for Red Alliance, Right Starting Position
  */
-@Autonomous(name = "Autonomous Blue Right", group = "Main")
-public class AutonomousBlueRight extends LinearOpMode {
+@Autonomous(name = "Autonomous Red Right", group = "Main")
+public class AutonomousRedRight extends LinearOpMode {
     
     @Override
     public void runOpMode() {
         AutonomousMain autonomous = new AutonomousMain(
-            AutonomousMain.Alliance.BLUE,
+            AutonomousMain.Alliance.RED,
             AutonomousMain.StartingPosition.RIGHT,
             this
         );
