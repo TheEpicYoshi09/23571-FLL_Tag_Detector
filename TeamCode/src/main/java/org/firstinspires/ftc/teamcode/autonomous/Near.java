@@ -15,8 +15,8 @@ import org.firstinspires.ftc.teamcode.subsystems.FlywheelController;
 import org.firstinspires.ftc.teamcode.subsystems.ShootingController;
 import org.firstinspires.ftc.teamcode.subsystems.TurretTracker;
 
-@Autonomous(name = "Blue Near", group = "Auto V1")
-public class BlueNear extends LinearOpMode {
+@Autonomous(name = "Auto Near", group = "Auto V1")
+public class Near extends LinearOpMode {
     RobotHardware hardware = new RobotHardware(this);
 
     TelemetryManager panelsTelemetry;
