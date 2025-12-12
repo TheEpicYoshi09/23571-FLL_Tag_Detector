@@ -6,6 +6,8 @@ import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+
 @Config
 public class Indexer {
 
@@ -126,9 +128,9 @@ public class Indexer {
         state = newState;
     }
 
-    public void reset()
+    public void reset(Telemetry telem)
     {
-        indexerServoControl.reset();
+        indexerServoControl.reset(telem);
     }
 
     public void update() {

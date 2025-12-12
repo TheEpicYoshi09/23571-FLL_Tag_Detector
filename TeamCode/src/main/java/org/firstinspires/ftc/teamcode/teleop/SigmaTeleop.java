@@ -137,7 +137,6 @@ public class SigmaTeleop extends LinearOpMode {
         // Advance state
         if (g2.wasJustPressed(GamepadKeys.Button.DPAD_RIGHT)) {
             indexer.moveTo(indexer.nextState());
-            telemetry.addLine("Indexer moving");
         }
 
         //actuator control
@@ -168,7 +167,7 @@ public class SigmaTeleop extends LinearOpMode {
         }
 
         if (g2.wasJustPressed(GamepadKeys.Button.A)) {
-            indexer.reset();
+            indexer.reset(telemetry);
         }
 
         indexer.update();

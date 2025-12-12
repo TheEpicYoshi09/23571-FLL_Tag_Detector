@@ -5,6 +5,8 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+
 @Config
 public class CRServoPositionControl
 {
@@ -136,15 +138,19 @@ public class CRServoPositionControl
         return (a / degreesPerRev) * ticksPerRev;
     }
 
-    public void reset()
+    public void reset(Telemetry telem)
     {
+        telem.addData("CRServoPositionControl", "Resetting controller");
+        timer = new ElapsedTime();
+
         integral = 0;
+        targetVoltage_actual = 0;
+        targetVoltage_offset = 0;
 
         lastRawVoltage = encoder.getVoltage();
-        unwrappedVoltage = 0;
         filteredVoltage = lastRawVoltage;
-
-        timer.reset();
+        velocity = 0;
+        deadband = deadbandAngles / degreesPerRev * ticksPerRev;
     }
 
 
@@ -162,9 +168,6 @@ public class CRServoPositionControl
         double wrapped = wrapVoltage(getFilteredVoltage());
         return (wrapped / ticksPerRev) * degreesPerRev;
     }
-
-
-
 }
 
 /*
