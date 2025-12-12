@@ -7,17 +7,19 @@ public class DecodePaths {
 
     ///  BLUE FAR
     // would be useful if we could start turret sideways to get more time
-    public static final Pose BLUE_FAR_START = new Pose(56, 19, Math.toRadians(-90)); // public static final Pose BlueFarStart = new Pose(57, 9, Math.toRadians(270));
+    public static final Pose BLUE_FAR_START = new Pose(60, 8.75, Math.toRadians(-90)); // public static final Pose BlueFarStart = new Pose(57, 9, Math.toRadians(270));
     //public static final Pose BlueFarShoot = new Pose(57,21, Math.toRadians(180));
-    public static final Pose BLUE_FAR_LEAVE = new Pose(56, 36, Math.toRadians(-180));
-    public static final Pose BLUE_FAR_GET_ARTIFACTS = new Pose(24, 36, Math.toRadians(-180));
+    public static final Pose BLUE_FAR_TO_SHOOT_AREA = new Pose(60, 78, Math.toRadians(-90));
+    public static final Pose BLUE_FAR_TO_CLOSEST_ARTIFACT = new Pose(60, 55, Math.toRadians(-90));
+    //public static final Pose BLUE_FAR_GET_ARTIFACTS = new Pose(24, 36, Math.toRadians(-180));
     //public static final Pose BlueFarSpike = new Pose(25,37, Math.toRadians(180)); // public static final Pose BlueFarSpike = new Pose(25,37, Math.toRadians(180));
 
 
     /// RED FAR
-    public static final Pose RED_FAR_START = new Pose(89, 19, Math.toRadians(-90)); // public static final Pose BlueFarStart = new Pose(57, 9, Math.toRadians(270)); //public static final Pose RedFarStart = new Pose(88,9, Math.toRadians(270));
-    public static final Pose RED_FAR_LEAVE = new Pose(89, 36, Math.toRadians(-180));
-    public static final Pose RED_FAR_GET_ARTIFACTS = new Pose(120, 36, Math.toRadians(-180));
+    public static final Pose RED_FAR_START = new Pose(84, 8.75, Math.toRadians(-90)); // public static final Pose BlueFarStart = new Pose(57, 9, Math.toRadians(270)); //public static final Pose RedFarStart = new Pose(88,9, Math.toRadians(270));
+    public static final Pose RED_FAR_TO_SHOOT_AREA = new Pose(84, 78, Math.toRadians(-90));
+    public static final Pose RED_FAR_TO_CLOSEST_ARTIFACT = new Pose(84, 55, Math.toRadians(-90));
+    //public static final Pose RED_FAR_GET_ARTIFACTS = new Pose(120, 36, Math.toRadians(-180));
     //public static final Pose RedFarShoot = new Pose(88,21, Math.toRadians(0));
 
 

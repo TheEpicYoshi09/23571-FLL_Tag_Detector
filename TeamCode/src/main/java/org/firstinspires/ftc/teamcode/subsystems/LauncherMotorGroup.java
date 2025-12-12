@@ -23,17 +23,17 @@ public class LauncherMotorGroup {
     private double lastLauncherScaledD = Double.NaN;
     private double lastLauncherScaledF = Double.NaN;
 
-    public LauncherMotorGroup(Telemetry telemetry, TelemetryManager telemetryPanels, DcMotorEx launcher1, DcMotorEx launcher2) {
-        if (launcher1 == null || launcher2 == null) {
+    public LauncherMotorGroup(Telemetry telemetry, TelemetryManager telemetryPanels, DcMotorEx launcher1) { //DcMotorEx launcher2
+        if (launcher1 == null) {
             telemetry.addLine("ERROR: launcher motor is NULL!");
             return;
         }
 
         launcher1.setDirection(DcMotorSimple.Direction.FORWARD);
-        launcher2.setDirection(DcMotorSimple.Direction.REVERSE);
+        //launcher2.setDirection(DcMotorSimple.Direction.REVERSE);
 
         this.telemetryPanels = telemetryPanels;
-        this.group = new DcMotorExGroup(launcher1, launcher2);
+        this.group = new DcMotorExGroup(launcher1); //, launcher2
 
         this.group.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         this.group.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);

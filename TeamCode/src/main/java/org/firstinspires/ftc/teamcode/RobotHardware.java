@@ -159,7 +159,7 @@ public class RobotHardware {
         //LAUNCHER
         DcMotorEx launcher = myOpMode.hardwareMap.get(DcMotorEx.class,"launcher");
         DcMotorEx launcher2 = myOpMode.hardwareMap.get(DcMotorEx.class,"launcher2");
-        launcherGroup = new LauncherMotorGroup(myOpMode.telemetry, panelsTelemetry, launcher, launcher2);
+        launcherGroup = new LauncherMotorGroup(myOpMode.telemetry, panelsTelemetry, launcher); //, launcher2
         launcherGroup.applyLauncherPIDFTuning();
 
         //TURRET
