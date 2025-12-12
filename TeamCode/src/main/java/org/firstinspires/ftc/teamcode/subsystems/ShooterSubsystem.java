@@ -3,7 +3,6 @@ package org.firstinspires.ftc.teamcode.subsystems;
 import static java.lang.Thread.sleep;
 
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -14,7 +13,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 import java.util.Objects;
 
-public class ShooterController {
+public class ShooterSubsystem {
     public enum State { IDLE, SPIN_UP, FEED, SPIN_DOWN, EJECT }
 
     private final DcMotor intake;
@@ -45,7 +44,7 @@ public class ShooterController {
     private double lastVelocity = 0;
 
 
-    public ShooterController(HardwareMap hardwareMap) {
+    public ShooterSubsystem(HardwareMap hardwareMap) {
         outtakeMotor = hardwareMap.get(DcMotorEx.class, "outtakeMotor");
         intake = hardwareMap.get(DcMotor.class, "intake");
         intakeArmServo = hardwareMap.get(Servo.class, "intakeArmServo");

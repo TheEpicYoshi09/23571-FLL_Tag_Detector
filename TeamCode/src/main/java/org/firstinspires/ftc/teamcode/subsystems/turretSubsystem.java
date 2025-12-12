@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
-public class turretSubsystem {
+public class TurretSubsystem {
 
     private Servo turretServo;
     private final double TurretMax = 0.85;
@@ -37,7 +37,7 @@ public class turretSubsystem {
 
     private boolean busy = false;
 
-    public turretSubsystem(HardwareMap hardwareMap, Telemetry telemetry) {
+    public TurretSubsystem(HardwareMap hardwareMap, Telemetry telemetry) {
         turretServo = hardwareMap.get(Servo.class, "turntableServo");
         turretServo.setPosition(TurretPos);
 
