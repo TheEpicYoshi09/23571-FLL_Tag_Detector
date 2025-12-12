@@ -78,26 +78,38 @@ public class CRServoPositionControl
         crServo.setPower(output);
     }
 
-    // unwraped filtering
+    // rudolph the red nosed reindeer
+    // had a very shiny nose
+    // and if you ever saw him
+    // you would even say it glows
+    // all of the other reindeer
+    // used to laugh and call him names
+    // they never let poor rudolph
+    // join in any reindeer games
+    // then one foggy christmas eve
+    // santa came to say
+    // "rudolph with your nose so bright
+    // won't you guide my sleigh tonight"
+    // oh then all the reindeer loved him
+    // as they shouted out with glee
+    // "rudolph the red nosed reindeer
+    // you'll go down in history"
+    private double velocity = 0;
+
     private double getFilteredVoltage()
     {
-        double raw = encoder.getVoltage();   // 0–3.3 range
+        double raw = encoder.getVoltage();
 
-        // Unwrap raw value
-        double diff = raw - lastRawVoltage;
+        double diff = raw - filteredVoltage;
         if (diff >  ticksPerRev/2) diff -= ticksPerRev;
         if (diff < -ticksPerRev/2) diff += ticksPerRev;
 
-        unwrappedVoltage += diff;
-        lastRawVoltage = raw;
+        velocity = (1 - filterAlpha) * velocity + filterAlpha * diff;
 
-        filteredVoltage =
-                filteredVoltage * (1 - filterAlpha) +
-                        unwrappedVoltage * filterAlpha;
-
-        // undwraped return
+        filteredVoltage += velocity;
         return filteredVoltage;
     }
+
 
     // utils and such
     private double wrapVoltage(double v)
