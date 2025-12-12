@@ -41,9 +41,11 @@ public class SigmaTeleop extends LinearOpMode {
         outtake = new Outtake(hardwareMap, Outtake.Mode.RPM);
         movement = new Movement(hardwareMap);
 
+        /*
         aprilTag = new AprilTag(hardwareMap);
         aprilAimer = new AprilTagAimer(hardwareMap);
 
+         */
         GamepadEx gp1 = new GamepadEx(gamepad1);
         GamepadEx gp2 = new GamepadEx(gamepad2);
 
@@ -70,6 +72,7 @@ public class SigmaTeleop extends LinearOpMode {
         //apriltag turn correction
         double turnCorrection = 0;
 
+        /*
         if (continuousAprilTagLock) {
             long now = System.currentTimeMillis();
 
@@ -88,6 +91,8 @@ public class SigmaTeleop extends LinearOpMode {
 
             turnCorrection = 0.9 * lastTurnCorrection;  // smooth decay
         }
+
+         */
 
         //drivetrain control
         if (fieldCentric) {
@@ -144,10 +149,13 @@ public class SigmaTeleop extends LinearOpMode {
         }
 
         // Scan obelisk
+        /*
         if (g2.wasJustPressed(GamepadKeys.Button.DPAD_LEFT)) {
             aprilTag.scanObeliskTag();
             telemetry.addData("Obelisk ID", aprilTag.getObeliskId());
         }
+
+         */
 
         // Set intaking ON
         if (g2.wasJustPressed(GamepadKeys.Button.A) && !actuator.isActivated()) {
@@ -159,8 +167,13 @@ public class SigmaTeleop extends LinearOpMode {
             indexer.setIntaking(false);
         }
 
+        if (g2.wasJustPressed(GamepadKeys.Button.A)) {
+            indexer.reset();
+        }
+
         indexer.update();
 
+        /*
         // Begin continuous lock
         if (g2.wasJustPressed(GamepadKeys.Button.X)) {
             continuousAprilTagLock = true;
@@ -172,11 +185,16 @@ public class SigmaTeleop extends LinearOpMode {
             continuousAprilTagLock = false;
         }
 
+         */
+
+        /*
         // Alliance selection
         if (g2.wasJustPressed(GamepadKeys.Button.LEFT_BUMPER))
             aprilTag.setGoalTagID(20); // blue
         if (g2.wasJustPressed(GamepadKeys.Button.RIGHT_BUMPER))
             aprilTag.setGoalTagID(24); // red
+
+         */
 
 
 

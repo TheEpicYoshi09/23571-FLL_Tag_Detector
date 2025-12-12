@@ -18,21 +18,24 @@ public class CRServoPositionControl
     public static double kf = 0.01;
     public static double filterAlpha = 0.9;
 
-    // Encoder constants
-    public static double ticksPerRev = 3.3;     // full voltage range
+    // dncoder constants
+    public static double ticksPerRev = 3.3;
     public static double degreesPerRev = 360.0;
 
-    // GLOBAL OFFSET APPLIED ONLY DURING CONTROL
+    // Offset & deadband
     public static double constantOffset = 0.15;
     public static double deadbandAngles = 1.67;
     private double deadband = deadbandAngles / degreesPerRev * ticksPerRev;
 
-    // Internal state
+    // state
     private double integral = 0;
-    private double filteredVoltage = 0;
+    private double targetVoltage_actual = 0;
+    private double targetVoltage_offset = 0;
 
-    private double targetVoltage_actual = 0;   // true target
-    private double targetVoltage_offset = 0;   // target + offset
+    // filtering type shift
+    private double lastRawVoltage = 0;
+    private double unwrappedVoltage = 0;
+    private double filteredVoltage = 0;
 
     public CRServoPositionControl(CRServo servo, AnalogInput encoder)
     {
@@ -40,24 +43,24 @@ public class CRServoPositionControl
         this.encoder = encoder;
     }
 
+    // 2+2 is 4 minus one thats three quick maths
     public void moveToAngle(double targetAngleDegrees)
     {
         // Real target voltage
         targetVoltage_actual = angleToVoltage(targetAngleDegrees);
 
-        // Offset target voltage used by PID
-        targetVoltage_offset = applyOffset(targetVoltage_actual);
+        // Apply offset in UNWRAPPED domain later
+        targetVoltage_offset = wrapVoltage(targetVoltage_actual + constantOffset);
 
-        // Measured voltage (raw)
-        double measured = getFilteredVoltage();
+        // Current
+        double measuredContinuous = getFilteredVoltage();  // continuous
+        double measuredOffset = wrapVoltage(measuredContinuous + constantOffset);
 
-        // Offset measured voltage used by PID
-        double measured_offset = applyOffset(measured);
+        // shortest error
+        double error = shortestError(targetVoltage_offset, measuredOffset);
 
-        // Compute shortest-path error
-        double error = shortestError(targetVoltage_offset, measured_offset);
-
-        if (error <= deadband) {
+        // Deadband
+        if (Math.abs(error) <= deadband) {
             crServo.setPower(0);
             timer.reset();
             return;
@@ -65,56 +68,51 @@ public class CRServoPositionControl
 
         double dt = timer.seconds();
         timer.reset();
-        //if (dt < 1e-4) dt = 1e-4;
 
-        //integral += error * dt;
-        //integral = Math.max(-2, Math.min(2, integral));
+        // integral += error * dt;
+        // integral = Math.max(-2, Math.min(2, integral));
 
         double output = kp * error /*+ ki * integral*/ + kf * Math.signum(error);
         output = Math.max(-1, Math.min(1, output));
 
         crServo.setPower(output);
     }
-    private double lastRawVoltage = 0;
-    private double unwrappedVoltage = 0;
 
+    // unwraped filtering
     private double getFilteredVoltage()
     {
-        double raw = encoder.getVoltage();
+        double raw = encoder.getVoltage();   // 0–3.3 range
 
+        // Unwrap raw value
         double diff = raw - lastRawVoltage;
-
-        // unwrap
-        if (diff > ticksPerRev/2) diff -= ticksPerRev;
+        if (diff >  ticksPerRev/2) diff -= ticksPerRev;
         if (diff < -ticksPerRev/2) diff += ticksPerRev;
 
         unwrappedVoltage += diff;
         lastRawVoltage = raw;
 
-        // NOW filter the unwrapped value
         filteredVoltage =
-                (1 - filterAlpha) * filteredVoltage +
-                        filterAlpha * unwrappedVoltage;
+                filteredVoltage * (1 - filterAlpha) +
+                        unwrappedVoltage * filterAlpha;
 
-        // re-wrap filtered value
-        double wrapped = filteredVoltage % ticksPerRev;
-        if (wrapped < 0) wrapped += ticksPerRev;
-
-        return wrapped;
+        // undwraped return
+        return filteredVoltage;
     }
-    private double applyOffset(double voltage)
+
+    // utils and such
+    private double wrapVoltage(double v)
     {
-        double v = voltage + constantOffset;
-        if (v >= ticksPerRev) v -= ticksPerRev;
-        if (v < 0) v += ticksPerRev;
-        return v;
+        double wrapped = v % ticksPerRev;
+        if (wrapped < 0) wrapped += ticksPerRev;
+        return wrapped;
     }
 
     private double shortestError(double target, double current)
     {
+        // Inputs are wrapped 0–ticksPerRev
         double diff = target - current;
 
-        if (diff > ticksPerRev / 2) diff -= ticksPerRev;
+        if (diff >  ticksPerRev / 2) diff -= ticksPerRev;
         if (diff < -ticksPerRev / 2) diff += ticksPerRev;
 
         return diff;
@@ -125,25 +123,35 @@ public class CRServoPositionControl
         double a = Math.max(0, Math.min(degreesPerRev, angleDegrees));
         return (a / degreesPerRev) * ticksPerRev;
     }
-    public double getActualTargetVoltage()
+
+    public void reset()
     {
-        return targetVoltage_actual;
+        integral = 0;
+
+        lastRawVoltage = encoder.getVoltage();
+        unwrappedVoltage = 0;
+        filteredVoltage = lastRawVoltage;
+
+        timer.reset();
     }
 
-    public double getOffsetTargetVoltage()
-    {
-        return targetVoltage_offset;
-    }
+
+    // getters for sigma debug
+    public double getActualTargetVoltage() { return targetVoltage_actual; }
+    public double getOffsetTargetVoltage() { return targetVoltage_offset; }
 
     public double getOffsetMeasuredVoltage()
     {
-        return applyOffset(getFilteredVoltage());
+        return wrapVoltage(getFilteredVoltage() + constantOffset);
     }
+
     public double getCurrentAngle()
     {
-        double realVoltage = getFilteredVoltage();
-        return (realVoltage / ticksPerRev) * degreesPerRev;
+        double wrapped = wrapVoltage(getFilteredVoltage());
+        return (wrapped / ticksPerRev) * degreesPerRev;
     }
+
+
 
 }
 

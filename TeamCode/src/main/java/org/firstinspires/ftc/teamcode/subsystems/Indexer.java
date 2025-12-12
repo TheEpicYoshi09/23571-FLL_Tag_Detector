@@ -126,6 +126,11 @@ public class Indexer {
         state = newState;
     }
 
+    public void reset()
+    {
+        indexerServoControl.reset();
+    }
+
     public void update() {
         indexerServoControl.moveToAngle(targetAngle);
 
