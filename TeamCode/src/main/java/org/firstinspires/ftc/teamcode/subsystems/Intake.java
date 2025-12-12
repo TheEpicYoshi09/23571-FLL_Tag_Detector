@@ -14,6 +14,7 @@ public class Intake {
     private double INTAKE_OUT_POWER = 0.59;
     private double INTAKE_IN_POWER = -0.80;
     private double INTAKE_OFF_POWER = 0.0;
+    private double INTAKE_MIN_POWER = -0.2;
 
     public void intakein(){
         intake_motor.setPower(INTAKE_IN_POWER);
@@ -21,8 +22,12 @@ public class Intake {
     public void intakeout(){
         intake_motor.setPower(INTAKE_OUT_POWER);
     }
-    public void intakeoff(){
-        intake_motor.setPower(INTAKE_OFF_POWER);
+    public void intakeoff() {
+        double minSpeed = 0.;
+        if (Drive.INSTANCE.fwdSpeed > 0.1) {
+            minSpeed = INTAKE_MIN_POWER;
+        }
+        intake_motor.setPower(minSpeed);
     }
 
     public void init(HardwareMap hMap) {

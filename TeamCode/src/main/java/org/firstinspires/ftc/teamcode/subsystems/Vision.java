@@ -125,6 +125,20 @@ public class Vision {
         return targetPose;
     }
 
+    public double getTargetBearing() {
+        //int targetId = I_AM_BLUE ? BLUE_TAG_ID : RED_TAG_ID;
+        double offset = 10.;
+        List<AprilTagDetection> currentDetections = aprilTag.getDetections();
+        for (AprilTagDetection detection : currentDetections) {
+            if (detection.metadata != null) {
+                //if (detection.id == targetId) {
+                    return detection.ftcPose.bearing - offset;
+                //}
+            }   // end for() loop
+        }
+        return 0.;
+    }
+
     public int getGreenSpot() {
         int i = getObeliskTag();
         if (i == GPP_TAG_ID) {return 0;}

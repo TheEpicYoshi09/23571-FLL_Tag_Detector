@@ -90,7 +90,11 @@ public class AutoSelect extends LinearOpMode
         timer.reset();
         //while (opModeIsActive() & timer.seconds() < 3.) { }
 
-        AtGoal.runTest();
+        if (AutoSettings.INSTANCE.AT_GOAL) {
+            AtGoal.runTest();
+        } else {
+            AtWall.runTest();
+        }
         //backdropPixel.update(autoSettings.iAmBlue());
         //doubleVision.update(autoSettings.iAmBlue(), autoSettings.rightShift(), autoSettings.leftShift());
         //lastPosition = doubleVision.MarkerProcessor.getPosition();

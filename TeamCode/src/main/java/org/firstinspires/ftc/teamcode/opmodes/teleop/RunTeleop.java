@@ -102,6 +102,7 @@ public class RunTeleop extends OpMode {
         } else {
             Intake.INSTANCE.intakeoff();
             telemetry.addLine("Intake: Off");
+
         }
 
         if (shooterButtonHigh) {
@@ -113,7 +114,7 @@ public class RunTeleop extends OpMode {
             telemetry.addLine("Shooter: shootMid");
         }
         if (shooterButtonLow) {
-            Shooter.INSTANCE.high();
+            Shooter.INSTANCE.low();
             telemetry.addLine("Shooter: ShootLow");
         }
         if (shooterButtonOff) {
@@ -134,12 +135,17 @@ public class RunTeleop extends OpMode {
         }
         telemetry.addData("Lift: position:",Lift.INSTANCE.getPosition());
 
-        double drive = -1. * squareInput(gamepad1.left_stick_y);
-        double strafe = -1. * squareInput(gamepad1.left_stick_x);
-        double turn = -1. * squareInput(gamepad1.right_stick_x);
-        Drive.INSTANCE.moveRobot(drive, strafe, turn);
+        if (gamepad1.left_bumper) {
+            Drive.INSTANCE.autoAim();
+            telemetry.addData("Drive: ","AutoAim()");
+        } else {
+            double drive = -1. * squareInput(gamepad1.left_stick_y);
+            double strafe = -1. * squareInput(gamepad1.left_stick_x);
+            double turn = -1. * squareInput(gamepad1.right_stick_x);
+            Drive.INSTANCE.moveRobot(drive, strafe, turn);
+            telemetry.addData("Drive: ","powers: %5.2f / %5.2f / %5.2f",drive,strafe,turn);
+        }
 
-        telemetry.addData("Drive: ","powers: %5.2f / %5.2f / %5.2f",drive,strafe,turn);
         telemetry.update();
     }
 
