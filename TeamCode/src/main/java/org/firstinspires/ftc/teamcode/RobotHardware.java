@@ -13,7 +13,6 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
-import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -21,6 +20,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.drivers.rgbIndicator;
 import org.firstinspires.ftc.teamcode.drivers.rgbIndicator.LEDColors;
 import org.firstinspires.ftc.teamcode.subsystems.FlywheelPidfConfig;
+import org.firstinspires.ftc.teamcode.subsystems.LauncherMotorGroup;
 import org.firstinspires.ftc.teamcode.subsystems.TurretAimConfig;
 
 public class RobotHardware {
@@ -34,7 +34,8 @@ public class RobotHardware {
     public DcMotor leftBack;
     public DcMotor rightBack;
     public DcMotorEx intake;
-    public DcMotorEx launcher;
+    public LauncherMotorGroup launcherGroup;
+
     public DcMotorEx turret;
     public Servo spindexer;
     public Servo kicker;
@@ -68,14 +69,6 @@ public class RobotHardware {
     private boolean flywheelOn = false;
     private int turretTargetPosition = 0;
     public double spindexerPos = Constants.spindexerStart;
-    private double lastLauncherBaseP = Double.NaN;
-    private double lastLauncherBaseI = Double.NaN;
-    private double lastLauncherBaseD = Double.NaN;
-    private double lastLauncherBaseF = Double.NaN;
-    private double lastLauncherScaledP = Double.NaN;
-    private double lastLauncherScaledI = Double.NaN;
-    private double lastLauncherScaledD = Double.NaN;
-    private double lastLauncherScaledF = Double.NaN;
 
     // Example: GoBilda 5202/5203/5204 encoder = 28 ticks/rev
     private static final double TICKS_PER_REV = 28.0;
@@ -98,10 +91,7 @@ public class RobotHardware {
         if (panelsTelemetry == null) {
             panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
         }
-
-        if (panelsTelemetry != null) {
-            panelsTelemetry.update(telemetry);
-        }
+        panelsTelemetry.update(telemetry);
     }
 
     /**
@@ -111,6 +101,7 @@ public class RobotHardware {
      * All of the hardware devices are accessed via the hardware map, and initialized.
      */
     public void init()    {
+        panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
 
         rgbIndicatorMain = new rgbIndicator(myOpMode.hardwareMap, "rgbLight");
         rgbIndicatorMain.setColor(LEDColors.YELLOW);
@@ -166,13 +157,10 @@ public class RobotHardware {
         //intake.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         //LAUNCHER
-        launcher = myOpMode.hardwareMap.get(DcMotorEx.class,"launcher");
-        launcher.setDirection(DcMotor.Direction.FORWARD);
-        launcher.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        launcher.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        launcher.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        launcher.setTargetPositionTolerance(25);
-        applyLauncherPidfTuning();
+        DcMotorEx launcher = myOpMode.hardwareMap.get(DcMotorEx.class,"launcher");
+        DcMotorEx launcher2 = myOpMode.hardwareMap.get(DcMotorEx.class,"launcher2");
+        launcherGroup = new LauncherMotorGroup(myOpMode.telemetry, panelsTelemetry, launcher, launcher2);
+        launcherGroup.applyLauncherPIDFTuning();
 
         //TURRET
         turret = myOpMode.hardwareMap.get(DcMotorEx.class, "turret");
@@ -213,10 +201,9 @@ public class RobotHardware {
         color3 = myOpMode.hardwareMap.get(RevColorSensorV3.class, "color3");
         distance3 = myOpMode.hardwareMap.get(DistanceSensor.class, "color3");
 
-        panelsTelemetry = PanelsTelemetry.INSTANCE.getTelemetry();
         PanelsConfigurables.INSTANCE.refreshClass(FlywheelPidfConfig.class);
         PanelsConfigurables.INSTANCE.refreshClass(TurretAimConfig.class);
-        refreshLauncherPidfFromConfig();
+        launcherGroup.refreshLauncherPIDFFromConfig();
         flushPanelsTelemetry(myOpMode.telemetry);
 
         //Telemetry Data
@@ -293,81 +280,6 @@ public class RobotHardware {
         myOpMode.telemetry.addData("Alliance switch state (raw)", rawSwitchState);
         myOpMode.telemetry.addData("Alliance inferred", allianceColorRed ? "RED" : "BLUE");
         myOpMode.telemetry.addData("Selected pipeline", pipeline);
-    }
-
-    /**
-     * Apply starting PIDF gains for the 6000 RPM Yellow Jacket launcher.
-     * These values are derived from the motor's free speed and provide a
-     * responsive baseline to counter RPM droop when a note is launched.
-     */
-    private void applyLauncherPidfTuning() {
-        if (launcher == null) {
-            myOpMode.telemetry.addLine("ERROR: launcher motor is NULL!");
-            return;
-        }
-
-        // Scale the motor-side PIDF gains by the gear reduction so the feedforward
-        // and proportional response still match the flywheel-side setpoints that are
-        // converted into motor ticks/second.
-        double gearScaledP = FlywheelPidfConfig.launcherP * Constants.LAUNCHER_GEAR_REDUCTION;
-        double gearScaledI = FlywheelPidfConfig.launcherI * Constants.LAUNCHER_GEAR_REDUCTION;
-        double gearScaledD = FlywheelPidfConfig.launcherD * Constants.LAUNCHER_GEAR_REDUCTION;
-        double gearScaledF = FlywheelPidfConfig.launcherF * Constants.LAUNCHER_GEAR_REDUCTION;
-
-        PIDFCoefficients pidf = new PIDFCoefficients(
-                gearScaledP,
-                gearScaledI,
-                gearScaledD,
-                gearScaledF);
-
-        launcher.setVelocityPIDFCoefficients(
-                pidf.p,
-                pidf.i,
-                pidf.d,
-                pidf.f);
-
-        lastLauncherBaseP = FlywheelPidfConfig.launcherP;
-        lastLauncherBaseI = FlywheelPidfConfig.launcherI;
-        lastLauncherBaseD = FlywheelPidfConfig.launcherD;
-        lastLauncherBaseF = FlywheelPidfConfig.launcherF;
-        lastLauncherScaledP = pidf.p;
-        lastLauncherScaledI = pidf.i;
-        lastLauncherScaledD = pidf.d;
-        lastLauncherScaledF = pidf.f;
-
-        publishLauncherPidfTelemetry();
-    }
-
-    /**
-     * Reapply launcher PIDF values if the Panels-configured base values changed.
-     * Always publishes the latest scaled/base values to Panels so they appear live
-     * even when the setpoint is not being updated.
-     */
-    public void refreshLauncherPidfFromConfig() {
-        boolean baseChanged = FlywheelPidfConfig.launcherP != lastLauncherBaseP
-                || FlywheelPidfConfig.launcherI != lastLauncherBaseI
-                || FlywheelPidfConfig.launcherD != lastLauncherBaseD
-                || FlywheelPidfConfig.launcherF != lastLauncherBaseF;
-
-        if (baseChanged || !Double.isFinite(lastLauncherScaledP) || !Double.isFinite(lastLauncherScaledF)) {
-            applyLauncherPidfTuning();
-            return;
-        }
-
-        publishLauncherPidfTelemetry();
-    }
-
-    private void publishLauncherPidfTelemetry() {
-        if (panelsTelemetry == null || !Double.isFinite(lastLauncherScaledP) || !Double.isFinite(lastLauncherScaledF)) {
-            return;
-        }
-
-        panelsTelemetry.debug("Launcher PIDF scaled (P,I,D,F)",
-                String.format("P=%.3f I=%.3f D=%.3f F=%.3f",
-                        lastLauncherScaledP, lastLauncherScaledI, lastLauncherScaledD, lastLauncherScaledF));
-        panelsTelemetry.debug("Launcher PIDF base (P,I,D,F)",
-                String.format("P=%.3f I=%.3f D=%.3f F=%.3f",
-                        lastLauncherBaseP, lastLauncherBaseI, lastLauncherBaseD, lastLauncherBaseF));
     }
 
     /**
@@ -463,22 +375,22 @@ public class RobotHardware {
     }
 
     public void stopFlywheel() {
-        launcher.setVelocity(0);
+        launcherGroup.group.setVelocity(0);
         targetRPM = 0;
         flywheelOn = false;
     }
 
     public void setTargetRPM(double rpm) {
-        applyLauncherPidfTuning();
+        launcherGroup.applyLauncherPIDFTuning();
 
         targetRPM = rpm;
         flywheelOn = rpm > 0;
 
         if (flywheelOn) {
             double ticksPerSecond = rpmToTicksPerSecond(rpm);
-            launcher.setVelocity(ticksPerSecond);
+            launcherGroup.group.setVelocity(ticksPerSecond);
         } else {
-            launcher.setVelocity(0);
+            launcherGroup.group.setVelocity(0);
         }
     }
 
@@ -496,7 +408,7 @@ public class RobotHardware {
 
     public double getCurrentRPM() {
         // Convert motor-side encoder velocity back to flywheel RPM.
-        return (launcher.getVelocity() * 60.0) / (TICKS_PER_REV * Constants.LAUNCHER_GEAR_REDUCTION);
+        return (launcherGroup.group.getVelocity() * 60.0) / (TICKS_PER_REV * Constants.LAUNCHER_GEAR_REDUCTION);
     }
 
 
