@@ -104,7 +104,7 @@ public class NextFTCTeleop extends NextFTCOpMode {
         }
 
         if(gamepad1.a){
-            outtake.setLauncherTargetVelo(2000);
+            outtake.setLauncherTargetVelo(2200);
         }
 
         if(gamepad1.b){
@@ -112,11 +112,16 @@ public class NextFTCTeleop extends NextFTCOpMode {
             outtake.setPower(0);
         }
 
-        if (gamepad1.right_bumper && rotaryTimer.getTimeSeconds() > 1) {
-            //Transfer command here
+        if (gamepad1.right_bumper && rotaryTimer.getTimeSeconds() > 1.5) {
             rotaryIntake.toggleServo();
             rotaryTimer.reset();
+
         }
+
+        if(gamepad1.y){
+            mecDrive.getFollower().turnToDegrees(color == UniConstants.teamColor.RED ? 36 : 144);
+        }
+
 
         if(rotaryIntake.state == RotaryIntakeSubsystem.servoState.OUTTAKE){
             gamepad1.rumble(250);

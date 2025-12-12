@@ -9,7 +9,9 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.sun.tools.javac.util.List;
 
+import org.firstinspires.ftc.teamcode.Util.PDFLController;
 import org.firstinspires.ftc.teamcode.Util.PDFLControllerRadial;
+import org.firstinspires.ftc.teamcode.Util.Timer;
 import org.firstinspires.ftc.teamcode.Util.UniConstants;
 
 import java.util.ArrayList;
@@ -48,6 +50,8 @@ public class RotaryIntakeSubsystem implements Subsystem {
     public static double rotaryPower = 0;
 
     public servoState state = servoState.INTAKE;
+
+    Timer flipTimer = new Timer();
 
     public RotaryIntakeSubsystem(HardwareMap hardwareMap, JoinedTelemetry telemetry, UniConstants.teamColor color){
         this.telemetry = telemetry;
@@ -142,6 +146,12 @@ public class RotaryIntakeSubsystem implements Subsystem {
         }
     }
 
+    public void toggleServo(servoState testState){
+        state = testState;
+    }
+
+
+
     public void readSlots() {
         for (int i = 0; i < 3; i++) {
             double red = colorSensors.get(i).red();
@@ -190,9 +200,7 @@ public class RotaryIntakeSubsystem implements Subsystem {
         return getError() <= 5;
     }
 
-    public void setServoState(servoState state){
-        servoTarget = (state == servoState.INTAKE ? UniConstants.SERVO_INTAKE : UniConstants.SERVO_OUTTAKE );
-    }
+
 
 
     public void sendTelemetry(UniConstants.loggingState state){

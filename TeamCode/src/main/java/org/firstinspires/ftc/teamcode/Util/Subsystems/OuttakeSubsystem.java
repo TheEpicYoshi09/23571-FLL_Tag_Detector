@@ -143,6 +143,16 @@ public class OuttakeSubsystem implements Subsystem {
     public void setPower(double power){
         launcherPower = power;
     }
+    public void getPower(){
+        launcher.getPower();
+    }
+
+    public boolean readyToShoot(double error){
+        if((launcherTargetVelo - error) <= launcherCurrentVelo && (launcherTargetVelo + error) >= launcherCurrentVelo){
+            return true;
+        }
+        return false;
+    }
 
     public void sendTelemetry(UniConstants.loggingState state){
         switch(state){

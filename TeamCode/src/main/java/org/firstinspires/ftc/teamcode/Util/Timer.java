@@ -37,4 +37,6 @@ public class Timer {
     public double getTimeSeconds() {
         return (getTime()/ Math.pow(10.0,9));
     }
+
+
 }

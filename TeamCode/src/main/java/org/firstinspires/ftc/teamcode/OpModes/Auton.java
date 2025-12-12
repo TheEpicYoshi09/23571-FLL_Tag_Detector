@@ -10,6 +10,7 @@ import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.teamcode.OpModes.Util.RedPaths;
 import org.firstinspires.ftc.teamcode.Util.Subsystems.MecDriveSubsystem;
 import org.firstinspires.ftc.teamcode.Util.Subsystems.OuttakeSubsystem;
 import org.firstinspires.ftc.teamcode.Util.Subsystems.RotaryIntakeSubsystem;
@@ -33,7 +34,7 @@ public class Auton extends NextFTCOpMode {
 
     int pathState = -1;
     PathChain path1, path2;
-
+    RedPaths paths = new RedPaths();
 
     private static RotaryIntakeSubsystem rotaryIntake;
     private static OuttakeSubsystem outtake;
@@ -55,7 +56,8 @@ public class Auton extends NextFTCOpMode {
         //mecDrive.resetPinpoint();
         outtake.resetMotors();
 
-        buildPaths(mecDrive.getFollower());
+        //buildPaths(mecDrive.getFollower());
+        paths.Paths(mecDrive.getFollower());
 
     }
 
@@ -80,7 +82,8 @@ public class Auton extends NextFTCOpMode {
         rotaryIntake.setColor(color);
         outtake.setColor(color);
         mecDrive.setColor(color);
-        mecDrive.setPose(color == UniConstants.teamColor.BLUE ? new Pose(22, 125, Math.toRadians(144)) : new Pose(122, 125, Math.toRadians(36)));
+        mecDrive.setPose(new Pose(122, 125, Math.toRadians(36)));
+        rotaryIntake.toggleServo(RotaryIntakeSubsystem.servoState.INTAKE);
 
         setPathState(0);
 
@@ -103,37 +106,120 @@ public class Auton extends NextFTCOpMode {
         switch(pathState){
             case 0:
                 outtake.setLauncherTargetVelo(2200);
-                mecDrive.getFollower().followPath(path1);
+                mecDrive.getFollower().followPath(paths.Path1);
                 setPathState(1);
                 break;
             case 1:
-                if(!mecDrive.getFollower().isBusy() && pathTimer.getTimeSeconds() > 7.5){
-                    rotaryIntake.enableActive();
+                if(!mecDrive.getFollower().isBusy()){ //This timer is mainly for the launcher getting spun up
+                    if(pathTimer.getTimeSeconds() > 8) {
+                        rotaryIntake.enableActive();
 //                    ballServo.setPosition(UniConstants.SERVO_OUTTAKE);
-                    rotaryIntake.toggleServo();
-
-                    if(pathTimer.getTimeSeconds() > 10){
-                        rotaryIntake.toggleServo();
+                        rotaryIntake.toggleServo(RotaryIntakeSubsystem.servoState.OUTTAKE); //Up
+                    }
+                    else if(pathTimer.getTimeSeconds() > 12.5){
+                        rotaryIntake.toggleServo(RotaryIntakeSubsystem.servoState.INTAKE); //Down
                     }
 
-                    if(pathTimer.getTimeSeconds() > 12.5){
-                        rotaryIntake.toggleServo();
+                    else if(pathTimer.getTimeSeconds() > 14){
+                        rotaryIntake.toggleServo(RotaryIntakeSubsystem.servoState.OUTTAKE); //Up
                         setPathState(2);
                     }
                 }
                 break;
             case 2:
-                if(pathTimer.getTimeSeconds() > 7.5){
+                if(pathTimer.getTimeSeconds() > 2){ //Unsure of why this is its own state?
                     rotaryIntake.disableActive();
 //                    ballServo.setPosition(UniConstants.SERVO_INTAKE);
-                    rotaryIntake.toggleServo();
-                    mecDrive.getFollower().followPath(path2);
+                    rotaryIntake.toggleServo(RotaryIntakeSubsystem.servoState.INTAKE); //Down
+                    mecDrive.getFollower().followPath(paths.Path2);
                     setPathState(3);
                 }
                 break;
             case 3:
-                outtake.setLauncherPowerDebug(0);
+                //Get to intake position
+                if(!mecDrive.getFollower().isBusy()){
+                    rotaryIntake.enableActive();
+                    mecDrive.getFollower().followPath(paths.Path3);
+                    setPathState(4);
+                }
                 break;
+            case 4:
+                //Intake all balls
+                if(!mecDrive.getFollower().isBusy()){
+                    rotaryIntake.disableActive();
+                    mecDrive.getFollower().followPath(paths.Path4);
+                    setPathState(5);
+                }
+                break;
+            case 5:
+                //Get to shooting location, and then shoot
+                if(!mecDrive.getFollower().isBusy()){
+                    if(pathTimer.getTimeSeconds() > 3) {
+                        rotaryIntake.enableActive();
+//                    ballServo.setPosition(UniConstants.SERVO_OUTTAKE);
+                        rotaryIntake.toggleServo(RotaryIntakeSubsystem.servoState.OUTTAKE); //Up
+                    }
+                    else if(pathTimer.getTimeSeconds() > 5.5){
+                        rotaryIntake.toggleServo(RotaryIntakeSubsystem.servoState.INTAKE); //Down
+                    }
+
+                    else if(pathTimer.getTimeSeconds() > 8){
+                        rotaryIntake.toggleServo(RotaryIntakeSubsystem.servoState.OUTTAKE); //Up
+                        setPathState(6);
+                    }
+                    break;
+
+                }
+            case 6:
+                //Go to 2nd line and intake
+                if(pathTimer.getTimeSeconds() > 2){
+                    mecDrive.getFollower().followPath(paths.Path5);
+                    setPathState(10);
+
+
+
+                }
+                break;
+            case 10:
+                //Go to 2nd line and intake
+
+
+                if(!mecDrive.getFollower().isBusy()){
+                    rotaryIntake.toggleServo();
+                    rotaryIntake.enableActive();
+                    mecDrive.getFollower().followPath(paths.Path6);
+                    setPathState(7);
+                }
+
+
+
+
+                break;
+            case 7:
+                if(!mecDrive.getFollower().isBusy()){
+                    if(pathTimer.getTimeSeconds() > 3) {
+                        rotaryIntake.enableActive();
+//                    ballServo.setPosition(UniConstants.SERVO_OUTTAKE);
+                        rotaryIntake.toggleServo(RotaryIntakeSubsystem.servoState.OUTTAKE); //Up
+                    }
+                    else if(pathTimer.getTimeSeconds() > 5.5){
+                        rotaryIntake.toggleServo(RotaryIntakeSubsystem.servoState.INTAKE); //Down
+                    }
+
+                    else if(pathTimer.getTimeSeconds() > 8){
+                        rotaryIntake.toggleServo(RotaryIntakeSubsystem.servoState.OUTTAKE); //Up
+                        setPathState(8);
+                    }
+                }
+                break;
+            case 8:
+                if(pathTimer.getTimeSeconds() > 3){
+                    outtake.setLauncherTargetVelo(0);
+                    rotaryIntake.toggleServo();
+                    rotaryIntake.disableActive();
+
+                }
+
         }
     }
 
