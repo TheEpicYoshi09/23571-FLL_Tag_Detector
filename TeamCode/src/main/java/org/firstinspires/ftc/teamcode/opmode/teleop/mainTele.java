@@ -69,11 +69,11 @@ public class mainTele extends LinearOpMode {
                 }
             }
         
-            if (gamepad2.left_trigger > 0) {
-                robot.shooter.startIntake2();
-            } else {
-                robot.shooter.stopIntake2();
-            }
+//            if (gamepad2.left_trigger > 0) {
+//                robot.shooter.startIntake2();
+//            } else {
+//                robot.shooter.stopIntake2();
+//            }
 
             robot.drive.drive(forward, strafe, turn);
             

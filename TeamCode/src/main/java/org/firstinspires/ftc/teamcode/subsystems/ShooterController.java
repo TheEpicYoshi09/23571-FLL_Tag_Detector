@@ -12,8 +12,9 @@ import java.util.Objects;
 public class ShooterController {
     public enum State { IDLE, SPIN_UP, FEED, SPIN_DOWN, EJECT }
 
-    private final DcMotor intake, intake2;
-    private final DcMotorEx launcher;
+    private final DcMotor intake;
+            //intake2;
+    private final DcMotorEx outtakeMotor;
 
     // Tunables
     private final int shortShotVelocity = 1400; // spin power
@@ -36,20 +37,20 @@ public class ShooterController {
 
 
     public ShooterController(HardwareMap hardwareMap) {
-        launcher = hardwareMap.get(DcMotorEx.class, "launcher");
+        outtakeMotor = hardwareMap.get(DcMotorEx.class, "outtakeMotor");
         intake = hardwareMap.get(DcMotor.class, "intake");
-        intake2 = hardwareMap.get(DcMotor.class, "intake2");
+        //intake2 = hardwareMap.get(DcMotor.class, "intake2");
 
         // Encoder logic -------------------------------------------------
-        launcher.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
-        launcher.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        outtakeMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        outtakeMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
 
         // Set motor directions (adjust if movement is inverted) ----------
-        launcher.setDirection(DcMotorEx.Direction.REVERSE);
+        outtakeMotor.setDirection(DcMotorEx.Direction.REVERSE);
         intake.setDirection(DcMotor.Direction.FORWARD);
 
         // Set motor behavior ----------------------------------------------
-        launcher.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
+        outtakeMotor.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
     }
 
     /** Start a single, timed shot. Returns immediately (non-blocking). */
@@ -69,9 +70,9 @@ public class ShooterController {
 
         //launcher.setPower(targetPower);
         if (Objects.equals(shotType, "short")){
-            launcher.setVelocity(shortShotVelocity);
+            outtakeMotor.setVelocity(shortShotVelocity);
         } else {
-            launcher.setVelocity(longShotVelocity);
+            outtakeMotor.setVelocity(longShotVelocity);
         }
     }
 
@@ -83,35 +84,35 @@ public class ShooterController {
                 break;
 
             case SPIN_UP:
-                lastVelocity = launcher.getVelocity();
+                lastVelocity = outtakeMotor.getVelocity();
                 if (shotType == "short"){
-                    if (Math.abs(shortShotVelocity - launcher.getVelocity()) < velocityTolerance) {
+                    if (Math.abs(shortShotVelocity - outtakeMotor.getVelocity()) < velocityTolerance) {
                     //if (timer.milliseconds() >= spinUpMs) {
                         state = State.FEED;
                         timer.reset();
                         intake.setPower(intakePower); // push ball into shooter
-                        intake2.setPower(0);
+                        //intake2.setPower(0);
                     }
                 } else {
-                    if (Math.abs(longShotVelocity - launcher.getVelocity()) < velocityTolerance) {
+                    if (Math.abs(longShotVelocity - outtakeMotor.getVelocity()) < velocityTolerance) {
                     //if (timer.milliseconds() >= spinUpMs) {
                         state = State.FEED;
                         timer.reset();
                         intake.setPower(intakePower); // push ball into shooter
-                        intake2.setPower(0);
+                        //intake2.setPower(0);
                     }
                 }
                 
                 break;
 
             case EJECT:
-                lastVelocity=  launcher.getVelocity();
-                if (Math.abs(ejectVelocity - launcher.getVelocity()) < velocityTolerance) {
+                lastVelocity=  outtakeMotor.getVelocity();
+                if (Math.abs(ejectVelocity - outtakeMotor.getVelocity()) < velocityTolerance) {
                 // if (timer.milliseconds() >= spinUpMs) {
                     state = State.FEED;
                     timer.reset();
                     intake.setPower(intakePower); // push ball into shooter
-                    intake2.setPower(0);
+                    //intake2.setPower(0);
                 }
                 break;
 
@@ -119,7 +120,7 @@ public class ShooterController {
                 if (timer.milliseconds() >= feedMs) {
                     state = State.SPIN_DOWN;
                     timer.reset();
-                    launcher.setVelocity(0);
+                    outtakeMotor.setVelocity(0);
                     intake.setPower(0);
                 }
                 break;
@@ -128,11 +129,11 @@ public class ShooterController {
                 if (numberOfShots > 1){
                     state = State.SPIN_UP;
                     if (shotType == "short") {
-                    launcher.setVelocity(shortShotVelocity);
+                    outtakeMotor.setVelocity(shortShotVelocity);
                     } else {
-                        launcher.setVelocity(longShotVelocity);
+                        outtakeMotor.setVelocity(longShotVelocity);
                     }
-                    intake2.setPower(intakePower);
+                    //intake2.setPower(intakePower);
                     numberOfShots--;
                     //telemetry.addLine("Shots left:" + numberOfShots);
                 }
@@ -156,7 +157,7 @@ public class ShooterController {
         timer.reset();
 
         // launcher.setPower(targetPower);
-        launcher.setVelocity(ejectVelocity);
+        outtakeMotor.setVelocity(ejectVelocity);
     }
 
     public void startIntake() {
@@ -167,20 +168,20 @@ public class ShooterController {
         intake.setPower(0);
     }
 
-    public void startIntake2() {
-        intake2.setPower(1);
-    }
-
-    public void stopIntake2() {
-        intake2.setPower(0);
-    }
+//    public void startIntake2() {
+//        intake2.setPower(1);
+//    }
+//
+//    public void stopIntake2() {
+//        intake2.setPower(0);
+//    }
 
     public void startLauncher() {
-        launcher.setPower(1);
+        outtakeMotor.setPower(1);
     }
 
     public void stopLauncher() {
-        launcher.setPower(0);
+        outtakeMotor.setPower(0);
     }
 
     public void addTelemetry(Telemetry telemetry) {
