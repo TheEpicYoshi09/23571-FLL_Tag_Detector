@@ -36,6 +36,8 @@ public class RobotHardware {
     public DcMotorEx intake;
     public LauncherMotorGroup launcherGroup;
 
+    public DcMotorEx launcher;
+    public DcMotorEx launcher2;
     public DcMotorEx turret;
     public Servo spindexer;
     public Servo kicker;
@@ -61,6 +63,7 @@ public class RobotHardware {
     public Limelight3A limelight;
     public GoBildaPinpointDriver pinpoint; // Declare OpMode member for the Odometry Computer
     public rgbIndicator rgbIndicatorMain;
+    public rgbIndicator frontLED;
     public rgbIndicator rearRGB1;
     public rgbIndicator rearRGB2;
     public rgbIndicator rearRGB3;
@@ -105,6 +108,9 @@ public class RobotHardware {
 
         rgbIndicatorMain = new rgbIndicator(myOpMode.hardwareMap, "rgbLight");
         rgbIndicatorMain.setColor(LEDColors.YELLOW);
+
+        frontLED = new rgbIndicator(myOpMode.hardwareMap, "frontLED");
+        frontLED.setColor(LEDColors.YELLOW);
 
         rearRGB1 = new rgbIndicator(myOpMode.hardwareMap, "rearRGB1");
         rearRGB2 = new rgbIndicator(myOpMode.hardwareMap, "rearRGB2");
@@ -161,6 +167,21 @@ public class RobotHardware {
         DcMotorEx launcher2 = myOpMode.hardwareMap.get(DcMotorEx.class,"launcher2");
         launcherGroup = new LauncherMotorGroup(myOpMode.telemetry, panelsTelemetry, launcher); //, launcher2
         launcherGroup.applyLauncherPIDFTuning();
+        launcher = myOpMode.hardwareMap.get(DcMotorEx.class,"launcher");
+        launcher.setDirection(DcMotor.Direction.FORWARD);
+        launcher.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        launcher.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        launcher.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        launcher.setTargetPositionTolerance(25);
+
+        launcher2 = myOpMode.hardwareMap.get(DcMotorEx.class,"launcher2");
+        launcher2.setDirection(DcMotor.Direction.REVERSE);
+        launcher2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        launcher2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        launcher2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        launcher2.setTargetPositionTolerance(25);
+
+        applyLauncherPidfTuning();
 
         //TURRET
         turret = myOpMode.hardwareMap.get(DcMotorEx.class, "turret");
@@ -240,6 +261,7 @@ public class RobotHardware {
     public void configureAllianceFromSwitch() {
         refreshAllianceFromSwitchState();
         rgbIndicatorMain.setColor(allianceColorRed ? LEDColors.RED : LEDColors.BLUE);
+        frontLED.setColor(allianceColorRed ? LEDColors.RED : LEDColors.BLUE);
         rearRGB1.setColor(allianceColorRed ? LEDColors.RED : LEDColors.BLUE);
         rearRGB2.setColor(allianceColorRed ? LEDColors.RED : LEDColors.BLUE);
         rearRGB3.setColor(allianceColorRed ? LEDColors.RED : LEDColors.BLUE);
@@ -280,6 +302,93 @@ public class RobotHardware {
         myOpMode.telemetry.addData("Alliance switch state (raw)", rawSwitchState);
         myOpMode.telemetry.addData("Alliance inferred", allianceColorRed ? "RED" : "BLUE");
         myOpMode.telemetry.addData("Selected pipeline", pipeline);
+    }
+
+    /**
+     * Apply starting PIDF gains for the 6000 RPM Yellow Jacket launcher.
+     * These values are derived from the motor's free speed and provide a
+     * responsive baseline to counter RPM droop when a note is launched.
+     */
+    private void applyLauncherPidfTuning() {
+        if (launcher == null) {
+            myOpMode.telemetry.addLine("ERROR: launcher motor is NULL!");
+            return;
+        }
+
+        if (launcher2 == null) {
+            myOpMode.telemetry.addLine("ERROR: launcher2 motor is NULL!");
+        }
+
+        // Scale the motor-side PIDF gains by the gear reduction so the feedforward
+        // and proportional response still match the flywheel-side setpoints that are
+        // converted into motor ticks/second.
+        double gearScaledP = FlywheelPidfConfig.launcherP * Constants.LAUNCHER_GEAR_REDUCTION;
+        double gearScaledI = FlywheelPidfConfig.launcherI * Constants.LAUNCHER_GEAR_REDUCTION;
+        double gearScaledD = FlywheelPidfConfig.launcherD * Constants.LAUNCHER_GEAR_REDUCTION;
+        double gearScaledF = FlywheelPidfConfig.launcherF * Constants.LAUNCHER_GEAR_REDUCTION;
+
+        PIDFCoefficients pidf = new PIDFCoefficients(
+                gearScaledP,
+                gearScaledI,
+                gearScaledD,
+                gearScaledF);
+
+        launcher.setVelocityPIDFCoefficients(
+                pidf.p,
+                pidf.i,
+                pidf.d,
+                pidf.f);
+
+        if (launcher2 != null) {
+            launcher2.setVelocityPIDFCoefficients(
+                    pidf.p,
+                    pidf.i,
+                    pidf.d,
+                    pidf.f);
+        }
+
+        lastLauncherBaseP = FlywheelPidfConfig.launcherP;
+        lastLauncherBaseI = FlywheelPidfConfig.launcherI;
+        lastLauncherBaseD = FlywheelPidfConfig.launcherD;
+        lastLauncherBaseF = FlywheelPidfConfig.launcherF;
+        lastLauncherScaledP = pidf.p;
+        lastLauncherScaledI = pidf.i;
+        lastLauncherScaledD = pidf.d;
+        lastLauncherScaledF = pidf.f;
+
+        publishLauncherPidfTelemetry();
+    }
+
+    /**
+     * Reapply launcher PIDF values if the Panels-configured base values changed.
+     * Always publishes the latest scaled/base values to Panels so they appear live
+     * even when the setpoint is not being updated.
+     */
+    public void refreshLauncherPidfFromConfig() {
+        boolean baseChanged = FlywheelPidfConfig.launcherP != lastLauncherBaseP
+                || FlywheelPidfConfig.launcherI != lastLauncherBaseI
+                || FlywheelPidfConfig.launcherD != lastLauncherBaseD
+                || FlywheelPidfConfig.launcherF != lastLauncherBaseF;
+
+        if (baseChanged || !Double.isFinite(lastLauncherScaledP) || !Double.isFinite(lastLauncherScaledF)) {
+            applyLauncherPidfTuning();
+            return;
+        }
+
+        publishLauncherPidfTelemetry();
+    }
+
+    private void publishLauncherPidfTelemetry() {
+        if (panelsTelemetry == null || !Double.isFinite(lastLauncherScaledP) || !Double.isFinite(lastLauncherScaledF)) {
+            return;
+        }
+
+        panelsTelemetry.debug("Launcher PIDF scaled (P,I,D,F)",
+                String.format("P=%.3f I=%.3f D=%.3f F=%.3f",
+                        lastLauncherScaledP, lastLauncherScaledI, lastLauncherScaledD, lastLauncherScaledF));
+        panelsTelemetry.debug("Launcher PIDF base (P,I,D,F)",
+                String.format("P=%.3f I=%.3f D=%.3f F=%.3f",
+                        lastLauncherBaseP, lastLauncherBaseI, lastLauncherBaseD, lastLauncherBaseF));
     }
 
     /**
@@ -376,6 +485,10 @@ public class RobotHardware {
 
     public void stopFlywheel() {
         launcherGroup.group.setVelocity(0);
+        launcher.setVelocity(0);
+        if (launcher2 != null) {
+            launcher2.setVelocity(0);
+        }
         targetRPM = 0;
         flywheelOn = false;
     }
@@ -391,6 +504,15 @@ public class RobotHardware {
             launcherGroup.group.setVelocity(ticksPerSecond);
         } else {
             launcherGroup.group.setVelocity(0);
+            launcher.setVelocity(ticksPerSecond);
+            if (launcher2 != null) {
+                launcher2.setVelocity(ticksPerSecond);
+            }
+        } else {
+            launcher.setVelocity(0);
+            if (launcher2 != null) {
+                launcher2.setVelocity(0);
+            }
         }
     }
 
