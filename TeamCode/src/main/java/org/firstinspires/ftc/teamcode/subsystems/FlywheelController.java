@@ -36,6 +36,7 @@ public class FlywheelController {
     private TelemetryManager panelsTelemetry;
     private boolean flywheelEnabled = false;
     private double targetRpm = 0.0;
+    private double rpmTolerance = Constants.FLYWHEEL_TOLERANCE_RPM;
 
     private final ElapsedTime spinupTimer = new ElapsedTime();
     private boolean measuringSpinup = false;
@@ -46,6 +47,8 @@ public class FlywheelController {
         this.robot = robot;
         this.telemetry = telemetry;
         this.panelsTelemetry = robot.getPanelsTelemetry();
+
+        resetDriverTuningFromConstants();
     }
 
      /**
@@ -79,8 +82,31 @@ public class FlywheelController {
         return (launcherGroup.group.getVelocity() * 60.0) / TICKS_PER_REV;
     }
 
-    public boolean isAtSpeed(double tolerance) {
-        return Math.abs(getCurrentRpm() - targetRpm) <= tolerance;
+    public boolean isAtSpeed() {
+        return Math.abs(getCurrentRpm() - targetRpm) <= rpmTolerance;
+    }
+
+    public double getRpmTolerance() {
+        return rpmTolerance;
+    }
+
+    public void adjustRpmTolerance(double delta) {
+        rpmTolerance = Math.max(0.0, rpmTolerance + delta);
+    }
+
+    public void adjustLauncherFeedforward(double delta) {
+        FlywheelPidfConfig.launcherF += delta;
+    }
+
+    /**
+     * Restore driver-tunable values to their default Constants-based settings.
+     */
+    public void resetDriverTuningFromConstants() {
+        rpmTolerance = Constants.FLYWHEEL_TOLERANCE_RPM;
+        FlywheelPidfConfig.launcherP = Constants.LAUNCHER_P;
+        FlywheelPidfConfig.launcherI = Constants.LAUNCHER_I;
+        FlywheelPidfConfig.launcherD = Constants.LAUNCHER_D;
+        FlywheelPidfConfig.launcherF = Constants.LAUNCHER_F;
     }
 
     /**
@@ -141,7 +167,7 @@ public class FlywheelController {
 
         publishPanelsFlywheelTelemetry(targetRpm, getCurrentRpm());
 
-        if (measuringSpinup && isAtSpeed(Constants.FLYWHEEL_TOLERANCE_RPM)) {
+        if (measuringSpinup && isAtSpeed()) {
             double elapsedSeconds = spinupTimer.seconds();
             RobotLog.ii("FlywheelController", "Spin-up to %.0f RPM reached in %.2f s", spinupSetpointRpm, elapsedSeconds);
             measuringSpinup = false;
