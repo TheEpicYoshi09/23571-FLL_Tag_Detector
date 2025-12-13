@@ -16,8 +16,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
-@TeleOp(name = "two wheel demo opmode", group = "TwoWheel")
-@Disabled
+@TeleOp(name = "IS two wheel demo opmode", group = "TwoWheel")
 public class TwoWheelDemoOpMode extends OpMode {
 
     private DcMotor left = null;

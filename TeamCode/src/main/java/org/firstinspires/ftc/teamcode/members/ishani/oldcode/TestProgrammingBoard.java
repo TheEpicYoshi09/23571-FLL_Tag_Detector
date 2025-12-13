@@ -15,7 +15,7 @@ import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigu
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
-@TeleOp(name = "TestProgrammingBoard", group = "Test")
+@TeleOp(name = "IS TestProgrammingBoard", group = "Test")
 @Disabled
 public class TestProgrammingBoard extends OpMode {
 
