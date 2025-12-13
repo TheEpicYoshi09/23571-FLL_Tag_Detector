@@ -4,7 +4,6 @@ package org.firstinspires.ftc.teamcode.OpModes;
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.telemetry.JoinedTelemetry;
 import com.bylazar.telemetry.PanelsTelemetry;
-import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.Util.Subsystems.BetterVisionTM;
@@ -80,6 +79,7 @@ public class NextFTCTeleop extends NextFTCOpMode {
         outtake.setTurretTargetAngle(0);
         mecDrive.setColor(color);
         mecDrive.startTele();
+        rotaryIntake.toggleServo(RotaryIntakeSubsystem.servoState.INTAKE);
 //        mecDrive.setPose(new Pose(72, 72, Math.toRadians(90)));
 
 
@@ -121,6 +121,7 @@ public class NextFTCTeleop extends NextFTCOpMode {
         if(gamepad1.y){
             mecDrive.getFollower().turnToDegrees(color == UniConstants.teamColor.RED ? 36 : 144);
         }
+
 
 
         if(rotaryIntake.state == RotaryIntakeSubsystem.servoState.OUTTAKE){

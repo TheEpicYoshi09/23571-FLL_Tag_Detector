@@ -16,7 +16,7 @@ public class RedPaths {
   public PathChain Path7;
   public PathChain Path8;
 
-  public void Paths(Follower follower) {
+  public RedPaths(Follower follower) {
     Path1 = follower
       .pathBuilder()
       .addPath(

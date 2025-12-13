@@ -5,11 +5,10 @@ import com.bylazar.telemetry.PanelsTelemetry;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
-import com.pedropathing.paths.PathBuilder;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.teamcode.OpModes.Util.BluePaths;
 import org.firstinspires.ftc.teamcode.OpModes.Util.RedPaths;
 import org.firstinspires.ftc.teamcode.Util.Subsystems.MecDriveSubsystem;
 import org.firstinspires.ftc.teamcode.Util.Subsystems.OuttakeSubsystem;
@@ -17,7 +16,6 @@ import org.firstinspires.ftc.teamcode.Util.Subsystems.RotaryIntakeSubsystem;
 import org.firstinspires.ftc.teamcode.Util.Timer;
 import org.firstinspires.ftc.teamcode.Util.UniConstants;
 
-import dev.nextftc.core.components.SubsystemComponent;
 import dev.nextftc.ftc.NextFTCOpMode;
 
 @Autonomous
@@ -34,13 +32,14 @@ public class Auton extends NextFTCOpMode {
 
     int pathState = -1;
     PathChain path1, path2;
-    RedPaths paths = new RedPaths();
+
 
     private static RotaryIntakeSubsystem rotaryIntake;
     private static OuttakeSubsystem outtake;
     private static MecDriveSubsystem mecDrive;
 
-    public Servo ballServo;
+    BluePaths bluePaths;
+    RedPaths redPaths;
 
     @Override
     public void onInit() {
@@ -50,14 +49,18 @@ public class Auton extends NextFTCOpMode {
         outtake = new OuttakeSubsystem(hardwareMap, joinedTelemetry, color);
         mecDrive = new MecDriveSubsystem(hardwareMap, joinedTelemetry, color);
 
-        ballServo = hardwareMap.get(Servo.class, UniConstants.BALL_SERVO_STRING);
+//        ballServo = hardwareMap.get(Servo.class, UniConstants.BALL_SERVO_STRING);
+
+        bluePaths = new BluePaths(mecDrive.getFollower());
+        redPaths = new RedPaths(mecDrive.getFollower());
+
 
 
         //mecDrive.resetPinpoint();
         outtake.resetMotors();
 
         //buildPaths(mecDrive.getFollower());
-        paths.Paths(mecDrive.getFollower());
+
 
     }
 
@@ -82,7 +85,7 @@ public class Auton extends NextFTCOpMode {
         rotaryIntake.setColor(color);
         outtake.setColor(color);
         mecDrive.setColor(color);
-        mecDrive.setPose(new Pose(122, 125, Math.toRadians(36)));
+        mecDrive.setPose(color == UniConstants.teamColor.RED ? new Pose(122, 125, Math.toRadians(36)) : new Pose(22.000, 124.000, Math.toRadians(144)));
         rotaryIntake.toggleServo(RotaryIntakeSubsystem.servoState.INTAKE);
 
         setPathState(0);
@@ -103,15 +106,19 @@ public class Auton extends NextFTCOpMode {
     }
 
     public void autoUpdate(){
+
         switch(pathState){
+            case -1:
+                //Do nothing state
+                break;
             case 0:
                 outtake.setLauncherTargetVelo(2200);
-                mecDrive.getFollower().followPath(paths.Path1);
+                mecDrive.getFollower().followPath(color == UniConstants.teamColor.BLUE ? bluePaths.Path1 : redPaths.Path1);
                 setPathState(1);
                 break;
             case 1:
-                if(!mecDrive.getFollower().isBusy()){ //This timer is mainly for the launcher getting spun up
-                    if(pathTimer.getTimeSeconds() > 8) {
+                if(!mecDrive.getFollower().isBusy()){
+                    if(pathTimer.getTimeSeconds() > 8) { //This timer is mainly for the launcher getting spun up
                         rotaryIntake.enableActive();
 //                    ballServo.setPosition(UniConstants.SERVO_OUTTAKE);
                         rotaryIntake.toggleServo(RotaryIntakeSubsystem.servoState.OUTTAKE); //Up
@@ -131,7 +138,7 @@ public class Auton extends NextFTCOpMode {
                     rotaryIntake.disableActive();
 //                    ballServo.setPosition(UniConstants.SERVO_INTAKE);
                     rotaryIntake.toggleServo(RotaryIntakeSubsystem.servoState.INTAKE); //Down
-                    mecDrive.getFollower().followPath(paths.Path2);
+                    mecDrive.getFollower().followPath(color == UniConstants.teamColor.BLUE ? bluePaths.Path2 : redPaths.Path2);
                     setPathState(3);
                 }
                 break;
@@ -139,7 +146,7 @@ public class Auton extends NextFTCOpMode {
                 //Get to intake position
                 if(!mecDrive.getFollower().isBusy()){
                     rotaryIntake.enableActive();
-                    mecDrive.getFollower().followPath(paths.Path3);
+                    mecDrive.getFollower().followPath(color == UniConstants.teamColor.BLUE ? bluePaths.Path3 : redPaths.Path3);
                     setPathState(4);
                 }
                 break;
@@ -147,7 +154,7 @@ public class Auton extends NextFTCOpMode {
                 //Intake all balls
                 if(!mecDrive.getFollower().isBusy()){
                     rotaryIntake.disableActive();
-                    mecDrive.getFollower().followPath(paths.Path4);
+                    mecDrive.getFollower().followPath(color == UniConstants.teamColor.BLUE ? bluePaths.Path4 : redPaths.Path4);
                     setPathState(5);
                 }
                 break;
@@ -167,35 +174,25 @@ public class Auton extends NextFTCOpMode {
                         rotaryIntake.toggleServo(RotaryIntakeSubsystem.servoState.OUTTAKE); //Up
                         setPathState(6);
                     }
-                    break;
-
-                }
-            case 6:
-                //Go to 2nd line and intake
-                if(pathTimer.getTimeSeconds() > 2){
-                    mecDrive.getFollower().followPath(paths.Path5);
-                    setPathState(10);
-
-
-
                 }
                 break;
-            case 10:
+            case 6:
+                //Prepare Intake
+                if(pathTimer.getTimeSeconds() > 2){
+                    mecDrive.getFollower().followPath(color == UniConstants.teamColor.BLUE ? bluePaths.Path5 : redPaths.Path5);
+                    setPathState(7);
+                }
+                break;
+            case 7:
                 //Go to 2nd line and intake
-
-
                 if(!mecDrive.getFollower().isBusy()){
                     rotaryIntake.toggleServo();
                     rotaryIntake.enableActive();
-                    mecDrive.getFollower().followPath(paths.Path6);
-                    setPathState(7);
+                    mecDrive.getFollower().followPath(color == UniConstants.teamColor.BLUE ? bluePaths.Path6 : redPaths.Path6);
+                    setPathState(8);
                 }
-
-
-
-
                 break;
-            case 7:
+            case 8:
                 if(!mecDrive.getFollower().isBusy()){
                     if(pathTimer.getTimeSeconds() > 3) {
                         rotaryIntake.enableActive();
@@ -208,17 +205,20 @@ public class Auton extends NextFTCOpMode {
 
                     else if(pathTimer.getTimeSeconds() > 8){
                         rotaryIntake.toggleServo(RotaryIntakeSubsystem.servoState.OUTTAKE); //Up
-                        setPathState(8);
+                        setPathState(9);
                     }
                 }
                 break;
-            case 8:
+            case 9:
                 if(pathTimer.getTimeSeconds() > 3){
                     outtake.setLauncherTargetVelo(0);
                     rotaryIntake.toggleServo();
                     rotaryIntake.disableActive();
-
+                    mecDrive.getFollower().followPath(color == UniConstants.teamColor.BLUE ? bluePaths.Path7 : redPaths.Path7);
+                    setPathState(-1);
                 }
+                break;
+
 
         }
     }
