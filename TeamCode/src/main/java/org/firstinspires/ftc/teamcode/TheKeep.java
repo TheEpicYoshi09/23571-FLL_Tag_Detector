@@ -1,5 +1,11 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.BezierLine;
+import com.pedropathing.geometry.Pose;
+import com.pedropathing.paths.HeadingInterpolator;
+import com.pedropathing.paths.Path;
+import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -9,27 +15,32 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 import java.util.List;
+import java.util.function.Supplier;
 
 @TeleOp(name="The Keep",group="The Keep")
 public class TheKeep extends OpMode {
 
     // Sets up the motor and servo variables and stores them as null to be used for later
-    private DcMotor FrontL = null;
-    private DcMotor FrontR = null;
-    private DcMotor BackL = null;
-    private DcMotor BackR = null;
     private DcMotor intake = null;
     private DcMotor Shooter = null;
     private Servo ballEjector = null;
     private Servo fidgetTech = null;
 
-    private boolean intakeUse = false;
+    // Sets up the follower instance used in pedro pathing - Jason
+    private boolean automatedDrive;
+    private Follower follower;
+
+    // Sets up the position where we start and the path we will follow - Jason
+    private final Pose startingPose = new Pose(0,72,Math.toRadians(0));
+
+    private Supplier<PathChain> pathChain;
 
     // Sets up a variable to store what snap point the fidget tech is at
     private int number = 13;
@@ -53,17 +64,14 @@ public class TheKeep extends OpMode {
         // Calls a function to initialize the camera
         initAprilTag();
 
-        // Initialize the wheels
-        FrontL = hardwareMap.get(DcMotor.class,"FrontL");
-        FrontR = hardwareMap.get(DcMotor.class, "FrontR");
-        BackL = hardwareMap.get(DcMotor.class, "BackL");
-        BackR = hardwareMap.get(DcMotor.class, "BackR");
-
-        // Sets the wheels directions
-        FrontL.setDirection(DcMotorSimple.Direction.FORWARD);
-        FrontR.setDirection(DcMotorSimple.Direction.REVERSE);
-        BackL.setDirection(DcMotorSimple.Direction.FORWARD);
-        BackR.setDirection(DcMotorSimple.Direction.REVERSE);
+        // Gets pedro pathing ready by importing all the tuning variables and setting up our  positions - Jason
+        follower = Constants.createFollower(hardwareMap);
+        follower.setStartingPose(startingPose);
+        follower.update();
+        pathChain = () -> follower.pathBuilder() //Lazy Curve Generation
+                .addPath(new Path(new BezierLine(follower::getPose, new Pose(72, 72))))
+                .setHeadingInterpolation(HeadingInterpolator.linearFromPoint(follower::getHeading, Math.toRadians(130), 1))
+                .build();
 
         // Initialize the shooter and intake
         Shooter = hardwareMap.get(DcMotor.class,"Shooter");
@@ -76,13 +84,43 @@ public class TheKeep extends OpMode {
     } // This initializes all the motors and sensors
 
     @Override
+    public void start() {
+
+        // Turns Pedro Path into TeleOp drive mode
+        follower.startTeleopDrive();
+    } // This runs once when the play button is pressed
+    @Override
     public void loop() {
 
-        // This calls a function which, controls the wheels
-        setWheelPower(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x*.6,1);
+        // Updates the follower - Jason
+        follower.update();
 
-        // These lines check to make sure the fidget tech is not at the maximum or minimum range
-        // and if its not move it to the next snap point right or left depending on the trigger you pressed
+        // This tells the follower to activate manual drive mode if its not following the a path -Jason
+        if (!automatedDrive) {
+            follower.setTeleOpDrive(
+                    -gamepad1.left_stick_y,
+                    -gamepad1.left_stick_x,
+                    -gamepad1.right_stick_x,
+                    false // Robot Centric
+            );
+        }
+        // Moves the bot to a set position if th cross buton is pressed and cancels if the triangle is pressed - Jason
+        if (gamepad1.crossWasPressed()) {
+            follower.followPath(pathChain.get());
+            automatedDrive = true;
+        }
+
+        // The tringle button will be changed in the future but for now is used as an emergency stop
+        if (automatedDrive && (gamepad1.triangleWasPressed() || !follower.isBusy())) {
+            follower.startTeleopDrive();
+            automatedDrive = false;
+        } //Stop automated following if the follower is done
+
+
+
+        /* These lines check to make sure the fidget tech is not at the maximum or minimum range
+        and if its not move it to the next snap point right or left depending on the trigger you pressed */
+
         if (gamepad1.leftBumperWasPressed() && number != 0) number -= 1;
         if (gamepad1.rightBumperWasPressed() && number != 26) number += 1;
         if (number == 0) {
@@ -128,18 +166,11 @@ public class TheKeep extends OpMode {
 
         // These lines add the fidget tech's position to the telemetry
         telemetry.addData("Fidget Tech Position", spinPosition[number]);
-        telemetry.addData("Left Stick Y", gamepad1.left_stick_y);
+        telemetry.addData("Bot Position", follower.getPose());
         telemetry.update();
 
     } // This section controls all the motors using the remote control
 
-    private void setWheelPower(double speed, double strafe, double turn, double multiplier) {
-        // Sets the motor speeds based on the imputed numbers
-        FrontL.setPower((speed - strafe - turn)*multiplier);
-        FrontR.setPower((speed + strafe + turn)*multiplier);
-        BackL.setPower((speed + strafe - turn)*multiplier);
-        BackR.setPower((speed - strafe + turn)*multiplier);
-    } // This function controls the driving motors
 
     private void initAprilTag() {
 
