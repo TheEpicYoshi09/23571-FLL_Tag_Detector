@@ -221,7 +221,6 @@ public class AutoBlue extends OpMode {
         mechController.handleMechState(MechState.START);
 
         telemetry.addData("Status", "Initialized. Detecting April Tag....");
-        telemetry.addData("Distance Sensor", visionController.distanceSensor());
         telemetry.update();
 
         pathTimer = new Timer();

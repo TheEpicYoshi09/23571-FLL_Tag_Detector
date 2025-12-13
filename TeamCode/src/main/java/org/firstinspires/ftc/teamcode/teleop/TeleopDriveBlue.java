@@ -22,7 +22,7 @@ import org.firstinspires.ftc.teamcode.robot.VisionController;
 import java.util.function.Supplier;
 
 @Configurable
-@TeleOp(name = "TeleopBlue_Pedro", group = "Teleop")
+@TeleOp(name = "TeleopBlue", group = "Teleop")
 public class TeleopDriveBlue extends OpMode {
     private Follower follower;
     private final Pose startingPose = Blue.SCORE_POSE;
@@ -39,6 +39,8 @@ public class TeleopDriveBlue extends OpMode {
     MechController mechController;
     VisionController visionController;
     boolean buttonPressed = false;
+    boolean bypass = false;
+    boolean bypass_vision = false;
 
     @Override
     public void init() {
@@ -55,21 +57,18 @@ public class TeleopDriveBlue extends OpMode {
         mechController = new MechController(robot, visionController);
         mechController.handleMechState(MechState.START);
 
-        telemetry.addData("Status", "Initialized. Detecting April Tag....");
+        telemetry.addData("Status", "Initialized...");
+        telemetry.addData("Distance Sensor", visionController.distanceSensor());
         telemetry.update();
     }
 
     @Override
     public void init_loop() {
         mechController.update();
-        mechController.allTelemetry();
     }
 
     @Override
     public void start() {
-        //The parameter controls whether the Follower should use break mode on the motors (using it is recommended).
-        //In order to use float mode, add .useBrakeModeInTeleOp(true); to your Drivetrain Constants in Constant.java (for Mecanum)
-        //If you don't pass anything in, it uses the default (false)
         follower.startTeleopDrive();
     }
 
@@ -77,10 +76,14 @@ public class TeleopDriveBlue extends OpMode {
     public void loop() {
         follower.update();
         telemetryM.update();
+        mechController.allTelemetry();
         mechController.update(); // Keeps running states till IDLE
 
+        bypass = gamepad1.a;
+        bypass_vision = visionController.distanceSensor() && !bypass;
+
         MechState state = mechController.getCurrentState();
-        if (state == MechState.SHOOT_STATE || state == MechState.SHOOT_PURPLE || state == MechState.SHOOT_GREEN || visionController.distanceSensor()) {
+        if (state == MechState.SHOOT_STATE || state == MechState.SHOOT_PURPLE || state == MechState.SHOOT_GREEN || bypass_vision) {
             follower.setMaxPower(0.0);
         } else if (state == MechState.INTAKE_STATE) {
             follower.setMaxPower(MechController.INTAKE_DRIVE_POWER);
@@ -166,15 +169,14 @@ public class TeleopDriveBlue extends OpMode {
 
         boolean noButtons =
                 !gamepad2.b &&
-                        !gamepad2.x &&
-                        gamepad2.left_trigger <= 0.2 &&
-                        gamepad2.right_trigger <= 0.2 &&
-                        !gamepad2.left_bumper &&
-                        !gamepad2.right_bumper &&
-                        !gamepad2.a &&
-                        !gamepad2.dpad_up &&
-                        !gamepad2.dpad_right &&
-                        !gamepad2.dpad_down;
+                gamepad2.left_trigger <= 0.2 &&
+                gamepad2.right_trigger <= 0.2 &&
+                !gamepad2.left_bumper &&
+                !gamepad2.right_bumper &&
+                !gamepad2.a &&
+                !gamepad2.dpad_up &&
+                !gamepad2.dpad_right &&
+                !gamepad2.dpad_down;
 
         if (noButtons) {
             buttonPressed = false;
@@ -193,19 +195,19 @@ public class TeleopDriveBlue extends OpMode {
         }
 
         //Slow Mode
-        if (gamepad1.rightBumperWasPressed()) {
-            slowMode = !slowMode;
-        }
+        //if (gamepad1.rightBumperWasPressed()) {
+        //    slowMode = !slowMode;
+        //}
 
         //Optional way to change slow mode strength
-        if (gamepad1.yWasPressed()) {
-            slowModeMultiplier += 0.25;
-        }
+        //if (gamepad1.yWasPressed()) {
+        //    slowModeMultiplier += 0.25;
+        //}
 
         //Optional way to change slow mode strength
-        if (gamepad2.aWasPressed()) {
-            slowModeMultiplier -= 0.25;
-        }
+        //if (gamepad1.aWasPressed()) {
+        //    slowModeMultiplier -= 0.25;
+        //}
 
         telemetryM.debug("position", follower.getPose());
         telemetryM.debug("velocity", follower.getVelocity());
