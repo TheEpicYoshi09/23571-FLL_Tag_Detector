@@ -4,14 +4,14 @@ set -e
 DEVICE_IP="192.168.43.1:5555"
 
 echo ""
-echo "=== FTC DEPLOY ==="
+echo "=== Robot Connect ==="
 echo ""
 
-# Correct PATH (whoami fix)
 export PATH="/Users/$(whoami)/Library/Android/sdk/platform-tools:$PATH"
 
 # Ensure adb server is healthy
 adb kill-server >/dev/null 2>&1
+sleep 3
 adb start-server >/dev/null
 
 echo "Connecting to device: $DEVICE_IP"
