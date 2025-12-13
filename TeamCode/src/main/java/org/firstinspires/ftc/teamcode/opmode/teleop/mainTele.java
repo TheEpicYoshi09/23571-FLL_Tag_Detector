@@ -37,31 +37,32 @@ public class mainTele extends LinearOpMode {
             double turn = gamepad1.right_stick_x; // Rotation
             // Read Joystick Values for Gamepad 2 ---------------------------------------
             double horizontal = -gamepad2.right_stick_x;
-            double vertical = -gamepad2.left_stick_x * 0.02;
+            double vertical = -gamepad2.left_stick_y;
 
-            //Change Speed ---------------------------------------------------
+            // Change Speed --------------------------------------------------------------
             if (gamepad1.b && !BPressedLast) {
                 robot.drive.toggleSlowMode();
             }
 
-
+            // Lift Ball -----------------------------------------------------------------
             if (gamepad2.x && !XPressedLast) {
                 robot.shooter.liftBall();
             }
 
-            robot.turret.manualAiming(horizontal, vertical);
-
-            // Initiate a short shot
+            // Turn Turret ---------------------------------------------------------------
+            robot.turret.manualAiming(horizontal);
+            // Change Launch Angle -------------------------------------------------------
+            robot.turret.manualAngling(vertical);
+            // Initiate a short shot -----------------------------------------------------
             if (gamepad2.y && !YPressedLast) {
                     robot.shooter.startShot(1, "short");
             }
 
-            // Initiate a long shot
+            // Initiate a long shot ------------------------------------------------------
             if (gamepad2.a && !APressedLast) {
                     robot.shooter.startShot(1, "long");
             }
-
-            // Manually control the intakes
+            // Manually control the intakes -----------------------------------------------
             if (!robot.shooter.isBusy()) {
                 // Control the first intake
                 if (gamepad2.left_bumper)  {
@@ -73,7 +74,7 @@ public class mainTele extends LinearOpMode {
                     robot.shooter.liftBall();
                 }
                 
-                // Control the second intake
+                // Control the second intake ----------------------------------------------
                 if (gamepad2.right_trigger > 0) {
                     //telemetry.addLine("Velocity= " + launcher.getVelocity());
                     robot.shooter.startOuttake();
@@ -89,7 +90,7 @@ public class mainTele extends LinearOpMode {
 //            }
 
             robot.drive.drive(forward, strafe, turn);
-            
+
             // Display info on driver station --------------------------------
             robot.addTelemetry(telemetry);
             telemetry.update();
