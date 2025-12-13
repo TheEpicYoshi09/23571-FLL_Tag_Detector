@@ -146,22 +146,18 @@ public class Competition extends LinearOpMode {
             boolean dpadRight = gamepad1.dpad_right;
 
             if (dpadUp && !dpadUpPreviouslyPressed) {
-                telemetry.addLine("do something before i hurt this robot");
                 flywheelController.adjustRpmTolerance(10.0);
             }
 
             if (dpadDown && !dpadDownPreviouslyPressed) {
-                telemetry.addLine("do something before i hurt this robot 2");
                 flywheelController.adjustRpmTolerance(-10.0);
             }
 
             if (dpadRight && !dpadRightPreviouslyPressed) {
-                telemetry.addLine("do something before i hurt this robot 3");
                 flywheelController.adjustLauncherFeedforward(1.0);
             }
 
             if (dpadLeft && !dpadLeftPreviouslyPressed) {
-                telemetry.addLine("do something before i hurt this robot 4");
                 flywheelController.adjustLauncherFeedforward(-1.0);
             }
 
