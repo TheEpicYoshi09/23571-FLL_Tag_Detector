@@ -133,39 +133,55 @@ public class Competition extends LinearOpMode {
                 robot.headlight.setPosition(0.0);
             }
 
-            // Flywheel toggle on gamepad2 back
-            boolean backButtonPressed = gamepad2.back;
-            if (backButtonPressed && !backButtonPreviouslyPressed) {
-                flywheelController.toggle();
-            }
-            backButtonPreviouslyPressed = backButtonPressed;
-            flywheelController.update();
-
             boolean dpadUp = gamepad1.dpad_up;
             boolean dpadDown = gamepad1.dpad_down;
             boolean dpadLeft = gamepad1.dpad_left;
             boolean dpadRight = gamepad1.dpad_right;
 
+            boolean toleranceAdjusted = false;
+            boolean feedforwardAdjusted = false;
+
             if (dpadUp && !dpadUpPreviouslyPressed) {
                 flywheelController.adjustRpmTolerance(10.0);
+                toleranceAdjusted = true;
             }
 
             if (dpadDown && !dpadDownPreviouslyPressed) {
                 flywheelController.adjustRpmTolerance(-10.0);
+                toleranceAdjusted = true;
             }
 
             if (dpadRight && !dpadRightPreviouslyPressed) {
                 flywheelController.adjustLauncherFeedforward(1.0);
+                feedforwardAdjusted = true;
             }
 
             if (dpadLeft && !dpadLeftPreviouslyPressed) {
                 flywheelController.adjustLauncherFeedforward(-1.0);
+                feedforwardAdjusted = true;
             }
 
             dpadUpPreviouslyPressed = dpadUp;
             dpadDownPreviouslyPressed = dpadDown;
             dpadLeftPreviouslyPressed = dpadLeft;
             dpadRightPreviouslyPressed = dpadRight;
+
+            // Flywheel toggle on gamepad2 back
+            boolean backButtonPressed = gamepad2.back;
+            if (backButtonPressed && !backButtonPreviouslyPressed) {
+                flywheelController.toggle();
+            }
+            backButtonPreviouslyPressed = backButtonPressed;
+
+            // Apply controller updates after any driver tuning tweaks so telemetry reflects changes immediately.
+            flywheelController.update();
+
+            if (toleranceAdjusted) {
+                telemetry.addData("Flywheel tolerance adjusted", "%.0f rpm", flywheelController.getRpmTolerance());
+            }
+            if (feedforwardAdjusted) {
+                telemetry.addData("Launcher F adjusted", "%.0f", FlywheelPidfConfig.launcherF);
+            }
 
             boolean rightBumperPressed = gamepad2.a;
             if (rightBumperPressed && !rightBumperPreviouslyPressed && shootingController.isIdle()
