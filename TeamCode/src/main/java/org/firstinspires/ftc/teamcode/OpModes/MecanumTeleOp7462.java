@@ -34,6 +34,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.Chassis;
 import org.firstinspires.ftc.teamcode.GlobalStorage;
 import org.firstinspires.ftc.teamcode.GoalTagLimelight;
 import org.firstinspires.ftc.teamcode.Shooter;
@@ -79,11 +80,12 @@ public class MecanumTeleOp7462 extends OpMode {
 
     // Just for tuning
     private double Kvelo;
+    Chassis ch;
     private double idlePower = 20;
     private double lastError = 0;
     private double frontVel = 15;
     private double backVel = 15;
-    private double kP = 0.14;
+    private double kP = 0.3; // was 0.14 before adding 0 breaking
     private double kD = 0.038;
     private boolean leftIsRunning;
     private boolean rightIsRunning;
@@ -99,49 +101,11 @@ public class MecanumTeleOp7462 extends OpMode {
     @Override
     public void init() {
         //hardwareMap is just so our code names can actually connect to what the android phone understands
-        frontLeftDrive = hardwareMap.get(DcMotor.class, "leftFront");
-        frontRightDrive = hardwareMap.get(DcMotor.class, "rightFront");
-        backLeftDrive = hardwareMap.get(DcMotor.class, "leftBack");
-        backRightDrive = hardwareMap.get(DcMotor.class, "rightBack");
-
         launchFlapLeft = hardwareMap.get(Servo.class, "launchFlapLeft");
         launchFlapRight = hardwareMap.get(Servo.class, "launchFlapRight");
         flipper = hardwareMap.get(Servo.class, "flipper");
 
-        // We set the left motors in reverse which is needed for drive trains where the left
-        // motors are opposite to the right ones.
-        frontLeftDrive.setDirection(DcMotor.Direction.REVERSE);
-        frontRightDrive.setDirection(DcMotor.Direction.FORWARD);
-        backLeftDrive.setDirection(DcMotor.Direction.REVERSE);
-        backRightDrive.setDirection(DcMotor.Direction.FORWARD);
-
-        // This uses RUN_USING_ENCODER to be more accurate.   If you don't have the encoder
-        // wires, you should remove these
-        frontLeftDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        frontRightDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        backLeftDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        backRightDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        //encoder uses ticks which is revolutions which tells how much to move
-
-        //connecting our name for the orientation code to the android phone to tell it about the robot orientation (imu)
-//        imu = hardwareMap.get(IMU.class, "imu");
-//        // This needs to be changed to match the orientation on your robot
-//        RevHubOrientationOnRobot.LogoFacingDirection logoDirection =
-//                RevHubOrientationOnRobot.LogoFacingDirection.UP;
-//        RevHubOrientationOnRobot.UsbFacingDirection usbDirection =
-//                RevHubOrientationOnRobot.UsbFacingDirection.RIGHT;
-//
-//        RevHubOrientationOnRobot orientationOnRobot = new
-//                RevHubOrientationOnRobot(logoDirection, usbDirection);
-//        imu.initialize(new IMU.Parameters(orientationOnRobot));
-        //we know the orientation of the robot by knowing the orientation of how the control hub
-        //is placed on the robot with what orientation the logo is facing and what side
-        //the usb ports are facing
-        //because the logo or the usb could be facing up/down or right/left depending on how
-        //they could fit the control hub on the robot
-
-//        goalTag = new GoalTag();
-//        goalTag.init(hardwareMap);
+        ch = new Chassis(hardwareMap);
 
         collectorFront = new Shooter(hardwareMap,"collectorFront", false);
         //collectorFront.setControllerValues(0.3,0.0243);
@@ -172,12 +136,6 @@ public class MecanumTeleOp7462 extends OpMode {
 
 
     }
-    public void moveAllMotors(double frontleftpower, double frontrightpower, double backleftpower, double backrightpower) {
-        frontLeftDrive.setPower(frontleftpower);
-        frontRightDrive.setPower(frontrightpower);
-        backLeftDrive.setPower(backleftpower);
-        backRightDrive.setPower(backrightpower);
-    }
 
     //we are using the methods from OpMode and @Override is so that we can write our own stuff for this method
 // Move to auto
@@ -195,6 +153,12 @@ public class MecanumTeleOp7462 extends OpMode {
             //goalTag.targetAprilTagID = 20;
             limelight.setTeam(20);
         }
+        // remove later
+        else if (gamepad1.yWasPressed()) {
+            kP += 0.01;
+        } else if (gamepad1.aWasPressed()) {
+            kP -= 0.01;
+        }
     }
 
     @Override
@@ -205,14 +169,10 @@ public class MecanumTeleOp7462 extends OpMode {
 
     @Override
     public void loop() {
-        //goalTag.process();
         limelight.process(telemetry);
 
         shooterRight.overridePower();
         shooterLeft.overridePower();
-        //Testing remove this
-//        collectorFront.setPower(collectorPower);
-//        collectorBack.setPower(collectorPower);
 
 
         telemetry.addData("shooterLeftCurrentVelocity", shooterLeft.getVelocity());
@@ -222,9 +182,11 @@ public class MecanumTeleOp7462 extends OpMode {
         telemetry.addData("collectorFrontCurrentPower", collectorFront.getPower());
         telemetry.addData("collectorBackCurrentPower", collectorBack.getPower());
         telemetry.addData("Kp", kP);
-        telemetry.addData("KD", kD);
+        //telemetry.addData("KD", kD);
         telemetry.addData("TimerLeft", timerLeft.seconds());
+        ch.getMotorSpeed(telemetry);
         telemetry.addLine("Bumpers to shoot, a to turntotag");
+        telemetry.update();
 
 
 
@@ -273,14 +235,14 @@ public class MecanumTeleOp7462 extends OpMode {
 //            kD -= 0.0005;
 //        }
         // Parking mode
-        if (gamepad1.right_trigger == 1) {
-            maxPower = 0.5;
-            maxSpeed = 0.5;
-        } else {
-            maxPower = 1.0;
-            maxSpeed = 1.0;
-        }
-        drive(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
+//        if (gamepad1.right_trigger == 1) {
+//            maxPower = 0.5;
+//            maxSpeed = 0.5;
+//        } else {
+//            maxPower = 1.0;
+//            maxSpeed = 1.0;
+//        }
+        ch.drive(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
 
         // Shoot when at speed
         if (leftIsRunning) {
@@ -317,58 +279,33 @@ public class MecanumTeleOp7462 extends OpMode {
             emergencyMode = true;
         }
     }
+//    public void turnToAprilTagLimelight() {
+//        if (limelight.getRange() < 100) {
+//            turnTo(0.25, 0.5);
+//        } else {
+//            if (limelight.getID() == 20) {
+//                turnTo(0.25, 2);
+//            } else if (limelight.getID() == 24) {
+//                turnTo(0.25, -2);
+//            }
+//        }
+//    }
     public void turnToAprilTagLimelight() {
-        if (limelight.getRange() < 100) {
-            turnTo(0.25, 0.5);
-        } else {
-            if (limelight.getID() == 20) {
-                turnTo(0.25, 2);
-            } else if (limelight.getID() == 24) {
-                turnTo(0.25, -2);
-            }
-        }
+        turnTo(0,0);
     }
     private void turnTo(double variance, double setPoint) {
         double currentAngle = limelight.getTx();
         double error = setPoint - currentAngle;
+        //if (Math.abs(error) > variance) {
+        double power = kP*error;
 
-        if (Math.abs(error) > variance) {
-            double power = kP*error;
-
-            telemetry.addData("turn power", power);
-            moveAllMotors(-power,power,-power,power);
+        telemetry.addData("turn power", power);
+        ch.moveAllMotors(-power,power,-power,power);
 //            if (error > rightBound) { // rotate left
 //                moveAllMotors(-power,power,-power,power);
 //            } else if (error < leftBound) { // rotate right
 //                moveAllMotors(power,-power,power,-power);
 //            }
-        }
-    }
-    // Thanks to FTC16072 for sharing this code!!
-    public void drive(double forward, double right, double rotate) {
-        // This calculates the power needed for each wheel based on the amount of forward,
-        // strafe right, and rotate
-        double frontLeftPower = forward + right + rotate;
-        double frontRightPower = forward - right - rotate;
-        double backRightPower = forward + right - rotate;
-        double backLeftPower = forward - right + rotate;
-
-        // make this slower for outreaches
-
-        // This is needed to make sure we don't pass > 1.0 to any wheel
-        // It allows us to keep all of the motors in proportion to what they should
-        // be and not get clipped
-        maxPower = Math.max(maxPower, Math.abs(frontLeftPower));
-        maxPower = Math.max(maxPower, Math.abs(frontRightPower));
-        maxPower = Math.max(maxPower, Math.abs(backRightPower));
-        maxPower = Math.max(maxPower, Math.abs(backLeftPower));
-
-        // We multiply by maxSpeed so that it can be set lower for outreaches
-        // When a young child is driving the robot, we may not want to allow full
-        // speed.
-        frontLeftDrive.setPower(maxSpeed * (frontLeftPower / maxPower));
-        frontRightDrive.setPower(maxSpeed * (frontRightPower / maxPower));
-        backLeftDrive.setPower(maxSpeed * (backLeftPower / maxPower));
-        backRightDrive.setPower(maxSpeed * (backRightPower / maxPower));
+        //}
     }
 }

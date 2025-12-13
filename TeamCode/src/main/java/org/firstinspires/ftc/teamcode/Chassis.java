@@ -4,6 +4,8 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+
 public class Chassis {
 
     private double maxPower = 1.0;
@@ -49,18 +51,22 @@ public class Chassis {
         // This is needed to make sure we don't pass > 1.0 to any wheel
         // It allows us to keep all of the motors in proportion to what they should
         // be and not get clipped
-        maxPower = Math.max(maxPower, Math.abs(frontLeftPower));
-        maxPower = Math.max(maxPower, Math.abs(frontRightPower));
-        maxPower = Math.max(maxPower, Math.abs(backRightPower));
-        maxPower = Math.max(maxPower, Math.abs(backLeftPower));
+//        maxPower = Math.max(maxPower, Math.abs(frontLeftPower));
+//        maxPower = Math.max(maxPower, Math.abs(frontRightPower));
+//        maxPower = Math.max(maxPower, Math.abs(backRightPower));
+//        maxPower = Math.max(maxPower, Math.abs(backLeftPower));
 
         // We multiply by maxSpeed so that it can be set lower for outreaches
         // When a young child is driving the robot, we may not want to allow full
         // speed.
-        frontLeftDrive.setPower(maxSpeed * (frontLeftPower / maxPower));
-        frontRightDrive.setPower(maxSpeed * (frontRightPower / maxPower));
-        backLeftDrive.setPower(maxSpeed * (backLeftPower / maxPower));
-        backRightDrive.setPower(maxSpeed * (backRightPower / maxPower));
+        frontLeftDrive.setPower(maxSpeed * frontLeftPower);
+        frontRightDrive.setPower(maxSpeed * frontRightPower);
+        backLeftDrive.setPower(maxSpeed * backLeftPower);
+        backRightDrive.setPower(maxSpeed * backRightPower);
+//        frontLeftDrive.setPower(frontLeftPower);
+//        frontRightDrive.setPower(frontRightPower);
+//        backLeftDrive.setPower(backLeftPower);
+//        backRightDrive.setPower(backRightPower);
     }
 
     public void setMaxPower(double maxPower) {
@@ -108,5 +114,11 @@ public class Chassis {
         }
 
         stopMotors();
+    }
+    public void getMotorSpeed(Telemetry telemetry) {
+        telemetry.addData("fleft",frontLeftDrive.getPower());
+        telemetry.addData("fright",frontRightDrive.getPower());
+        telemetry.addData("lback",backLeftDrive.getPower());
+        telemetry.addData("lRIGHT",backRightDrive.getPower());
     }
 }
