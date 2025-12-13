@@ -82,6 +82,9 @@ CONFIG
     public static final String FLICKER_LEFT_STRING = "F3S";
     public static final double FLICKER_UP = 1;
     public static final double FLICKER_DOWN = 0;
+
+    public static final String BALL_SERVO_STRING = "BS";
+    public static final String ROTARY_STRING = "ROTARY";
     //Color sensors
     public static final String COLOR_SENSOR_SLOT_FRONT_STRING = "CSF";
     public static final String COLOR_SENSOR_SLOT_RIGHT_STRING = "CSR";

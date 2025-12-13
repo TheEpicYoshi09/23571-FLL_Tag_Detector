@@ -5,6 +5,7 @@ import com.bylazar.telemetry.JoinedTelemetry;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.sun.tools.javac.util.List;
@@ -68,7 +69,7 @@ public class RotaryIntakeSubsystem implements Subsystem {
         //Rotary Setup
         rotary = hardwareMap.get(DcMotorEx.class, UniConstants.ROTARY_STRING);
         rotary.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        rotary.setDirection(UniConstants.ROTARY_DIRECTION);
+        rotary.setDirection(DcMotorSimple.Direction.FORWARD);
 
         //Color Sensors Setup
         colorSensors.addAll(
@@ -101,7 +102,7 @@ public class RotaryIntakeSubsystem implements Subsystem {
             active.setPower(1);
         }
 
-        ballServo.setPosition(debug ? testServoPos : (state == servoState.INTAKE ? UniConstants.SERVO_INTAKE : UniConstants.SERVO_OUTTAKE));
+//        ballServo.setPosition(debug ? testServoPos : (state == servoState.INTAKE ? UniConstants.SERVO_INTAKE : UniConstants.SERVO_OUTTAKE));
 
     }
 
