@@ -35,8 +35,8 @@ public class Encoder extends LinearOpMode {
 
         waitForStart();
 
-        // 3. DRIVE 24 INCHES FORWARD!
-        driveStraight(24, 0.2);   // 24 inches, 20% speed
+        // 3. DRIVE 60 INCHES FORWARD!
+        driveStraight(60, 0.2);   // 24 inches, 20% speed
 //        driveStraight(-12, 0.5);  // backward 12"
         telemetry.addData(">", "Done! Robot drove 24 inches :)");
         telemetry.update();

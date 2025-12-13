@@ -60,10 +60,12 @@ public class CrazyMode extends LinearOpMode {
             double backRightPower  = forward + strafe - turn;
 
             // 4. Make sure no power goes over 1.0 (or under -1.0)
-            double max = Math.max(Math.abs(frontLeftPower), Math.max(Math.abs(frontRightPower),
-                    Math.max(Math.abs(backLeftPower), Math.abs(backRightPower))));
+            double max = Math.max(Math.abs(frontLeftPower),
+                    Math.max(Math.abs(frontRightPower),
+                    Math.max(Math.abs(backLeftPower),
+                    Math.abs(backRightPower))));
             if (max > 1.0) {
-                frontLeftPower  /= max;
+                frontLeftPower  /= max; // frontLeftPower = frontLeftPower / max
                 frontRightPower /= max;
                 backLeftPower   /= max;
                 backRightPower  /= max;

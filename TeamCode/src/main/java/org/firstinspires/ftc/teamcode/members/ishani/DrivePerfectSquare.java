@@ -18,7 +18,7 @@ public class DrivePerfectSquare extends LinearOpMode {
     private DcMotor frontLeft, frontRight, backLeft, backRight;
     private IMU imu;
 
-    // ←←← YOUR REAL CALIBRATED NUMBERS (from your calibration OpModes!)
+    // ←←← USE REAL CALIBRATED NUMBERS (from calibration OpModes!)
     private static final double FORWARD_TICKS_PER_INCH = 48.7;   // ← change to yours!
     private static final double SIDE_LENGTH_INCHES = 24.0;
 
