@@ -10,7 +10,7 @@ public class TeleopServoTest extends LinearOpMode {
     private Servo indexer;
 
     // GoBilda 2000-series Angular Servo range
-    private static final double SERVO_MAX_DEGREES = 300.0;
+    private static final double SERVO_MAX_DEGREES = 1800.0;
 
     // Micro-step size (in degrees)
     private static final double MICRO_STEP = 1.0;
@@ -66,7 +66,7 @@ public class TeleopServoTest extends LinearOpMode {
                 if (gamepad1.x) currentAngleDeg = 116;
                 if (gamepad1.y) currentAngleDeg = 300;
                 if (gamepad1.dpad_up) currentAngleDeg = 251;
-                if (gamepad1.dpad_down) currentAngleDeg = 53;
+                if (gamepad1.dpad_down) currentAngleDeg = 60;
 
             } else {
                 //

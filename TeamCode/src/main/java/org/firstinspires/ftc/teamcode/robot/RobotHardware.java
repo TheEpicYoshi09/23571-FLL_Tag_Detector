@@ -50,7 +50,7 @@ public class RobotHardware {
         // RFMotor E0
         // RBMotor E1
 
-        indexer = hwMap.get(Servo.class, "indexer"); // E0
+        indexer = hwMap.get(Servo.class, "indexer"); // E5
         lifter = hwMap.get(Servo.class, "lifter"); // C0
 
         pinpoint = hwMap.get(GoBildaPinpointDriver.class, "pinpoint"); //CI2C 1
