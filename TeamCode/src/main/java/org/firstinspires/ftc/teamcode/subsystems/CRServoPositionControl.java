@@ -5,155 +5,160 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+
 @Config
-public class CRServoPositionControl
-{
-    private final CRServo crServo;
-    private final AnalogInput encoder;
-    private ElapsedTime timer = new ElapsedTime();
+public class CRServoPositionControl {
 
-    // Gains
-    public static double kp = 0.41;
-    public static double ki = 0.0;
-    public static double kf = 0.01;
-    public static double filterAlpha = 0.9;
+    //CONFIGURABLES
 
-    // dncoder constants
-    public static double ticksPerRev = 3.3;
+    // general constants
+    public static double maxVoltage = 3.26;
     public static double degreesPerRev = 360.0;
 
-    // Offset & deadband
-    public static double constantOffset = 0.15;
-    public static double deadbandAngles = 1.67;
-    private double deadband = deadbandAngles / degreesPerRev * ticksPerRev;
+    // gains (insert muscle emoji here)
+    public static double kP = 0.008;
+    public static double kF = 0.06;
+    public static double maxPower = 0.6;
 
-    // state
-    private double integral = 0;
-    private double targetVoltage_actual = 0;
-    private double targetVoltage_offset = 0;
+    //deadbands
+    public static double deadbandDeg = 1.5;
+    public static double ffDeadbandDeg = 10.0;
 
-    // filtering type shift
-    private double lastRawVoltage = 0;
-    private double unwrappedVoltage = 0;
-    private double filteredVoltage = 0;
+    //direction
+    public static boolean rotateClockwise = true;
 
-    public CRServoPositionControl(CRServo servo, AnalogInput encoder)
-    {
-        this.crServo = servo;
+    //STATE
+
+    private final CRServo servo;
+    private final AnalogInput encoder;
+
+    // super sigma wrapping
+    private double lastWrappedDeg = 0;
+    private double continuousDeg = 0;
+
+    // Target
+    private double targetDeg = 0;
+
+    /* ================= CONSTRUCTOR ================= */
+
+    public CRServoPositionControl(CRServo servo, AnalogInput encoder) {
+        this.servo = servo;
         this.encoder = encoder;
+
+        double initial = getWrappedAngle();
+        lastWrappedDeg = initial;
+        continuousDeg = initial;
+        targetDeg = continuousDeg;
     }
 
-    // 2+2 is 4 minus one thats three quick maths
-    public void moveToAngle(double targetAngleDegrees)
-    {
-        // Real target voltage
-        targetVoltage_actual = angleToVoltage(targetAngleDegrees);
+    //api
+    //lwkey bruno mars and rose should make APT again but make it API instead would that be tuffy
+    // something idk if we'll use but might have to do some refactorign if we do basically moves from current position
+    private void moveDegrees(double deltaDegrees) {
+        targetDeg += deltaDegrees;
+    }
 
-        // Apply offset in UNWRAPPED domain later
-        targetVoltage_offset = wrapVoltage(targetVoltage_actual + constantOffset);
+    // something idk we migh use this at somep point
+    private void setTargetDegrees(double absoluteDegrees) {
+        targetDeg = absoluteDegrees;
+    }
 
-        // Current
-        double measuredContinuous = getFilteredVoltage();  // continuous
-        double measuredOffset = wrapVoltage(measuredContinuous + constantOffset);
+    // dashign through the snow
+    // in a one horse open sleigh
+    // over the fields we go
+    // laughing all the way
+    // bells on bobtail ring
+    // making spirits bright
+    // what fun it is to ride and sing
+    // a sleighing song tonight oh
+    public void update() {
+        updateContinuousAngle();
 
-        // shortest error
-        double error = shortestError(targetVoltage_offset, measuredOffset);
+        double error = targetDeg - continuousDeg;
 
-        // Deadband
-        if (Math.abs(error) <= deadband) {
-            crServo.setPower(0);
-            timer.reset();
+        // CW only stop condition
+        if (error <= deadbandDeg) {
+            servo.setPower(0);
             return;
         }
 
-        double dt = timer.seconds();
-        timer.reset();
+        double ff = (error > ffDeadbandDeg) ? kF : kF * (error / 10.0);
+        double output = kP * error + ff;
+        output = clamp(output, 0, maxPower); // CW-only power
 
-        // integral += error * dt;
-        // integral = Math.max(-2, Math.min(2, integral));
-
-        double output = kp * error /*+ ki * integral*/ + kf * Math.signum(error);
-        output = Math.max(-1, Math.min(1, output));
-
-        crServo.setPower(output);
+        servo.setPower(output);
     }
 
-    // unwraped filtering
-    private double getFilteredVoltage()
-    {
-        double raw = encoder.getVoltage();   // 0–3.3 range
+    //bencoder (ben like a reference to ben falk who is majestic)
+    private void updateContinuousAngle() {
+        double wrapped = getWrappedAngle();
+        double delta = wrapped - lastWrappedDeg;
 
-        // Unwrap raw value
-        double diff = raw - lastRawVoltage;
-        if (diff >  ticksPerRev/2) diff -= ticksPerRev;
-        if (diff < -ticksPerRev/2) diff += ticksPerRev;
+        // unwrap
+        if (delta > 180)  delta -= 360;
+        if (delta < -180) delta += 360;
 
-        unwrappedVoltage += diff;
-        lastRawVoltage = raw;
-
-        filteredVoltage =
-                filteredVoltage * (1 - filterAlpha) +
-                        unwrappedVoltage * filterAlpha;
-
-        // undwraped return
-        return filteredVoltage;
+        continuousDeg += delta;
+        lastWrappedDeg = wrapped;
     }
 
-    // utils and such
-    private double wrapVoltage(double v)
-    {
-        double wrapped = v % ticksPerRev;
-        if (wrapped < 0) wrapped += ticksPerRev;
-        return wrapped;
+    private double getWrappedAngle() {
+        double v = Math.max(0.0, Math.min(encoder.getVoltage(), maxVoltage));
+        return (v / maxVoltage) * degreesPerRev;
     }
 
-    private double shortestError(double target, double current)
-    {
-        // Inputs are wrapped 0–ticksPerRev
-        double diff = target - current;
+    /* ================= UTIL ================= */
 
-        if (diff >  ticksPerRev / 2) diff -= ticksPerRev;
-        if (diff < -ticksPerRev / 2) diff += ticksPerRev;
-
-        return diff;
+    private double clamp(double v, double min, double max) {
+        return Math.max(min, Math.min(max, v));
     }
 
-    private double angleToVoltage(double angleDegrees)
-    {
-        double a = Math.max(0, Math.min(degreesPerRev, angleDegrees));
-        return (a / degreesPerRev) * ticksPerRev;
+    /* ================= DEBUG ================= */
+
+    public double getTargetVoltage() {
+        double wrappedDeg = targetDeg % degreesPerRev;
+        if (wrappedDeg < 0) wrappedDeg += degreesPerRev;
+
+        return (wrappedDeg / degreesPerRev) * maxVoltage;
     }
 
-    public void reset()
-    {
-        integral = 0;
+    public void moveToAngle(double wrappedAngleDeg) {
+        updateContinuousAngle();
 
-        lastRawVoltage = encoder.getVoltage();
-        unwrappedVoltage = 0;
-        filteredVoltage = lastRawVoltage;
+        double currentWrapped = continuousDeg % 360.0;
+        if (currentWrapped < 0) currentWrapped += 360.0;
 
-        timer.reset();
+        double delta = wrappedAngleDeg - currentWrapped;
+        if (delta > 180)  delta -= 360;
+        if (delta < -180) delta += 360;
+
+        if (rotateClockwise && delta < 0) delta += 360;
+        if (!rotateClockwise && delta > 0) delta -= 360;
+
+        targetDeg = continuousDeg + delta;
     }
 
 
-    // getters for sigma debug
-    public double getActualTargetVoltage() { return targetVoltage_actual; }
-    public double getOffsetTargetVoltage() { return targetVoltage_offset; }
-
-    public double getOffsetMeasuredVoltage()
-    {
-        return wrapVoltage(getFilteredVoltage() + constantOffset);
+    public double getCurrentContinuousAngle() {
+        return continuousDeg;
     }
 
-    public double getCurrentAngle()
-    {
-        double wrapped = wrapVoltage(getFilteredVoltage());
-        return (wrapped / ticksPerRev) * degreesPerRev;
+    public double getTargetAngle() {
+        return targetDeg;
     }
 
+    public void reset(Telemetry telem) {
+        telem.addLine("CRServoPositionController reset");
 
-
+        double wrapped = getWrappedAngle();
+        lastWrappedDeg = wrapped;
+        continuousDeg = wrapped;
+        targetDeg = wrapped;
+        servo.setPower(0);
+    }
 }
+
 
 /*
 package org.firstinspires.ftc.teamcode.subsystems;

@@ -18,6 +18,14 @@ public class ColorTester extends LinearOpMode {
             telemetry.addData("Red", colorSensor.red());
             telemetry.addData("Green", colorSensor.green());
             telemetry.addData("Blue", colorSensor.blue());
+            //checks if purple
+            if(colorSensor.red() > 100 && colorSensor.blue() > 100 && colorSensor.green() < 80){
+                telemetry.addData("Color Detected:", "Purple");
+            }
+            //checks if green
+            else if(colorSensor.green() > 100 && colorSensor.red() < 80 && colorSensor.blue() < 80) {
+                telemetry.addData("Color Detected:", "Green");
+            }
             telemetry.update();
         }
     }

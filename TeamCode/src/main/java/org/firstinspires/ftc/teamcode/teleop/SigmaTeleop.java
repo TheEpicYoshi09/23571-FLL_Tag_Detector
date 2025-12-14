@@ -137,7 +137,6 @@ public class SigmaTeleop extends LinearOpMode {
         // Advance state
         if (g2.wasJustPressed(GamepadKeys.Button.DPAD_RIGHT)) {
             indexer.moveTo(indexer.nextState());
-            telemetry.addLine("Indexer moving");
         }
 
         //actuator control
@@ -168,7 +167,7 @@ public class SigmaTeleop extends LinearOpMode {
         }
 
         if (g2.wasJustPressed(GamepadKeys.Button.A)) {
-            indexer.reset();
+            indexer.reset(telemetry);
         }
 
         indexer.update();
@@ -206,9 +205,6 @@ public class SigmaTeleop extends LinearOpMode {
         telemetry.addData("Is", indexer.getIntakingOrOuttaking());
         telemetry.addData("Next State", indexer.nextState());
         telemetry.addData("Indexer Voltage", indexer.getActualMeasuredVoltage());
-        telemetry.addData("target voltage", indexer.getActualTargetVoltage());
-        telemetry.addData("offset measured voltage", indexer.getOffsetMeasuredVoltage());
-        telemetry.addData("offset target voltage", indexer.getOffsetTargetVoltage());
         telemetry.addData("Outtake Power", outtake.getPower());
         telemetry.addData("measured RPM",outtake.getRPM());
         telemetry.addData("target RPM",outtake.getTargetRPM());

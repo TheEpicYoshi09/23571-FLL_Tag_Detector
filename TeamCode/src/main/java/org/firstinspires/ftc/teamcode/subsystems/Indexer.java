@@ -6,6 +6,8 @@ import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+
 @Config
 public class Indexer {
 
@@ -73,9 +75,7 @@ public class Indexer {
     // Only use isBusy() when color sensing fully works
     public boolean isBusy() { return scanPending; }
     public double getActualMeasuredVoltage() { return indexerAnalog.getVoltage(); }
-    public double getActualTargetVoltage() { return indexerServoControl.getActualTargetVoltage(); }
-    public double getOffsetMeasuredVoltage() {return indexerServoControl.getOffsetMeasuredVoltage();}
-    public double getOffsetTargetVoltage() {return indexerServoControl.getOffsetTargetVoltage();}
+
     public String getIntakingOrOuttaking() {
         return intaking ? "Intaking" : "Outtaking";
     }
@@ -103,41 +103,64 @@ public class Indexer {
     }
 
     public void moveTo(IndexerState newState) {
-        double actualAngle = indexerServoControl.getCurrentAngle();
+
+        if (newState == state && !scanPending) {
+            return;
+        }
 
         // Slot = 0, 1, 2
-        int slot = newState.index;
+        //120 per position
+        double wrappedTargetAngle = newState.index * 120.0;
 
-        // 120 per position
-        targetAngle = slot * 120;
+        if (!intaking) {
+            wrappedTargetAngle += outtakeOffsetAngle;
+        }
 
-        if (!intaking) targetAngle += outtakeOffsetAngle;
+        wrappedTargetAngle += offsetAngle;
 
-        targetAngle = (targetAngle + offsetAngle) % 360;
+        // Normalize to 0, 360
+        wrappedTargetAngle %= 360.0;
+        if (wrappedTargetAngle < 0) wrappedTargetAngle += 360.0;
 
-        double delta = Math.abs(targetAngle - actualAngle);
-        if (delta > 180) delta = 360 - delta;
+        //they see me rolling
+        double currentWrapped =
+                indexerServoControl.getCurrentContinuousAngle() % 360.0;
+        if (currentWrapped < 0) currentWrapped += 360.0;
 
-        double wait = Math.min(maxWait, Math.max(minWait, delta * msPerDegree));
+        double delta = wrappedTargetAngle - currentWrapped;
+        if (delta < 0) delta += 360.0; // CW distance
+
+        double wait = Math.min(
+                maxWait,
+                Math.max(minWait, delta * msPerDegree)
+        );
+
         scanTimer.reset();
         scanDelay = wait;
         scanPending = true;
 
+        // ---------------- Command motion ----------------
+        indexerServoControl.moveToAngle(wrappedTargetAngle);
+
         state = newState;
     }
 
-    public void reset()
+
+
+
+
+    public void reset(Telemetry telem)
     {
-        indexerServoControl.reset();
+        indexerServoControl.reset(telem);
     }
 
     public void update() {
-        indexerServoControl.moveToAngle(targetAngle);
-
         if (scanPending && scanTimer.milliseconds() >= scanDelay) {
             scanArtifact();
             scanPending = false;
         }
+        indexerServoControl.update();
+
     }
 
     public IndexerState nextState() {
