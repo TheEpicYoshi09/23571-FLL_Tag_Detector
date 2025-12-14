@@ -21,7 +21,8 @@ public class AutoTicksPerInch extends LinearOpMode {
     private DcMotor frontLeft, frontRight, backLeft, backRight;
 
     // You will physically measure this distance on the floor
-    private final double DISTANCE_TO_DRIVE_INCHES = 36.0;  // 3 feet = easy to measure!
+    private final double DISTANCE_TO_DRIVE_INCHES = 36.0; // 3 feet = easy to measure!
+
 
     @Override
     public void runOpMode() {
@@ -39,7 +40,7 @@ public class AutoTicksPerInch extends LinearOpMode {
         telemetry.addData("INSTRUCTIONS", "1. Put robot on floor");
         telemetry.addData("          ", "2. Put tape or mark exactly 36 inches in front");
         telemetry.addData("          ", "3. Line up front of robot with start line");
-        telemetry.addData("PRESS PLAY →", "Robot will drive 36 inches and calculate for you!");
+        telemetry.addData("PRESS PLAY →", "Robot will drive forward and calculate TICKS_PER_INCH");
         telemetry.update();
 
         waitForStart();
@@ -50,7 +51,7 @@ public class AutoTicksPerInch extends LinearOpMode {
         backLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         backRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
-        // We will drive using time + low power so it doesn't overshoot
+        // Run without encoders (open-loop power)
         frontLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         frontRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         backLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -63,10 +64,12 @@ public class AutoTicksPerInch extends LinearOpMode {
         backRight.setPower(0.4);
 
         telemetry.addData("DRIVING", "Go straight until you hit 36 inches...");
-        telemetry.addData("Stop me with the STOP button when you reach the mark!", "");
+        telemetry.addData("INSTRUCTIONS", "When front of robot reaches the mark → PRESS SQUARE (STOP)");
         telemetry.update();
 
-        // Wait for you to press STOP when the robot reaches the 36-inch mark
+        double ticksPerInch = 0.0; // Will hold the final value after stop
+
+        // Main loop while running
         while (opModeIsActive()) {
             int avgTicks = Math.abs(
                     (frontLeft.getCurrentPosition() +
@@ -74,39 +77,47 @@ public class AutoTicksPerInch extends LinearOpMode {
                             backLeft.getCurrentPosition() +
                             backRight.getCurrentPosition()) / 4);
 
+            double liveTicksPerInch = avgTicks / DISTANCE_TO_DRIVE_INCHES;
+
             telemetry.addData("Current average ticks", avgTicks);
-            telemetry.addData("Live TICKS_PER_INCH", "%.3f", avgTicks / DISTANCE_TO_DRIVE_INCHES);
-            telemetry.addData("INSTRUCTIONS", "When front of robot = 36 inches → PRESS SQUARE (STOP)");
+            telemetry.addData("Live TICKS_PER_INCH", "%.4f", liveTicksPerInch);
+            telemetry.addData("INSTRUCTIONS", "PRESS STOP when robot reaches the 36-inch mark");
             telemetry.update();
+
+            // Check if the user just pressed STOP this iteration
+            if (!opModeIsActive()) {
+                // This block runs exactly once, right when STOP is pressed
+                ticksPerInch = liveTicksPerInch;
+
+                // Stop the motors immediately
+                frontLeft.setPower(0);
+                frontRight.setPower(0);
+                backLeft.setPower(0);
+                backRight.setPower(0);
+
+                // Show the final result
+                telemetry.clearAll();
+                telemetry.addData("CALIBRATION COMPLETE", "Copy this number!");
+                telemetry.addData("TICKS_PER_INCH =", "%.6f", ticksPerInch);
+                telemetry.addData("Average ticks driven", avgTicks);
+                telemetry.addData("Use this in ALL your drive code!", "");
+                telemetry.addData("Example:", "private final double TICKS_PER_INCH = %.6f;", ticksPerInch);
+                telemetry.update();
+            }
         }
 
-        // Robot stopped! Grab the final numbers
-        int finalTicks = Math.abs(
-                (frontLeft.getCurrentPosition() +
-                        frontRight.getCurrentPosition() +
-                        backLeft.getCurrentPosition() +
-                        backRight.getCurrentPosition()) / 4);
+        // After STOP is pressed, keep displaying the final result indefinitely
+        // (as long as the OpMode is still selected on the Driver Station)
+        while (true) {
+            telemetry.addData("CALIBRATION COMPLETE", "Copy this number!");
+            telemetry.addData("TICKS_PER_INCH =", "%.6f", ticksPerInch);
+            telemetry.addData("Average ticks driven", (int)(ticksPerInch * DISTANCE_TO_DRIVE_INCHES));
+            telemetry.addData("Use this in ALL your drive code!", "");
+            telemetry.addData("Example:", "private final double TICKS_PER_INCH = %.6f;", ticksPerInch);
+            telemetry.update();
 
-        double ticksPerInch = finalTicks / DISTANCE_TO_DRIVE_INCHES;
-
-        // STOP MOTORS
-        frontLeft.setPower(0);
-        frontRight.setPower(0);
-        backLeft.setPower(0);
-        backRight.setPower(0);
-
-        // FINAL RESULT — THIS IS YOUR MAGIC NUMBER!
-        telemetry.clearAll();
-        telemetry.setMsTransmissionInterval(100);
-        telemetry.addData("CALIBRATION COMPLETE", "Copy this number!");
-        telemetry.addData("TICKS_PER_INCH =", "%.4f", ticksPerInch);
-        telemetry.addData("Use this in ALL your drive code!", "");
-        telemetry.addData("Example:", "private final double TICKS_PER_INCH = %.4f;", ticksPerInch);
-        telemetry.update();
-
-        // Keep showing forever so you can screenshot or write it down
-        while (opModeIsActive()) {
-            sleep(1000);
+            // Small sleep to avoid using 100% CPU, but still update frequently
+            sleep(200);
         }
     }
 }

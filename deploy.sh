@@ -23,7 +23,6 @@ for i in {1..3}; do
     if adb connect "$DEVICE_IP" 2>/dev/null | grep -q "connected"; then
         break
     fi
-    sleep 1
 done
 
 # Verify connection

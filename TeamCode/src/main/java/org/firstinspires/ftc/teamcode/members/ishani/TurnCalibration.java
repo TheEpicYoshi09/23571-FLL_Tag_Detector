@@ -7,8 +7,8 @@
     2. Run this OpMode → Press PLAY
     3. Robot turns left slowly
     4. When it is EXACTLY 90° (perfectly sideways) → PRESS SQUARE
-    5. Phone shows something like TICKS_FOR_90_DEGREES = 523.4471
-    6. Copy that number and use it in your turn function!
+    5. Driver Hub shows TICKS_FOR_90_DEGREES and TICKS_PER_DEGREE permanently
+    6. Copy the number(s) and use them in your turn functions!
  */
 package org.firstinspires.ftc.teamcode.members.ishani;
 
@@ -42,7 +42,7 @@ public class TurnCalibration extends LinearOpMode {
         telemetry.addData("Step 2", "Put a piece of tape straight ahead as a reference");
         telemetry.addData("Step 3", "Face robot exactly at the tape (0°)");
         telemetry.addData("When ready", "Press PLAY → robot turns LEFT slowly");
-        telemetry.addData("STOP ME", "When robot is EXACTLY 90° (perfectly sideways) → PRESS SQUARE!");
+        telemetry.addData("STOP ME", "When robot is EXACTLY 90° → PRESS SQUARE!");
         telemetry.update();
 
         waitForStart();
@@ -67,9 +67,12 @@ public class TurnCalibration extends LinearOpMode {
         telemetry.addData("↺ TURNING LEFT ↺", "Watching for perfect 90°...");
         telemetry.update();
 
+        double ticksFor90Degrees = 0.0;
+        double ticksPerDegree = 0.0;
+
         while (opModeIsActive()) {
 
-            // Average the absolute ticks from opposite-moving wheels
+            // Average the absolute ticks
             int avgTicks = Math.abs(
                     frontLeft.getCurrentPosition() +
                             frontRight.getCurrentPosition() +
@@ -77,50 +80,55 @@ public class TurnCalibration extends LinearOpMode {
                             backRight.getCurrentPosition()
             ) / 4;
 
-            double liveTicksPer90 = avgTicks;
+            double liveTicksFor90 = avgTicks;
 
             telemetry.addData("↺ TURNING LEFT ↺", "Stop at EXACT 90°");
             telemetry.addData("Current average ticks", avgTicks);
-            telemetry.addData("LIVE TICKS FOR 90°", "%.3f", liveTicksPer90);
-            telemetry.addData("Estimated angle now", "%.1f°", (avgTicks / liveTicksPer90) * 90.0);
+            telemetry.addData("LIVE TICKS FOR 90°", "%.4f", liveTicksFor90);
+            telemetry.addData("Estimated angle now", "%.1f°", (avgTicks / liveTicksFor90) * 90.0);
             telemetry.addData("FL", frontLeft.getCurrentPosition());
             telemetry.addData("FR", frontRight.getCurrentPosition());
             telemetry.addData("BL", backLeft.getCurrentPosition());
             telemetry.addData("BR", backRight.getCurrentPosition());
-            telemetry.addData("STOP WHEN", "Robot is PERFECTLY 90° to starting direction → PRESS SQUARE!");
+            telemetry.addData("STOP WHEN", "Robot is PERFECTLY 90° → PRESS SQUARE!");
             telemetry.update();
+
+            // Detect the exact moment STOP is pressed
+            if (!opModeIsActive()) {
+                ticksFor90Degrees = avgTicks;
+                ticksPerDegree = ticksFor90Degrees / DEGREES_TO_TURN;
+
+                // Stop motors immediately
+                frontLeft.setPower(0);
+                frontRight.setPower(0);
+                backLeft.setPower(0);
+                backRight.setPower(0);
+
+                // Show final result once
+                telemetry.clearAll();
+                telemetry.addData("TURN CALIBRATION COMPLETE", "You nailed it!");
+                telemetry.addData("TICKS_FOR_90_DEGREES =", "%.4f", ticksFor90Degrees);
+                telemetry.addData("TICKS_PER_DEGREE =", "%.6f", ticksPerDegree);
+                telemetry.addData("", "Copy one of these into your code!");
+                telemetry.addData("Example 1 →", "private final double TICKS_90 = %.4f;", ticksFor90Degrees);
+                telemetry.addData("Example 2 →", "int ticks = (int)(degrees * %.6f);", ticksPerDegree);
+                telemetry.addData("Pro Tip", "Use this instead of math formulas — it's always perfect!");
+                telemetry.update();
+            }
         }
 
-        // You pressed STOP at perfect 90°!
-        int finalTicks = Math.abs(
-                frontLeft.getCurrentPosition() +
-                        frontRight.getCurrentPosition() +
-                        backLeft.getCurrentPosition() +
-                        backRight.getCurrentPosition()
-        ) / 4;
+        // After STOP is pressed, keep the final result on screen forever
+        while (true) {
+            telemetry.addData("TURN CALIBRATION COMPLETE", "You nailed it!");
+            telemetry.addData("TICKS_FOR_90_DEGREES =", "%.4f", ticksFor90Degrees);
+            telemetry.addData("TICKS_PER_DEGREE =", "%.6f", ticksPerDegree);
+            telemetry.addData("", "Copy one of these into your code!");
+            telemetry.addData("Example 1 →", "private final double TICKS_90 = %.4f;", ticksFor90Degrees);
+            telemetry.addData("Example 2 →", "int ticks = (int)(degrees * %.6f);", ticksPerDegree);
+            telemetry.addData("Pro Tip", "Use this instead of math formulas — it's always perfect!");
+            telemetry.update();
 
-        double ticksFor90Degrees = finalTicks;
-
-        // Stop motors
-        frontLeft.setPower(0);
-        frontRight.setPower(0);
-        backLeft.setPower(0);
-        backRight.setPower(0);
-
-        // FINAL GOLDEN NUMBERS!
-        telemetry.clearAll();
-        telemetry.addData("TURN CALIBRATION COMPLETE", "You nailed it!");
-        telemetry.addData("TICKS_FOR_90_DEGREES =", "%.4f", ticksFor90Degrees);
-        telemetry.addData("TICKS_PER_DEGREE =", "%.5f", ticksFor90Degrees / 90.0);
-        telemetry.addData("", "Copy one of these into your code!");
-        telemetry.addData("Example 1 →", "private final double TICKS_90 = %.4f;", ticksFor90Degrees);
-        telemetry.addData("Example 2 →", "int ticks = (int)(degrees * %.5f);", ticksFor90Degrees / 90.0);
-        telemetry.addData("Pro Tip", "Use this instead of math formulas — it's always perfect!");
-        telemetry.update();
-
-        // Keep showing forever so you can screenshot
-        while (opModeIsActive()) {
-            sleep(1000);
+            sleep(200); // Light sleep to keep updating without maxing CPU
         }
     }
 }
