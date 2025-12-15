@@ -17,7 +17,7 @@ import org.firstinspires.ftc.vision.opencv.ColorRange;
 
 import java.util.List;
 @Disabled
-@TeleOp(name = "Testing", group = "Concept")
+@TeleOp(name = "Testing", group = "Testing")
 public class Testing extends LinearOpMode {
 
     private boolean showRadius = true;
