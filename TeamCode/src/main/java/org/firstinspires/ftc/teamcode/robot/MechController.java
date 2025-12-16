@@ -18,7 +18,8 @@ public class MechController {
     // Hardware constants
     public static final double[] INTAKE = {0, 116, 251}; // Indexer 0, 1, 2 @ Intake Post degrees
     public static final double[] SHOOT = {185, 300, 53}; // Indexer 0, 1, 2 @ Shooting Post degrees 180, 270, 60
-    private static final double MAX_SERVO_ROTATION = 300.0; // Degrees
+    private static final double MAX_LIFTER_ROTATION = 300.0; // Degrees
+    private static final double MAX_INDEXER_ROTATION = 1800.0; // Degrees
     private static final double INTAKE_TICKS_PER_FULL_ROTATION = 537.7; //Encoder Resolution PPR for RPM 312
     private static final long INTAKE_CUTOFF_MS = 3000; // 3 seconds wait time while searching for artifact
     private static final long POST_ROTATE_WAIT_MS = 1000; // After every rotation
@@ -494,7 +495,7 @@ public class MechController {
 
     public void setIndexer(double targetDegrees) {
         if (lastIndexer != targetDegrees) {
-            double pos = targetDegrees / MAX_SERVO_ROTATION;
+            double pos = targetDegrees / MAX_INDEXER_ROTATION;
             pos = Math.max(0, Math.min(1, pos));
             robot.indexer.setPosition(pos);
             lastIndexer = targetDegrees;
@@ -529,10 +530,10 @@ public class MechController {
     public void setLifter(int down0up1) {
         if (lastLifter != down0up1) {
             if (down0up1 == 1) {
-                robot.lifter.setPosition(lifterUp / MAX_SERVO_ROTATION);
+                robot.lifter.setPosition(lifterUp / MAX_LIFTER_ROTATION);
                 lastLifter = 1;
             } else {
-                robot.lifter.setPosition(lifterDown / MAX_SERVO_ROTATION);
+                robot.lifter.setPosition(lifterDown / MAX_LIFTER_ROTATION);
                 lastLifter = 0;
             }
         }
@@ -564,10 +565,10 @@ public class MechController {
 
     // Status
     public double statusIndexer(){
-        return robot.indexer.getPosition() * MAX_SERVO_ROTATION;
+        return robot.indexer.getPosition() * MAX_INDEXER_ROTATION;
     }
     public double statusLifter(){
-        return robot.lifter.getPosition() * MAX_SERVO_ROTATION;
+        return robot.lifter.getPosition() * MAX_LIFTER_ROTATION;
     }
 
     public String convertColor(int artifactNumber){
