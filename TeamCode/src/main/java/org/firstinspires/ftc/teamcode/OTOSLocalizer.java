@@ -12,7 +12,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
-@name(name = "OTOSLocalizer", group = "RR Tuning")
+//@name(name = "OTOSLocalizer", group = "RR Tuning")
 // May Cause Errors Comment out if so ^
 
 // @Config
