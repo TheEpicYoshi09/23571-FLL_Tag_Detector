@@ -99,7 +99,7 @@ public class SteeringControls extends OpMode
         public void drive()
         {
             double forward = -gamepad1.left_stick_y; //strafing left and right
-            double strafe = gamepad1.left_stick_x; //
+            double strafe = -gamepad1.left_stick_x; //
             double turn = gamepad1.right_stick_x; //backwards and forwards
 
             robot.driveTrain.drive(forward, strafe, turn);
