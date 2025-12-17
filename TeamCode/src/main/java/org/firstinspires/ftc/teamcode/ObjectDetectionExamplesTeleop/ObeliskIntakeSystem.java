@@ -20,6 +20,9 @@ import org.firstinspires.ftc.vision.opencv.Circle;
 import org.firstinspires.ftc.vision.opencv.ColorBlobLocatorProcessor;
 import org.firstinspires.ftc.vision.opencv.ColorRange;
 
+import org.firstinspires.ftc.robotcore.external.JavaUtil;
+
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -318,28 +321,44 @@ public class ObeliskIntakeSystem {
         PPG = false;
         obeliskPattern = "Unknown";
         
-        HuskyLens.Block[] blocks = huskyLens.blocks();
+        List<HuskyLens.Block> blocks;
+        blocks = Arrays.asList(huskyLens.blocks());
+        HuskyLens.Block block;
         
-        if (blocks.length < 3) {
-            obeliskPattern = "Incomplete (need 3 blocks)";
-            return;
+//        if (blocks.length < 3) {
+//            obeliskPattern = "Incomplete (need 3 blocks)";
+//            return;
+//        }
+
+        for (HuskyLens.Block b: blocks) {
+            block = b;
+            if(block.id == 1) {
+                setObeliskPattern("GPP");
+            } else if(block.id == 2) {
+                setObeliskPattern("PGP");
+            } else if(block.id == 3) {
+                setObeliskPattern("PPG");
+            } else {
+                setObeliskPattern("unknown");
+            }
+
         }
-        
+
         // Sort blocks by X position (left to right)
-        java.util.Arrays.sort(blocks, (a, b) -> Integer.compare(a.x, b.x));
+//        java.util.Arrays.sort(blocks, (a, b) -> Integer.compare(a.x, b.x));
         
         // Determine pattern based on IDs
         // Assuming ID 1 = Green, ID 2 = Purple (adjust based on your setup)
-        int first = blocks[0].id;
-        int second = blocks[1].id;
-        int third = blocks[2].id;
+//        int first = blocks[0].id;
+//        int second = blocks[1].id;
+//        int third = blocks[2].id;
         
         // Map IDs to colors
-        String pos1 = (first == 1) ? "G" : "P";
-        String pos2 = (second == 1) ? "G" : "P";
-        String pos3 = (third == 1) ? "G" : "P";
+//        String pos1 = (first == 1) ? "G" : "P";
+//        String pos2 = (second == 1) ? "G" : "P";
+//        String pos3 = (third == 1) ? "G" : "P";
         
-        obeliskPattern = pos1 + pos2 + pos3;
+//        obeliskPattern = pos1 + pos2 + pos3;
         
         // Set the appropriate flag
         if (obeliskPattern.equals("GPP")) {
