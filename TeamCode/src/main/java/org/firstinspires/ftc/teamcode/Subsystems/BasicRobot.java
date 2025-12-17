@@ -13,7 +13,7 @@ public class BasicRobot {
     public  Intake intake;
     public  Loader loader;
     public  Shooter shooter;
-    public  C70 camera;
+    //public  C70 camera;
 
     // Wrist wrist = new Wrist();
 
@@ -24,7 +24,7 @@ public class BasicRobot {
         loader = new Loader();
         intake = new Intake();
         shooter = new Shooter();
-        camera = new C70();
+       // camera = new C70();
         drivetrain = new Drivetrain();
 
     }
@@ -34,7 +34,7 @@ public class BasicRobot {
         intake.init(hardwareMap);
         shooter.init(hardwareMap);
         loader.init(hardwareMap);
-        camera.init(hardwareMap);
+       // camera.init(hardwareMap);
 
     }
     public void score(){
@@ -59,7 +59,7 @@ public class BasicRobot {
         intake.stop();
         shooter.stop();
         loader.stop();
-        camera.stop();
+        //camera.stop();
     }
 
     public void drive(){

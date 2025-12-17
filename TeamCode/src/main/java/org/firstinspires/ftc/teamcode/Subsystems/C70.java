@@ -49,7 +49,7 @@ public class C70 {
         gainControl.setGain(gain);
     }
 
-    public void getDetections(boolean targetFound, double desiredTag, int DESIRED_TAG_ID) {
+    public void getDetections(boolean targetFound, AprilTagDetection desiredTag, int DESIRED_TAG_ID) {
 
 
         List<AprilTagDetection> currentDetections = aprilTag.getDetections();
