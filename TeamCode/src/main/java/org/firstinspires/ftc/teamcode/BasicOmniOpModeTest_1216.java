@@ -66,9 +66,9 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 
-@TeleOp(name="TeleOpNormal", group="Linear OpMode")
+@TeleOp(name="TeleOpTest", group="Linear OpMode")
 //@Disabled
-public class BasicOmniOpMode_Linear extends LinearOpMode {
+public class BasicOmniOpModeTest_1216 extends LinearOpMode {
 
     // Declare OpMode members for each of the 4 motors.
     private ElapsedTime runtime = new ElapsedTime();
@@ -114,8 +114,8 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
     private LaunchControl launchControl;
     private LaunchState launchState;
     final double WIGGLE_TIME = 1.0;
-    final double LAUNCHER_TARGET_VELOCITY = 1175;//1110
-    final double LAUNCHER_MIN_VELOCITY = 1160;//940
+    final double LAUNCHER_TARGET_VELOCITY = 1175;
+    final double LAUNCHER_MIN_VELOCITY = 1150;
     final double FEED_TIME = 0.20;
     final double TIME_BETWEEN_SHOTS = 2;
     public void goForwardFor2Secs() {
