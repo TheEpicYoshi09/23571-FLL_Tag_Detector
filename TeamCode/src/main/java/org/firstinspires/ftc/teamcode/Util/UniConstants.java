@@ -98,46 +98,9 @@ CONFIG
     public static double TURRET_TICKS_PER_DEGREE = (360/537.7) * (1/ MOTOR_TO_TURRET_RATIO);
 
 
-    public static final double SERVO_OUTTAKE = 1;
-
-
-    public static final double SERVO_INTAKE = .6;
     public static final ArrayList<Integer> obeliskIDs = new ArrayList<>(List.of(21, 22, 23));
 
 
-//    //Artifact locator processors
-//    public static final ColorBlobLocatorProcessor colorLocatorGreen = new ColorBlobLocatorProcessor.Builder()
-//            .setTargetColorRange(ColorRange.ARTIFACT_GREEN)   // Use a predefined color match
-//            .setContourMode(ColorBlobLocatorProcessor.ContourMode.EXTERNAL_ONLY)
-//            .setRoi(ImageRegion.asUnityCenterCoordinates(-0.75, 0.75, 0.75, -0.75))
-//            .setDrawContours(true)   // Show contours on the Stream Preview
-//            .setBoxFitColor(0)       // Disable the drawing of rectangles
-//            .setCircleFitColor(Color.rgb(255, 255, 0)) // Draw a circle
-//            .setBlurSize(5)          // Smooth the transitions between different colors in image
-//
-//            // the following options have been added to fill in perimeter holes.
-//            .setDilateSize(15)       // Expand blobs to fill any divots on the edges
-//            .setErodeSize(15)        // Shrink blobs back to original size
-//            .setMorphOperationType(ColorBlobLocatorProcessor.MorphOperationType.CLOSING)
-//
-//            .build();
-//
-//    public static final ColorBlobLocatorProcessor colorLocatorPurple = new ColorBlobLocatorProcessor.Builder()
-//            .setTargetColorRange(ColorRange.ARTIFACT_PURPLE)   // Use a predefined color match
-//            .setContourMode(ColorBlobLocatorProcessor.ContourMode.EXTERNAL_ONLY)
-//            .setRoi(ImageRegion.asUnityCenterCoordinates(-0.75, 0.75, 0.75, -0.75))
-//            .setDrawContours(true)   // Show contours on the Stream Preview
-//            .setBoxFitColor(0)       // Disable the drawing of rectangles
-//            .setCircleFitColor(Color.rgb(255, 255, 0)) // Draw a circle
-//            .setBlurSize(5)          // Smooth the transitions between different colors in image
-//
-//            // the following options have been added to fill in perimeter holes.
-//            .setDilateSize(15)       // Expand blobs to fill any divots on the edges
-//            .setErodeSize(15)        // Shrink blobs back to original size
-//            .setMorphOperationType(ColorBlobLocatorProcessor.MorphOperationType.CLOSING)
-//
-//            .build();
-//
-//
+
 
 }

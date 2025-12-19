@@ -8,10 +8,10 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
-import org.firstinspires.ftc.teamcode.OpModes.Util.BluePaths;
-import org.firstinspires.ftc.teamcode.OpModes.Util.RedPaths;
+import org.firstinspires.ftc.teamcode.OpModes.AutonUtil.BluePaths;
+import org.firstinspires.ftc.teamcode.OpModes.AutonUtil.RedPaths;
 import org.firstinspires.ftc.teamcode.Util.Subsystems.MecDriveSubsystem;
-import org.firstinspires.ftc.teamcode.Util.Subsystems.OuttakeSubsystem;
+import org.firstinspires.ftc.teamcode.Util.Subsystems.TurretSubsystem;
 import org.firstinspires.ftc.teamcode.Util.Subsystems.RotaryIntakeSubsystem;
 import org.firstinspires.ftc.teamcode.Util.Timer;
 import org.firstinspires.ftc.teamcode.Util.UniConstants;
@@ -35,7 +35,7 @@ public class GoodAuton extends NextFTCOpMode {
 
 
     private static RotaryIntakeSubsystem rotaryIntake;
-    private static OuttakeSubsystem outtake;
+    private static TurretSubsystem outtake;
     private static MecDriveSubsystem mecDrive;
 
     BluePaths bluePaths;
@@ -46,7 +46,7 @@ public class GoodAuton extends NextFTCOpMode {
         joinedTelemetry = new JoinedTelemetry(telemetry, PanelsTelemetry.INSTANCE.getFtcTelemetry());
 //        vision = new BetterVisionTM(hardwareMap, joinedTelemetry, logState);
         rotaryIntake = new RotaryIntakeSubsystem(hardwareMap, joinedTelemetry, color);
-        outtake = new OuttakeSubsystem(hardwareMap, joinedTelemetry, color);
+        outtake = new TurretSubsystem(hardwareMap, joinedTelemetry, color);
         mecDrive = new MecDriveSubsystem(hardwareMap, joinedTelemetry, color);
 
 //        ballServo = hardwareMap.get(Servo.class, UniConstants.BALL_SERVO_STRING);
