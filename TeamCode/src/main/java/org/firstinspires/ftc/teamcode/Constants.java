@@ -25,7 +25,7 @@ public class Constants {
     // Bump the base gains to improve spin-up authority after gear scaling and
     // compensate for wheel inertia; tune at the motor side, then scale by the
     // reduction before applying to the flywheel velocity loop.
-    public static final double LAUNCHER_F = 41.75;    // Stronger feedforward to reach setpoint
+    public static final double LAUNCHER_F = 31.75;    // Stronger feedforward to reach setpoint
     public static final double LAUNCHER_P = 12;    // Tighter proportional correction // original 12
     public static final double LAUNCHER_I = 0.0;    // Small I to clean steady-state error //original 0.05
     public static final double LAUNCHER_D = 0.0;     // Slightly more damping for step changes  //original 0.6
@@ -55,7 +55,7 @@ public class Constants {
     public static final double kickerUp = 1.0;
 
     /// COLOR SENSOR
-    public static final double COLOR_SENSOR_PURPLE_RATIO = 1.05; // Blue must exceed red and green by this factor
+    public static final double COLOR_SENSOR_PURPLE_RATIO = 1.05; // Blue must exceed red and green by this factor try 1.20
     public static final double COLOR_SENSOR_GREEN_BLUE_RATIO = 1.20; // Green must exceed blue by this factor
     public static final double COLOR_SENSOR_GREEN_RED_RATIO = 1.80;  // Green must exceed red by this factor
     // Tuned against field samples (purple B:G ≈ 1.2–1.6, green G:B ≈ 1.2 and G:R ≈ 2.4)
