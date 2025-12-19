@@ -16,12 +16,13 @@ public class MechController {
 
 
     // Hardware constants
-    public static final double[] INTAKE = {0, 116, 251}; // Indexer 0, 1, 2 @ Intake Post degrees
-    public static final double[] SHOOT = {185, 300, 53}; // Indexer 0, 1, 2 @ Shooting Post degrees 180, 270, 60
+    private static final double SERVO_OFFSET = 51;
+    public static final double[] INTAKE = {0 + SERVO_OFFSET, 119 + SERVO_OFFSET, 267 + SERVO_OFFSET}; // Indexer 0, 1, 2 @ Intake Post degrees
+    public static final double[] SHOOT = {198 + SERVO_OFFSET, 327 + SERVO_OFFSET, 460 + SERVO_OFFSET}; // Indexer 0, 1, 2 @ Shooting Post degrees 180, 270, 60
     private static final double MAX_LIFTER_ROTATION = 300.0; // Degrees
     private static final double MAX_INDEXER_ROTATION = 1800.0; // Degrees
     private static final double INTAKE_TICKS_PER_FULL_ROTATION = 537.7; //Encoder Resolution PPR for RPM 312
-    private static final long INTAKE_CUTOFF_MS = 3000; // 3 seconds wait time while searching for artifact
+    private static final long INTAKE_CUTOFF_MS = 6000; // 3 seconds wait time while searching for artifact
     private static final long POST_ROTATE_WAIT_MS = 1000; // After every rotation
     private static final long MOTOR_WAIT_MS = 2000; // 2 seconds for Shooting motor to reach full speed
     private static final long POST_INDEXER_WAIT_MS = 1000; // 1 second post Indexer rotation
@@ -34,8 +35,8 @@ public class MechController {
 
 
     // Limit constants
-    private static final int lifterDown = 45; // Lifter down angle degrees
-    private static final int lifterUp = 110; // Lifter up angle degrees
+    private static final int lifterDown = 13; // Lifter down angle degrees
+    private static final int lifterUp = 100; // Lifter up angle degrees
 
     // Offset constants
 
