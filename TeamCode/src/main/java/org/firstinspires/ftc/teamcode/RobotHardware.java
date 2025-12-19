@@ -165,7 +165,7 @@ public class RobotHardware {
         //LAUNCHER
         DcMotorEx launcher = myOpMode.hardwareMap.get(DcMotorEx.class,"launcher");
         DcMotorEx launcher2 = myOpMode.hardwareMap.get(DcMotorEx.class,"launcher2");
-        launcherGroup = new LauncherMotorGroup(myOpMode.telemetry, panelsTelemetry, launcher); //, launcher2
+        launcherGroup = new LauncherMotorGroup(myOpMode.telemetry, panelsTelemetry, launcher, launcher2);
         launcherGroup.applyLauncherPIDFTuning();
 
         //TURRET
@@ -383,10 +383,6 @@ public class RobotHardware {
 
     public void stopFlywheel() {
         launcherGroup.group.setVelocity(0);
-        launcher.setVelocity(0);
-        if (launcher2 != null) {
-            launcher2.setVelocity(0);
-        }
         targetRPM = 0;
         flywheelOn = false;
     }
