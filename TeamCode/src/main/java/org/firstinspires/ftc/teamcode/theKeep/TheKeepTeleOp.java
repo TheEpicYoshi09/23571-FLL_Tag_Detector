@@ -87,9 +87,9 @@ public class TheKeepTeleOp extends OpMode {
 
         // These lines set the shooter's power to 80% if the circle button is pressed and 0% if its not
         if (gamepad1.left_trigger > 0) {
-            motors.shooter.setPower(.8);
+            motors.setFlywheelVelocity(4200);
             motors.intake.setPower(0);
-        } else motors.shooter.setPower(0);
+        } else motors.setFlywheelVelocity(0);
 
         /* These lines check to see if the fidget tech is in the way of the ball ejector if it's not, when
         you press the triangle it will swing knocking out the ball - Jason */
