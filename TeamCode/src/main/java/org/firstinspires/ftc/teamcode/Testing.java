@@ -17,7 +17,7 @@ public class Testing extends OpMode {
     private DcMotor frontRightDrive;
 
     // Move nerf to instance variable
-    public static double nerf = 0.75;
+    public static double nerf = 0.75;   
 
     @Override
     public void init() {
