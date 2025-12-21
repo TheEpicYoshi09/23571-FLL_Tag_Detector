@@ -3,8 +3,6 @@ package org.firstinspires.ftc.teamcode.decode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.teamcode.decode.Subsystems.ShooterAngle;
-
 @TeleOp(name = "ShooterAngleTest", group = "Testing")
 public class ShooterAngleTest extends LinearOpMode {
 
