@@ -1,11 +1,13 @@
-package org.firstinspires.ftc.teamcode.Rebuilt.Test_Programs.TeleopClassSystem;
+package org.firstinspires.ftc.teamcode.Rebuilt.Test_Programs.TeleopClassSystem.ClassTests;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-@TeleOp(name="DriverPracticeWithDriveClass", group="Drive Train")
-public class DriverPracticeTest extends LinearOpMode {
+import org.firstinspires.ftc.teamcode.Rebuilt.Test_Programs.TeleopClassSystem.DriveControlClass;
+
+@TeleOp(name="DriveTrainClassTest", group="Drive Train")
+public class DriveTrainClassTest extends LinearOpMode {
 
     private DriveControlClass drive;
     private final ElapsedTime runtime = new ElapsedTime();
