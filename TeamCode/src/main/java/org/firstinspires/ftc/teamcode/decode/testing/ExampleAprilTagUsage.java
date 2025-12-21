@@ -36,7 +36,7 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
         public void init() {
 
             initAprilTag();
-            //camera = hardwareMap.get(Limelight3A.class, "limelight");
+            camera = hardwareMap.get(Limelight3A.class, "limelight");
             follower = Constants.createFollower(hardwareMap);
             follower.setStartingPose(new Pose()); //set your starting pose
         }

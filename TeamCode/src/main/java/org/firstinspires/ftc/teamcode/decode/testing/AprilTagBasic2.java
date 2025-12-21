@@ -7,6 +7,7 @@ import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
@@ -23,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 
 
 
-
+@Disabled
     @Autonomous(name = "AprilTagBasic2")
     public class AprilTagBasic2 extends OpMode {
         private static final boolean USE_WEBCAM = true;  // Set true to use a webcam, or false for a phone camera
