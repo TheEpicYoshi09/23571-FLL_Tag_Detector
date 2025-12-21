@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.Rebuilt;
+package org.firstinspires.ftc.teamcode.Rebuilt.MainPrograms;
 
 
 import com.acmerobotics.dashboard.FtcDashboard;
@@ -15,9 +15,6 @@ import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-
-import org.firstinspires.ftc.teamcode.Rebuilt.MotorPowerRegulator_New;
-import org.firstinspires.ftc.teamcode.Rebuilt.ObeliskIntakeSystem_New;
 
 /**
  * TeleOp that uses the MotorPowerRegulator_New class for shooter control and back motor PID

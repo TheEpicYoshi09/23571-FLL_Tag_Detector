@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.Rebuilt;
+package org.firstinspires.ftc.teamcode.Rebuilt.MainPrograms;
 
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -126,7 +126,7 @@ public class AutoComb extends LinearOpMode {
             sleep(500);
 
             // Start shooter
-            shooterHinge("up");
+//            shooterHinge("up");
             sleep(500);
             shooter("go");
             sleep(2000); // Wait for shooter to spin up
@@ -138,7 +138,7 @@ public class AutoComb extends LinearOpMode {
 
             // Stop shooter
             shooter("stop");
-            shooterHinge("down");
+//            shooterHinge("down");
 
             // Strafe right 12 inches
             strafe(12, 0.5);
@@ -206,7 +206,7 @@ public class AutoComb extends LinearOpMode {
         prevBack = odoperp.getCurrentPosition();
 
         // Shooter components
-        shooterHinge = hardwareMap.get(Servo.class, "sH");
+//        shooterHinge = hardwareMap.get(Servo.class, "sH");
         intakeToShooter = hardwareMap.get(CRServo.class, "its");
         intakeToShooter2 = hardwareMap.get(CRServo.class, "its2");
 
@@ -251,6 +251,7 @@ public class AutoComb extends LinearOpMode {
      * Control the shooter motor
      * @param action "go" to start shooter, "stop" to stop shooter
      */
+
     public void shooter(String action) {
         if (action.equalsIgnoreCase("go")) {
             // Start shooter at target RPM
@@ -282,16 +283,16 @@ public class AutoComb extends LinearOpMode {
      * Control the shooter hinge position
      * @param position "up" for shooting position, "down" for storage position
      */
-    public void shooterHinge(String position) {
-        if (position.equalsIgnoreCase("up")) {
-            shooterHinge.setPosition(SHOOTER_HINGE_UP);
-            telemetry.addData("Shooter Hinge", "Up");
-        } else if (position.equalsIgnoreCase("down")) {
-            shooterHinge.setPosition(SHOOTER_HINGE_DOWN);
-            telemetry.addData("Shooter Hinge", "Down");
-        }
-        telemetry.update();
-    }
+//    public void shooterHinge(String position) {
+//        if (position.equalsIgnoreCase("up")) {
+//            shooterHinge.setPosition(SHOOTER_HINGE_UP);
+//            telemetry.addData("Shooter Hinge", "Up");
+//        } else if (position.equalsIgnoreCase("down")) {
+//            shooterHinge.setPosition(SHOOTER_HINGE_DOWN);
+//            telemetry.addData("Shooter Hinge", "Down");
+//        }
+//        telemetry.update();
+//    }
 
     /**
      * Control the feed servos that move balls from intake to shooter
