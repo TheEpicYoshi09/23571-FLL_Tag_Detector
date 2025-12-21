@@ -1,26 +1,26 @@
-package org.firstinspires.ftc.teamcode.PreComp2Files;
+package org.firstinspires.ftc.teamcode.Rebuilt;
 
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
-import com.acmerobotics.dashboard.canvas.Canvas;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.teamcode.PreComp2Files.ObjectDetectionExamplesTeleop.ObeliskIntakeSystem;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+
+import org.firstinspires.ftc.teamcode.Rebuilt.MotorPowerRegulator_New;
+import org.firstinspires.ftc.teamcode.Rebuilt.ObeliskIntakeSystem_New;
 
 /**
- * TeleOp that uses the MotorPowerRegulator class for shooter control and back motor PID
+ * TeleOp that uses the MotorPowerRegulator_New class for shooter control and back motor PID
  * DEBUGGED VERSION - Fixed button debouncing and logic issues
  */
 @TeleOp(name = "TeleOp Comb (Debugged)", group = "Examples")
@@ -30,9 +30,9 @@ public class teleOpCOMB extends LinearOpMode {
     // --- Gamepad 1 drive motors ---
     private DcMotor frontLeftDrive, frontRightDrive, backLeftDrive, backRightDrive;
 
-    // ========== BACK MOTOR CONTROLLERS - USING MotorPowerRegulator ==========
-    private MotorPowerRegulator backLeftController;
-    private MotorPowerRegulator backRightController;
+    // ========== BACK MOTOR CONTROLLERS - USING MotorPowerRegulator_New ==========
+    private MotorPowerRegulator_New backLeftController;
+    private MotorPowerRegulator_New backRightController;
 
     // --- Wheel brake ---
     public static boolean wheelBreak = false;
@@ -47,8 +47,8 @@ public class teleOpCOMB extends LinearOpMode {
 //    private CRServo intakeToShooter, intakeToShooter2;
     private Servo intake, intake2;
 
-    // ========== SHOOTER CONTROLLER - USING MotorPowerRegulator CLASS ==========
-    private MotorPowerRegulator shooterController;
+    // ========== SHOOTER CONTROLLER - USING MotorPowerRegulator_New CLASS ==========
+    private MotorPowerRegulator_New shooterController;
 
     public static boolean intakeIn = false;
     public static boolean shooterActive = false;
@@ -139,7 +139,7 @@ public class teleOpCOMB extends LinearOpMode {
     }
 
     // The intake decision system
-    private ObeliskIntakeSystem intakeSystem;
+    private ObeliskIntakeSystem_New intakeSystem;
 
     @Override
     public void runOpMode() {
@@ -162,7 +162,7 @@ public class teleOpCOMB extends LinearOpMode {
         intake2 = hardwareMap.get(Servo.class, "i2");
 
         // ========== INITIALIZE SHOOTER CONTROLLER ==========
-        shooterController = new MotorPowerRegulator(hardwareMap, telemetry, "s");
+        shooterController = new MotorPowerRegulator_New(hardwareMap, telemetry, "s");
 
         // Configure shooter parameters
         shooterController.setTicksPerRev(112.0);
@@ -171,8 +171,8 @@ public class teleOpCOMB extends LinearOpMode {
         shooterController.setAllGains(0.0006785714285714286, 0.06, 0.0004, 0.0002, 0.00005);
 
         // ========== INITIALIZE BACK MOTOR CONTROLLERS =========================
-        backLeftController = new MotorPowerRegulator(hardwareMap, telemetry, "backl");
-        backRightController = new MotorPowerRegulator(hardwareMap, telemetry, "backr");
+        backLeftController = new MotorPowerRegulator_New(hardwareMap, telemetry, "backl");
+        backRightController = new MotorPowerRegulator_New(hardwareMap, telemetry, "backr");
 
         // Configure back motors
         backLeftController.setTicksPerRev(DRIVE_TICKS_PER_REV);
@@ -184,7 +184,7 @@ public class teleOpCOMB extends LinearOpMode {
         backRightController.setAllGains(0.00068, 0.06, 0.0004, 0.0002, 0.00005);
 
         // ========== INITIALIZE INTAKE SYSTEM ==========
-        intakeSystem = new ObeliskIntakeSystem(hardwareMap);
+        intakeSystem = new ObeliskIntakeSystem_New(hardwareMap);
 
         // Check if it initialized properly
         if (!intakeSystem.isInitialized()) {
@@ -492,7 +492,7 @@ public class teleOpCOMB extends LinearOpMode {
     }
 
     private void handleShooter() {
-        // ========== USING MotorPowerRegulator CLASS ==========
+        // ========== USING MotorPowerRegulator_New CLASS ==========
         telemetry.addData("Right Trigger", gamepad2.right_trigger);
         if (gamepad2.right_trigger >= 0.2) {
             telemetry.addData("Actual RPM", shooterController.getCurrentRPM());
