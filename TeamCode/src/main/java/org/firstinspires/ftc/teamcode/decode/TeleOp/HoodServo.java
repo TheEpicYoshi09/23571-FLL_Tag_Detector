@@ -13,7 +13,7 @@ public class HoodServo extends LinearOpMode {
     @Override
     public void runOpMode() {
 
-        hoodservo = hardwareMap.get(Servo.class, "hoodservo");
+        hoodservo = hardwareMap.get(Servo.class, "hoodServo");
         hoodservo.setPosition(pos);
 
         waitForStart();
