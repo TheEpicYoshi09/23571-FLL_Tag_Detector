@@ -29,11 +29,16 @@ public class MechController {
     private static final long LIFT_WAIT_MS = 2000; // 2 seconds for Lifter in Up position for shooting
     private static final long DROP_WAIT_MS = 1000; // 1 second post Lifter in Down position
     private static final long APRIL_TAG_WAIT_MS = 3000; // 3 seconds waiting to detect AprilTag
-    public static final double FULL_DRIVE_POWER = 0.5; // Normal Drive speed
+    public static final double FULL_DRIVE_POWER = 0.75; // Normal Drive speed
     public static final double INTAKE_DRIVE_POWER = 0.25; // Drive speed during Intake
     public static final double shootingMotSP = 6000; // Shooting motor speed max: 6000
-    private static final double INDEXER_SPEED_INTAKE = 0.015;
 
+    private long indexerLastUpdateMs = 0;
+    // Tune this: degrees per second while “intaking”
+    private static final double INDEXER_DEG_PER_SEC_INTAKE = 200.0;
+    // “Close enough” in degrees
+    private static final double INDEXER_EPS_DEG = 2.0;
+    private double intakeIndexerTargetDeg = -1;   // sentinel: not set yet
 
     // Limit constants
     private static final int lifterDown = 13; // Lifter down angle degrees
@@ -199,18 +204,34 @@ public class MechController {
                         if (artifactCount < 1) {
                             setIndexer(INTAKE[intakeTargetIndex]);
                         } else {
-                            double current = statusIndexer();          // Current indexer position in degrees
-                            double target = INTAKE[intakeTargetIndex]; // Target position in degrees
-                            double step = 1.0;                         // Degrees per update (smaller = slower)
-
-                            // Move slowly toward target
-                            if (Math.abs(target - current) <= step) {
-                                setIndexer(target); // Close enough -> snap to target
-                            } else if (current < target) {
-                                setIndexer(current + step); // Move up slowly
-                            } else {
-                                setIndexer(current - step); // Move down slowly
+                            // 1) Pick the target ONCE (when we first enter case 0)
+                            if (intakeIndexerTargetDeg < 0) {
+                                intakeIndexerTargetDeg = INTAKE[intakeTargetIndex]; // whatever slot you want
                             }
+                            // 2) Step toward it EVERY loop
+                            setIndexerIntake(intakeIndexerTargetDeg);
+                            // 3) Only advance when done
+                            if (Math.abs(lastIndexer - intakeIndexerTargetDeg) <= INDEXER_EPS_DEG) {
+                                intakeStage++;                 // move to next stage
+                                intakeIndexerTargetDeg = -1;   // reset for next time you use case 0
+                                indexerLastUpdateMs = 0;       // optional: clean timing for next move
+                            }
+                            break;
+//                            double current = statusIndexer();          // Current indexer position in degrees
+//                            double target = INTAKE[intakeTargetIndex]; // Target position in degrees
+//                            double step = 1.0;                         // Degrees per update (smaller = slower)
+//
+//                            // Move slowly toward target
+//                            while (current != target) {
+//                                if (Math.abs(target - current) <= step) {
+//                                    setIndexer(target); // Close enough -> snap to target
+//                                } else if (current < target) {
+//                                    setIndexer(current + step); // Move up slowly
+//                                } else {
+//                                    setIndexer(current - step); // Move down slowly
+//                                }
+//                            }
+                            //setIndexerIntake(INTAKE[intakeTargetIndex]);
                         }
                         //Slow indexer stop
                         //setIndexer(INTAKE[intakeTargetIndex]); // Original code
@@ -519,6 +540,34 @@ public class MechController {
             robot.indexer.setPosition(pos);
             lastIndexer = targetDegrees;
         }
+    }
+
+    public void setIndexerIntake(double targetDegrees) {
+        // Clamp target degrees
+        targetDegrees = Math.max(0, Math.min(MAX_INDEXER_ROTATION, targetDegrees));
+        long now = System.currentTimeMillis();
+        // If first call, pretend dt is one loop tick so we move immediately
+        double dt;
+        if (indexerLastUpdateMs == 0) {
+            dt = 0.02; // 20ms
+        } else {
+            dt = (now - indexerLastUpdateMs) / 1000.0;
+            // Clamp dt so a lag spike doesn’t cause a huge jump
+            dt = Math.max(0.0, Math.min(0.05, dt)); // 0–50ms
+        }
+        indexerLastUpdateMs = now;
+        double currentDeg = lastIndexer; // degrees (because setIndexer stores degrees)
+        double error = targetDegrees - currentDeg;
+        // Close enough → snap
+        if (Math.abs(error) <= INDEXER_EPS_DEG) {
+            setIndexer(targetDegrees);
+            return;
+        }
+        // Step toward target at a limited rate
+        double maxStep = INDEXER_DEG_PER_SEC_INTAKE * dt;
+        double step = Math.max(-maxStep, Math.min(maxStep, error));
+        double nextDeg = currentDeg + step;
+        setIndexer(nextDeg);
     }
 
     public void runIntakeMot(double power) {

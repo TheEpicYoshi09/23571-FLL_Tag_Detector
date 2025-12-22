@@ -23,8 +23,8 @@ public class Blue_Back {
     public static final Pose PICKUP3_POSE = new Pose(24, 84, Math.toRadians(0));
     // Teleop
     // Gate Start & End
-    public static final Pose GATE_START_POSE = new Pose(18, 72, Math.toRadians(0));
-    public static final Pose GATE_END_POSE = new Pose(15, 72, Math.toRadians(0));
+    public static final Pose GATE_START_POSE = new Pose(18, 72, Math.toRadians(180));
+    public static final Pose GATE_END_POSE = new Pose(15, 72, Math.toRadians(180));
 
     // Endgame
     public static final Pose ENDGAME_POSE = new Pose(106, 33, Math.toRadians(90));
