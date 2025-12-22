@@ -62,6 +62,7 @@ public class Indexer {
     public static double EMPTY_THRESHOLD = 0.6;
     public static double UNKNOWN_THRESHOLD = 0.6;
 
+    public static int NON_EMPTY_HITS_TO_ADVANCE = 5;
 
     // Telemetry object
     private Telemetry telemetry = null;
@@ -89,12 +90,14 @@ public class Indexer {
             new SlotObservation(),
             new SlotObservation()
     };
+
+    private final boolean[] slotWasEmpty = { true, true, true };
+
     private IndexerState lastClosestSlot = null;
 
 
     // scan scheduling
     private final ElapsedTime scanTimer = new ElapsedTime();
-    private boolean scanPending = false;
     private double scanDelayMs;
 
     // dashboard edge detection
@@ -138,7 +141,7 @@ public class Indexer {
     }
 
     public void moveTo(IndexerState newState) {
-        if (newState == state && !scanPending) return;
+        if (newState == state) return;
 
         double targetAngle = getSlotCenterAngle(newState);
 
@@ -149,7 +152,6 @@ public class Indexer {
         scanDelayMs = clamp(deltaCW * msPerDegree, minWait, maxWait);
 
         scanTimer.reset();
-        scanPending = true;
 
         servoControl.moveToAngle(targetAngle);
         state = newState;
@@ -223,17 +225,38 @@ public class Indexer {
 
                 obs.record(instantColor);
 
-                // Recompute AFTER record
-                int total = obs.totalHits();
+                //auto advance
+                if (s == state) {
+                    boolean wasEmpty = slotWasEmpty[s.index];
+                    int nonEmptyHits = obs.totalHits() - obs.emptyHits;
+                    boolean scanSettled = scanTimer.milliseconds() >= scanDelayMs;
 
-                artifacts[s.index] = obs.resolveWithThreshold(
+                    if (wasEmpty && nonEmptyHits >= NON_EMPTY_HITS_TO_ADVANCE && intaking && scanSettled) {
+                        moveTo(state.next());
+                        slotWasEmpty[s.index] = false;
+                        return;
+                    }
+                }
+
+                //resolve with unknown protection
+                ArtifactColor resolved = obs.resolveWithThreshold(
                         GREEN_THRESHOLD,
                         PURPLE_THRESHOLD,
                         EMPTY_THRESHOLD,
                         UNKNOWN_THRESHOLD
                 );
 
+                ArtifactColor previous = artifacts[s.index];
+
+                //unknown cannot override a known color
+                if (resolved == ArtifactColor.UNKNOWN && (previous == ArtifactColor.GREEN || previous == ArtifactColor.PURPLE)) {
+                    artifacts[s.index] = previous;
+                } else {
+                    artifacts[s.index] = resolved;
+                }
+                //telemetry
                 if (telemetry != null && s == currentSlot) {
+                    int total = obs.totalHits();
                     telemetry.addData("Slot " + s + " hit %",
                             String.format(
                                     "G: %.0f%%, P: %.0f%%, E: %.0f%%, U: %.0f%%",
@@ -242,29 +265,35 @@ public class Indexer {
                                     total > 0 ? obs.emptyHits * 100.0 / total : 0,
                                     total > 0 ? obs.unknownHits * 100.0 / total : 0
                             ));
-
                     colorSensor.addTelemetry(telemetry);
                 }
-
-
             }
         }
     }
 
     private void finalizeSlot(IndexerState s) {
-        //resolve final color
-        artifacts[s.index] = observations[s.index].resolveWithThreshold(
+        ArtifactColor resolved = observations[s.index].resolveWithThreshold(
                 GREEN_THRESHOLD,
                 PURPLE_THRESHOLD,
                 EMPTY_THRESHOLD,
                 UNKNOWN_THRESHOLD
         );
 
-        // Reset all hits for the slot
+        ArtifactColor previous = artifacts[s.index];
+
+        //uknown cannot override a known color
+        if (resolved == ArtifactColor.UNKNOWN &&
+                (previous == ArtifactColor.GREEN || previous == ArtifactColor.PURPLE)) {
+            // keep previous color
+        } else {
+            artifacts[s.index] = resolved;
+        }
+
+        // Update empty memory only if confidently empty
+        slotWasEmpty[s.index] = (artifacts[s.index] == ArtifactColor.EMPTY);
+
         observations[s.index].reset();
     }
-
-
 
     //debug
 
