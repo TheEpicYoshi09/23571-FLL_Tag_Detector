@@ -33,7 +33,7 @@ public class IntakeSortingSubsystem implements Subsystem {
     MotorEx active = new MotorEx(UniConstants.ACTIVE_INTAKE_STRING).floatMode().reversed();
     public UniConstants.servoState state = UniConstants.servoState.DOWN;
 
-    Slot frontSlot;
+    Slot backSlot;
     Slot rightSlot;
     Slot leftSlot;
 
@@ -42,11 +42,11 @@ public class IntakeSortingSubsystem implements Subsystem {
     public IntakeSortingSubsystem(HardwareMap hardwareMap, JoinedTelemetry telemetry){
         this.telemetry = telemetry;
 
-        frontSlot = new Slot(hardwareMap, UniConstants.FLICKER_FRONT_STRING, UniConstants.COLOR_SENSOR_SLOT_FRONT_STRING, telemetry);
+        backSlot = new Slot(hardwareMap, UniConstants.FLICKER_BACK_STRING, UniConstants.COLOR_SENSOR_SLOT_BACK_STRING, telemetry);
         rightSlot = new Slot(hardwareMap, UniConstants.FLICKER_RIGHT_STRING, UniConstants.COLOR_SENSOR_SLOT_RIGHT_STRING, telemetry);
         leftSlot = new Slot(hardwareMap, UniConstants.FLICKER_LEFT_STRING, UniConstants.COLOR_SENSOR_SLOT_LEFT_STRING, telemetry);
 
-        slots = new ArrayList<>(Arrays.asList(frontSlot, rightSlot, leftSlot));
+        slots = new ArrayList<>(Arrays.asList(backSlot, rightSlot, leftSlot));
     }
 
 
@@ -56,7 +56,7 @@ public class IntakeSortingSubsystem implements Subsystem {
 
         //if ANY servos are up, set state to OUTTAKE so the active is running
         //TODO: Make sure the flicker up and down are the right values for all servos
-        if(frontSlot.getTargetPosition().equals(UniConstants.servoState.DOWN) && rightSlot.getTargetPosition().equals(UniConstants.servoState.DOWN) && leftSlot.getTargetPosition().equals(UniConstants.servoState.DOWN)){
+        if(backSlot.getTargetPosition().equals(UniConstants.servoState.DOWN) && rightSlot.getTargetPosition().equals(UniConstants.servoState.DOWN) && leftSlot.getTargetPosition().equals(UniConstants.servoState.DOWN)){
             state = UniConstants.servoState.DOWN;
         } else{
             state = UniConstants.servoState.UP;
@@ -69,7 +69,7 @@ public class IntakeSortingSubsystem implements Subsystem {
             active.setPower(1);
         }
 
-        frontSlot.update();
+        backSlot.update();
         rightSlot.update();
         leftSlot.update();
 
@@ -127,7 +127,7 @@ public class IntakeSortingSubsystem implements Subsystem {
 
         int loops = 0;
 
-        Slot first = frontSlot;
+        Slot back = backSlot;
         Slot second = rightSlot;
         Slot third = leftSlot;
 
@@ -138,7 +138,7 @@ public class IntakeSortingSubsystem implements Subsystem {
                 if(state == slot.getColorState()){
                     switch(loops){
                         case 1:
-                            first = slot;
+                            back = slot;
                             break;
                         case 2:
                             second = slot;
@@ -154,11 +154,11 @@ public class IntakeSortingSubsystem implements Subsystem {
             }
         }
 
-        return launchInPattern(first, second, third);
+        return launchInPattern(back, second, third);
     }
 
     public boolean allFull() {
-        return frontSlot.isFull() && rightSlot.isFull() && leftSlot.isFull();
+        return backSlot.isFull() && rightSlot.isFull() && leftSlot.isFull();
     }
 
 
