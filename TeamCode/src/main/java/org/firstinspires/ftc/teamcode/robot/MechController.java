@@ -36,9 +36,9 @@ public class MechController {
 
     private long indexerLastUpdateMs = 0;
     // Tune this: degrees per second while “intaking”
-    private static final double INDEXER_DEG_PER_SEC_INTAKE = 120.0;
+    private static final double INDEXER_DEG_PER_SEC_INTAKE = 180.0;
     // “Close enough” in degrees
-    private static final double INDEXER_EPS_DEG = 50.0; //Degrees to rotate slowly
+    private static final double INDEXER_EPS_DEG = 2.0; //Degrees to rotate slowly
     private double intakeIndexerTargetDeg = -1;   // sentinel: not set yet
     private boolean lastIntake = false;
 
@@ -50,8 +50,8 @@ public class MechController {
 
     // Variables
     public int[] tagPattern = {0, 0, 0, 0}; // Tag ID & Pattern
-    public int[] indexer = {2, 1, 1}; // GPP - Color of artifact in Indexer 0, 1, 2
-    private int artifactCount = 3;
+    public int[] indexer = {0,0,0};//{2, 1, 1}; // GPP - Color of artifact in Indexer 0, 1, 2
+    private int artifactCount = 0;//3;
     private double lastIndexer = 1;
     private int lastLifter = 0;
     private int intakeTargetIndex = -1;
@@ -71,7 +71,6 @@ public class MechController {
     private int humanIndex = -1;
     private long humanStateStart = 0;
     private int targetPos;
-    private double fastIndexerDeg;
 
 
     // Constructor
@@ -206,7 +205,6 @@ public class MechController {
                             } else { //Slow indexer start
                                 if (intakeIndexerTargetDeg < 0) {
                                     intakeIndexerTargetDeg = (statusIndexer() + 60);
-                                    fastIndexerDeg = intakeIndexerTargetDeg - INDEXER_EPS_DEG;
                                     indexerLastUpdateMs = 0;
                                 }
                                 if (setIndexerIntake(intakeIndexerTargetDeg)) {
@@ -225,7 +223,6 @@ public class MechController {
                         } else {
                             if (intakeIndexerTargetDeg < 0) {
                                 intakeIndexerTargetDeg = INTAKE[intakeTargetIndex];
-                                fastIndexerDeg = intakeIndexerTargetDeg - INDEXER_EPS_DEG;
                                 indexerLastUpdateMs = 0;
                             }
                             if (setIndexerIntake(intakeIndexerTargetDeg)) {
@@ -563,7 +560,7 @@ public class MechController {
         indexerLastUpdateMs = now;
         double currentDeg = statusIndexer();
         double error = targetDegrees - currentDeg;
-        if (Math.abs(error) <= fastIndexerDeg) {
+        if (Math.abs(error) <= INDEXER_EPS_DEG) {
             setIndexer(targetDegrees);
             return true;
         }
@@ -593,8 +590,8 @@ public class MechController {
     }
     public void runShootingMot(double power) {
         if (Math.abs(power) > 0.01) {
-            if (robot.pinpoint.getPosY(DistanceUnit.INCH) < 72.0) {
-                robot.shootingMot.setPower(SHOOTING_MOTOR_SPEED_NEAR /6000);
+            if (robot.pinpoint.getPosY(DistanceUnit.INCH) > 96.0) {
+                robot.shootingMot.setPower(SHOOTING_MOTOR_SPEED_NEAR /4800);
             } else {
                 robot.shootingMot.setPower(SHOOTING_MOTOR_SPEED_FAR /6000);
             }

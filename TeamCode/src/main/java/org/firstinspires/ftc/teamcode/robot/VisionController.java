@@ -73,8 +73,8 @@ public class VisionController {
             for (AprilTagDetection detection : currentDetections) {
                 if (detection.metadata != null) {
                     if (!detection.metadata.name.contains("Obelisk")) {
-                        double x = ((detection.robotPose.getPosition().y) + 72);
-                        double y = ((-detection.robotPose.getPosition().x) + 72);
+                        double x = ((detection.robotPose.getPosition().y) + 72 + 3);
+                        double y = ((-detection.robotPose.getPosition().x) + 72 - 10);
                         double heading = detection.robotPose.getOrientation().getYaw(AngleUnit.DEGREES);
                         return new Pose(x, y, Math.toRadians(heading));
                     }
