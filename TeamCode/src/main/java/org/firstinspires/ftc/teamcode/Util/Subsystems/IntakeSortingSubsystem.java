@@ -128,6 +128,8 @@ public class IntakeSortingSubsystem implements Subsystem {
                 .named("Set Servo State"); // sets the name of the command; optional
     }
 
+
+    //TODO: rewrite for ArrayList of slots
     public Command launchInPattern(Slot first, Slot second, Slot third){
         return new SequentialGroup(
                 setServoState(first, UniConstants.servoState.UP),
@@ -146,21 +148,49 @@ public class IntakeSortingSubsystem implements Subsystem {
 
     public Command shoot(ArrayList<UniConstants.slotState> pattern){
 
-        int loops = 0;
 
         Slot first = null;
         Slot second = null;
         Slot third = null;
 
+
         ArrayList<Slot> used = new ArrayList<>();
+        if(allFull()){
+            //TODO: research how to make this better :sob:
+            for(UniConstants.slotState color : pattern){
 
-        //TODO: research how to make this better :sob:
-        for(UniConstants.slotState color : pattern){
+                for(int i = 0; i < slots.size(); i++){
 
-            for(int i = 0; i < slots.size(); i++){
+                    if(slots.get(i).getColorState().equals(color) && !used.contains(slots.get(i))){
+                        switch (i){
+                            case 0:
+                                first = slots.get(i);
+                                break;
+                            case 1:
+                                second = slots.get(i);
+                                break;
+                            case 2:
+                                third = slots.get(i);
+                                break;
+                            default:
+                                break;
+                        }
+                        used.add(slots.get(i));
+                        break;
+                    }
+                }
+                //Default case in case 2P 1G not true
+                if(first == null || second == null || third == null){
+                    first = backSlot;
+                    second = rightSlot;
+                    third = leftSlot;
+                }
 
-                if(slots.get(i).getColorState() == color && !used.contains(slots.get(i))){
-                    switch (i){
+            }
+        } else {
+            for (int i = 0; i < slots.size(); i++) {
+                if (slots.get(i).isFull()) {
+                    switch (i) {
                         case 0:
                             first = slots.get(i);
                             break;
@@ -170,23 +200,35 @@ public class IntakeSortingSubsystem implements Subsystem {
                         case 2:
                             third = slots.get(i);
                             break;
-                        default:
+                    }
+                } else {
+                    switch (i) {
+                        case 2:
+                            first = slots.get(i);
+                            break;
+                        case 1:
+                            second = slots.get(i);
+                            break;
+                        case 0:
+                            third = slots.get(i);
                             break;
                     }
-                    used.add(slots.get(i));
-                    break;
                 }
+
+                used.add(slots.get(i));
+
             }
 
-            //Default case in case 2P 1G not true
-            if(first == null || second == null || third == null){
-                first = backSlot;
-                second = rightSlot;
-                third = leftSlot;
-            }
+
+
         }
-        slots = new ArrayList<>(Arrays.asList(backSlot, rightSlot, leftSlot));
+
+        if(used.size() < 3){
+
+        }
+
         return launchInPattern(first, second, third);
+
     }
 
     public boolean allFull() {
