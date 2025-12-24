@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.roadrunner.ParallelAction;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -57,12 +58,15 @@ public class Indexer {
     private static final double maxWait = 300;
 
     // Separate percentage thresholds for each color state (THESE WILL BE LOWERED SIGNFICANTLY)
-    public static double GREEN_THRESHOLD = 0.6;
-    public static double PURPLE_THRESHOLD = 0.6;
-    public static double EMPTY_THRESHOLD = 0.6;
+    public static double GREEN_THRESHOLD = 0.2;
+    public static double PURPLE_THRESHOLD = 0.2;
+    public static double EMPTY_THRESHOLD = 0.9;
     public static double UNKNOWN_THRESHOLD = 0.6;
 
     public static int NON_EMPTY_HITS_TO_ADVANCE = 5;
+
+    public static double ADVANCE_ANGLE_TOLERANCE = 5.0;
+
 
     // Telemetry object
     private Telemetry telemetry = null;
@@ -92,6 +96,9 @@ public class Indexer {
     };
 
     private final boolean[] slotWasEmpty = { true, true, true };
+
+    private final boolean[] advanceConsumed = { false, false, false };
+
 
     private IndexerState lastClosestSlot = null;
 
@@ -139,6 +146,15 @@ public class Indexer {
             moveTo(state);
         }
     }
+
+    public boolean moveToColor(ArtifactColor desired) {
+        IndexerState target = findBestSlotForColor(desired);
+        if (target == null) return false;
+
+        moveTo(target);
+        return true;
+    }
+
 
     public void moveTo(IndexerState newState) {
         if (newState == state) return;
@@ -222,20 +238,44 @@ public class Indexer {
                         obs.reset();
                     }
                 }
+                ArtifactColor previous = artifacts[s.index];
 
-                obs.record(instantColor);
+                // If slot is already confidently known, ignore UNKNOWN hits
+                if (previous == ArtifactColor.GREEN || previous == ArtifactColor.PURPLE) {
+                    if (instantColor == ArtifactColor.UNKNOWN) {
+                        // ignore noise
+                    } else {
+                        obs.record(instantColor);
+                    }
+                } else {
+                    obs.record(instantColor);
+                }
+
 
                 //auto advance
                 if (s == state) {
-                    boolean wasEmpty = slotWasEmpty[s.index];
-                    int nonEmptyHits = obs.totalHits() - obs.emptyHits;
-                    boolean scanSettled = scanTimer.milliseconds() >= scanDelayMs;
+                    if (intaking && isWithinTargetDegrees(ADVANCE_ANGLE_TOLERANCE)) {
 
-                    if (wasEmpty && nonEmptyHits >= NON_EMPTY_HITS_TO_ADVANCE && intaking && scanSettled) {
-                        moveTo(state.next());
-                        slotWasEmpty[s.index] = false;
-                        return;
+                        boolean wasEmpty = slotWasEmpty[s.index];
+                        boolean alreadyAdvanced = advanceConsumed[s.index];
+
+                        ArtifactColor resolvedNow = obs.resolveWithThreshold(
+                                GREEN_THRESHOLD,
+                                PURPLE_THRESHOLD,
+                                EMPTY_THRESHOLD,
+                                UNKNOWN_THRESHOLD
+                        );
+
+                        boolean nowNonEmpty = colorSensor.hasArtifact();
+
+
+                        if (wasEmpty && nowNonEmpty && !alreadyAdvanced) {
+                            moveTo(state.next());
+                            advanceConsumed[s.index] = true;
+                            return;
+                        }
                     }
+
                 }
 
                 //resolve with unknown protection
@@ -246,14 +286,16 @@ public class Indexer {
                         UNKNOWN_THRESHOLD
                 );
 
-                ArtifactColor previous = artifacts[s.index];
+                previous = artifacts[s.index];
 
-                //unknown cannot override a known color
-                if (resolved == ArtifactColor.UNKNOWN && (previous == ArtifactColor.GREEN || previous == ArtifactColor.PURPLE)) {
+                // UNKNOWN or EMPTY cannot override a known color
+                if ((resolved == ArtifactColor.UNKNOWN || resolved == ArtifactColor.EMPTY) &&
+                        (previous == ArtifactColor.GREEN || previous == ArtifactColor.PURPLE)) {
                     artifacts[s.index] = previous;
                 } else {
                     artifacts[s.index] = resolved;
                 }
+
                 //telemetry
                 if (telemetry != null && s == currentSlot) {
                     int total = obs.totalHits();
@@ -281,16 +323,22 @@ public class Indexer {
 
         ArtifactColor previous = artifacts[s.index];
 
-        //uknown cannot override a known color
-        if (resolved == ArtifactColor.UNKNOWN &&
+        // UNKNOWN or EMPTY cannot override a known color
+        if ((resolved == ArtifactColor.UNKNOWN || resolved == ArtifactColor.EMPTY) &&
                 (previous == ArtifactColor.GREEN || previous == ArtifactColor.PURPLE)) {
             // keep previous color
         } else {
             artifacts[s.index] = resolved;
         }
 
+
         // Update empty memory only if confidently empty
         slotWasEmpty[s.index] = (artifacts[s.index] == ArtifactColor.EMPTY);
+
+        if (slotWasEmpty[s.index]) {
+            advanceConsumed[s.index] = false; // allow next fill to advance
+        }
+
 
         observations[s.index].reset();
     }
@@ -366,6 +414,55 @@ public class Indexer {
     /* =========================
        UTIL
        ========================= */
+
+    //finds best slot for desired color
+    private IndexerState findBestSlotForColor(ArtifactColor desired) {
+        IndexerState best = null;
+        int bestScore = -1;
+
+        for (IndexerState s : IndexerState.values()) {
+            ArtifactColor slotColor = artifacts[s.index];
+            int score = scoreSlotForTarget(desired, slotColor);
+
+            if (score > bestScore) {
+                bestScore = score;
+                best = s;
+            }
+        }
+
+        // If all slots are EMPTY or useless, don't move
+        if (bestScore <= 0) return null;
+
+        return best;
+    }
+
+
+
+    //gives preferences
+    private int scoreSlotForTarget(ArtifactColor desired, ArtifactColor slotColor) {
+        if (slotColor == desired) return 100;
+
+        if (desired == ArtifactColor.GREEN) {
+            if (slotColor == ArtifactColor.UNKNOWN) return 80;
+            if (slotColor == ArtifactColor.PURPLE) return 60;
+            if (slotColor == ArtifactColor.EMPTY) return 0;
+        }
+
+        if (desired == ArtifactColor.PURPLE) {
+            if (slotColor == ArtifactColor.UNKNOWN) return 80;
+            if (slotColor == ArtifactColor.GREEN) return 60;
+            if (slotColor == ArtifactColor.EMPTY) return 0;
+        }
+
+        return 0;
+    }
+
+    public boolean isWithinTargetDegrees(double toleranceDeg) {
+        double measured = getMeasuredAngle();
+        double target = getSlotCenterAngle(state);
+        return angleError(measured, target) <= toleranceDeg;
+    }
+
 
     private double clamp(double v, double min, double max) {
         return Math.max(min, Math.min(max, v));
