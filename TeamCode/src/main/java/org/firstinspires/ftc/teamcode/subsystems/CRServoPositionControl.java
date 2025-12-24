@@ -11,52 +11,31 @@ public class CRServoPositionControl {
     public static double maxVoltage = 3.26;
     public static double degreesPerRev = 360.0;
 
-    // gains
+    // gains (will be set via preset)
     public static double kP = 0.002;
-    public static double kI = 0.00000;
-    public static double kD = 0.000;//idk if this works
-    public static double kS = 0.0; // static friction feedforward
-    public static double stiffnessGain = 1.0;
+    public static double kI = 0.0;
+    public static double kD = 0.0;
+    public static double kS = 0.07; //voerriden later
 
-    // shaping
     public static double maxPower = 1.0;
-    public static double brakeZoneDeg = 35.0;
-    public static double brakeMaxPower = 0.85;// tighter clamp near target
+    public static double stiffnessGain = 1.0;
+    public static double brakeZoneDeg = 20.0;
+
+    // deadbands
     public static double deadbandDeg = 1.5;
-
-    //safe d (kinda sounds like safe-ty
-    public static double velFilterAlpha = 0.20;//lower is smooter
-    public static double dTermClamp = 0.20;//caps braekig d
-
-    // integral safety
-    public static double integralLimit = 300.0;// clamp on integral accumulator
-
-    // output slew limit powerunits per second
-    public static double maxOutputSlewPerSec = 3.0;
-
-    // stall
-    public static double stallBoostPower = 1.0;
-    public static double stallVelThresh = 50.0; //degrees perseconds
-    public static double stallErrThresh = 20.0;  // deg
-
-    // direction
     public static boolean rotateClockwise = true;
 
+    // hardware
     private final CRServo servo;
     private final AnalogInput encoder;
 
+    // state
     private double lastWrappedDeg;
     private double continuousDeg;
     private double targetDeg;
 
-    // damping helpers
     private double lastAngleDeg = 0.0;
     private long lastTimeNs = 0;
-
-    // new state
-    private double velEma = 0.0;
-    private double integral = 0.0;
-    private double lastOutput = 0.0;
 
     public CRServoPositionControl(CRServo servo, AnalogInput encoder) {
         this.servo = servo;
@@ -71,79 +50,61 @@ public class CRServoPositionControl {
         lastTimeNs = System.nanoTime();
     }
 
+    //mroe balls is more gains
+    public void setLoaded(boolean hasBalls) {
+        if (hasBalls) {
+            kP = 0.002;
+            kI = 0.00009;
+            kD = 0.0;
+            kS = 0.7;
+        } else {
+            kP = 0.002;
+            kI = 0.0;
+            kD = 0.0;
+            kS = 0.7;
+        }
+    }
+
     public void update() {
         updateContinuousAngle();
 
         double error = targetDeg - continuousDeg;
         double absErr = Math.abs(error);
 
-        // sigma sigma noy
         if (absErr < deadbandDeg) {
             servo.setPower(0);
             lastAngleDeg = continuousDeg;
             lastTimeNs = System.nanoTime();
-            integral = 0.0;
-            lastOutput = 0.0;
             return;
         }
 
-        // velocity measurement
         long now = System.nanoTime();
         double dt = (now - lastTimeNs) * 1e-9;
         if (dt <= 0) dt = 1e-3;
 
-        // velocity + filter
-        double rawVel = (continuousDeg - lastAngleDeg) / dt; // deg/s
-        velEma = velFilterAlpha * rawVel + (1 - velFilterAlpha) * velEma;
+        double velocity = (continuousDeg - lastAngleDeg) / dt; // deg/s
 
         lastAngleDeg = continuousDeg;
         lastTimeNs = now;
 
-        //P shaping near target
-        double brakeScale = (absErr < brakeZoneDeg) ? (0.4 + 0.6 * absErr / brakeZoneDeg) : 1.0;
-        double kP_eff = kP * stiffnessGain * brakeScale;
-
-        //Integral gating (only when near-ish and not moving too fast)
-        if (absErr < 40.0 && Math.abs(velEma) < 150.0) {
-            integral += error * dt;
-            integral = clamp(integral, -integralLimit, integralLimit);
+        double output;
+        if (absErr < brakeZoneDeg) {
+            output = kP * error * stiffnessGain
+                    - kD * velocity
+                    + kI * error; // simple I contribution
         } else {
-            integral *= 0.9; // bleed
+            output = kP * error * stiffnessGain
+                    - kD * velocity
+                    + kI * error;
         }
 
-        //D limited
-        boolean movingTowardTarget = Math.signum(velEma) == Math.signum(error);
-        double kD_eff = (absErr < brakeZoneDeg && movingTowardTarget) ? kD : 0.0;
-
-        double pTerm = kP_eff * error;
-        double iTerm = kI * integral;
-        double dTerm = -kD_eff * velEma;
-        dTerm = clamp(dTerm, -dTermClamp, dTermClamp);
-
-        double output = pTerm + iTerm + dTerm;
-
-        //sf compensation and erro
-        double dir = Math.signum(output);
-        if (dir == 0) dir = Math.signum(error);
-        double kS_eff = kS * clamp(absErr / brakeZoneDeg, 0.3, 1.0);
-        if (dir != 0 && Math.signum(error) == dir) {
-            output += dir * kS_eff;
+        // static friction compensation toward target
+        if (Math.signum(output) == Math.signum(error)) {
+            double sign = Math.signum(output);
+            output = sign * Math.max(Math.abs(output), kS);
         }
 
-        //clamp logic with stall assist
-        double maxClamp = (absErr < brakeZoneDeg) ? brakeMaxPower : maxPower;
-        if (Math.abs(velEma) < stallVelThresh && absErr > stallErrThresh) {
-            maxClamp = Math.max(maxClamp, stallBoostPower);
-        }
-
-        //slew limit
-        double maxDelta = maxOutputSlewPerSec * dt;
-        output = clamp(output, lastOutput - maxDelta, lastOutput + maxDelta);
-
-        //final clamp
-        output = clamp(output, -maxClamp, maxClamp);
-        lastOutput = output;
-
+        output = clamp(output, -maxPower, maxPower);
         servo.setPower(output);
     }
 
@@ -151,6 +112,7 @@ public class CRServoPositionControl {
         updateContinuousAngle();
 
         double currentWrapped = mod(continuousDeg, 360.0);
+
         double delta = wrappedAngleDeg - currentWrapped;
         if (delta > 180)  delta -= 360;
         if (delta < -180) delta += 360;
@@ -171,8 +133,6 @@ public class CRServoPositionControl {
         continuousDeg = wrapped;
         targetDeg = wrapped;
         servo.setPower(0);
-        integral = 0.0;
-        lastOutput = 0.0;
     }
 
     private void updateContinuousAngle() {
@@ -209,5 +169,7 @@ public class CRServoPositionControl {
         return (wrappedDeg / degreesPerRev) * maxVoltage;
     }
 
-    public double getVoltage() { return encoder.getVoltage(); }
+    public double getVoltage() {
+        return encoder.getVoltage();
+    }
 }
