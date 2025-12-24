@@ -22,7 +22,7 @@ public class MechController {
     private static final double MAX_LIFTER_ROTATION = 300.0; // Degrees
     private static final double MAX_INDEXER_ROTATION = 1800.0; // Degrees
     private static final double INTAKE_TICKS_PER_FULL_ROTATION = 537.7; //Encoder Resolution PPR for RPM 312
-    private static final long INTAKE_CUTOFF_MS = 6000; // 3 seconds wait time while searching for artifact
+    private static final long INTAKE_CUTOFF_MS = 4000; // 4 seconds wait time while searching for artifact
     private static final long POST_ROTATE_WAIT_MS = 1000; // After every rotation
     private static final long MOTOR_WAIT_MS = 2000; // 2 seconds for Shooting motor to reach full speed
     private static final long POST_INDEXER_WAIT_MS = 1000; // 1 second post Indexer rotation
@@ -31,22 +31,17 @@ public class MechController {
     private static final long APRIL_TAG_WAIT_MS = 3000; // 3 seconds waiting to detect AprilTag
     public static final double FULL_DRIVE_POWER = 0.75; // Normal Drive speed
     public static final double INTAKE_DRIVE_POWER = 0.25; // Drive speed during Intake
-    public static final double SHOOTING_MOTOR_SPEED_NEAR = 4800; // Shooting motor speed max: 6000
-    public static final double SHOOTING_MOTOR_SPEED_FAR = 6000; // Shooting motor speed max: 6000
-
-    private long indexerLastUpdateMs = 0;
-    // Tune this: degrees per second while “intaking”
+    static final double SHOOTER_CPR = 28.0; // REV HD Hex encoder counts/rev
+    static final double MOTOR_PULLEY_T = 62.0; // Tooth count on motor
+    static final double WHEEL_PULLEY_T = 58.0; // Tooth count on flywheel
+    public static final double SHOOTING_WHEEL_SPEED_NEAR = 4800; // Shooting wheel RPM. If motor is at 6000 RPM, flywheel ≈ 6000 * 62/58 = 6414 RPM. If flywheel target is 6000 RPM, motor target ≈ 6000 * 58/62 = 5613 RPM
+    public static final double SHOOTING_WHEEL_SPEED_FAR = 6000; // Shooting wheel RPM. If motor is at 6000 RPM, flywheel ≈ 6000 * 62/58 = 6414 RPM. If flywheel target is 6000 RPM, motor target ≈ 6000 * 58/62 = 5613 RPM
     private static final double INDEXER_DEG_PER_SEC_INTAKE = 180.0;
-    // “Close enough” in degrees
-    private static final double INDEXER_EPS_DEG = 2.0; //Degrees to rotate slowly
-    private double intakeIndexerTargetDeg = -1;   // sentinel: not set yet
-    private boolean lastIntake = false;
+    private static final double INDEXER_SLOW_END_DEG = 30.0;
 
     // Limit constants
     private static final int lifterDown = 13; // Lifter down angle degrees
     private static final int lifterUp = 110; // Lifter up angle degrees
-
-    // Offset constants
 
     // Variables
     public int[] tagPattern = {0, 0, 0, 0}; // Tag ID & Pattern
@@ -71,7 +66,10 @@ public class MechController {
     private int humanIndex = -1;
     private long humanStateStart = 0;
     private int targetPos;
-
+    private long indexerLastUpdateMs = 0;
+    private double intakeIndexerTargetDeg = -1;
+    private boolean lastIntake = false;
+    private double intakeIndexerStartDeg = -1;
 
     // Constructor
     public MechController(RobotHardware RoboRoar, VisionController visionController) {
@@ -549,25 +547,36 @@ public class MechController {
 
     public boolean setIndexerIntake(double targetDegrees) {
         targetDegrees = Math.max(0, Math.min(MAX_INDEXER_ROTATION, targetDegrees));
-        long now = System.currentTimeMillis();
-        double dt;
-        if (indexerLastUpdateMs == 0) {
-            dt = 0.02; // 20ms
-        } else {
-            dt = (now - indexerLastUpdateMs) / 1000.0;
-            dt = Math.max(0.0, Math.min(0.05, dt));
-        }
-        indexerLastUpdateMs = now;
+
         double currentDeg = statusIndexer();
+        if (intakeIndexerStartDeg < 0) {
+            intakeIndexerStartDeg = currentDeg;
+            indexerLastUpdateMs = 0;
+        }
+        double traveled = Math.abs(currentDeg - intakeIndexerStartDeg);
         double error = targetDegrees - currentDeg;
-        if (Math.abs(error) <= INDEXER_EPS_DEG) {
+
+        if (traveled < INDEXER_SLOW_END_DEG) {
+            long now = System.currentTimeMillis();
+            double dt;
+
+            if (indexerLastUpdateMs == 0) {
+                dt = 0.02;
+            } else {
+                dt = (now - indexerLastUpdateMs) / 1000.0;
+                dt = Math.max(0.0, Math.min(0.05, dt));
+            }
+            indexerLastUpdateMs = now;
+
+            double maxStep = INDEXER_DEG_PER_SEC_INTAKE * dt;
+            double step = Math.max(-maxStep, Math.min(maxStep, error));
+            setIndexer(currentDeg + step);
+            return false;
+        } else {
             setIndexer(targetDegrees);
+            intakeIndexerStartDeg = -1;
             return true;
         }
-        double maxStep = INDEXER_DEG_PER_SEC_INTAKE * dt;
-        double step = Math.max(-maxStep, Math.min(maxStep, error));
-        setIndexer(currentDeg + step);
-        return false;
     }
 
     public void runIntakeMot(double power) {
@@ -588,14 +597,21 @@ public class MechController {
             targetPos = robot.intakeMot.getCurrentPosition();
         }
     }
+
+    static double flywheelRpmToMotorTicksPerSec(double flywheelRpm) {
+        double motorRpm = flywheelRpm * (WHEEL_PULLEY_T / MOTOR_PULLEY_T);
+        return motorRpm * SHOOTER_CPR / 60.0;
+    }
+
     public void runShootingMot(double power) {
         if (Math.abs(power) > 0.01) {
-            if (robot.pinpoint.getPosY(DistanceUnit.INCH) > 96.0) {
-                robot.shootingMot.setPower(SHOOTING_MOTOR_SPEED_NEAR /4800);
+            if (robot.pinpoint.getPosY(DistanceUnit.INCH) > 48.0) {
+                robot.shootingMot.setVelocity(flywheelRpmToMotorTicksPerSec(SHOOTING_WHEEL_SPEED_NEAR));
             } else {
-                robot.shootingMot.setPower(SHOOTING_MOTOR_SPEED_FAR /6000);
+                robot.shootingMot.setVelocity(flywheelRpmToMotorTicksPerSec(SHOOTING_WHEEL_SPEED_FAR));
             }
         } else {
+            robot.shootingMot.setVelocity(0);
             robot.shootingMot.setPower(0);
         }
     }

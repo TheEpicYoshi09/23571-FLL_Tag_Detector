@@ -3,7 +3,7 @@ package org.firstinspires.ftc.teamcode.robot;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
@@ -16,7 +16,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 
 public class RobotHardware {
-    public final DcMotor intakeMot, shootingMot;
+    public final DcMotor intakeMot;
+    public final DcMotorEx shootingMot;
     public final Servo indexer, lifter;
     public final GoBildaPinpointDriver pinpoint;
     public final IMU imu;
@@ -43,7 +44,7 @@ public class RobotHardware {
     public RobotHardware(HardwareMap hwMap, Telemetry telemetry) {
         this.telemetry = telemetry;
 
-        shootingMot = hwMap.get(DcMotor.class, "shootingMot"); // E2
+        shootingMot = hwMap.get(DcMotorEx.class, "shootingMot"); // E2
         intakeMot = hwMap.get(DcMotor.class, "intakeMot"); // E3
         // LFMotor C0
         // LBMotor C1
@@ -71,6 +72,7 @@ public class RobotHardware {
         intakeMot.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         intakeMot.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         shootingMot.setDirection(DcMotor.Direction.FORWARD);
+        shootingMot.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
     private void setLaserInputMode() {
         laserInputR.setMode(DigitalChannel.Mode.INPUT);
