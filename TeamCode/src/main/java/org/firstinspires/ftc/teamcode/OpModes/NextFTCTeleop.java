@@ -120,6 +120,10 @@ public class NextFTCTeleop extends NextFTCOpMode {
             turret.setTargetVelocity(0);
         }
 
+        if(gamepad1.x){
+            turret.setTargetVelocity(2000);
+        }
+
         //Able to switch between driver and robot centric
         if(gamepad1.y && driverTimer.getTimeSeconds() > .5){
             botCentric = !botCentric;
