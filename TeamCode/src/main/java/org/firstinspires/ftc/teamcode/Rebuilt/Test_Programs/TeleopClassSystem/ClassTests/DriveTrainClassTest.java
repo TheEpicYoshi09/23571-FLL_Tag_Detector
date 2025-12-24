@@ -29,17 +29,17 @@ public class DriveTrainClassTest extends LinearOpMode {
         waitForStart();
         runtime.reset();
 
-        double speedMultiplier = 0.75;
+        double nerf = 0.75;
 
         while (opModeIsActive()) {
 
             // --- Toggle slow mode ---
             if (!slowMode && gamepad1.right_bumper) {
-                speedMultiplier = 0.1;
+                nerf = 0.1;
                 slowMode = true;
                 sleep(200);
             } else if (slowMode && gamepad1.right_bumper) {
-                speedMultiplier = 0.75;
+                nerf = 0.75;
                 slowMode = false;
                 sleep(200);
             }
@@ -57,12 +57,12 @@ public class DriveTrainClassTest extends LinearOpMode {
             // --- Set DriveControlClass flags ---
             drive.useWheelBrake = wheelBrakeActive;
             drive.useFieldCentric = false; // modify if you want field-centric
-            drive.speedMultiplier = speedMultiplier;
+            drive.nerf = nerf;
 
             // --- Read inputs ---
-            double forward = -gamepad1.left_stick_y * speedMultiplier;
-            double strafe = -gamepad1.left_stick_x * speedMultiplier;
-            double turn = -gamepad1.right_stick_x * speedMultiplier;
+            double forward = -gamepad1.left_stick_y * nerf;
+            double strafe = -gamepad1.left_stick_x * nerf;
+            double turn = -gamepad1.right_stick_x * nerf;
 
             // --- Update drive ---
             drive.update(true, forward, strafe, turn, 0);

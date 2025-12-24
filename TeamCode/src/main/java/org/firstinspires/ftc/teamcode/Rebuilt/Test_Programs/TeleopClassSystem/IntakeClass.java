@@ -20,6 +20,7 @@ public class IntakeClass {
     public CRServo intake2CRServo;
     public DcMotor intake1Motor;
     public DcMotor intake2Motor;
+
     public Telemetry telemetry;
 
     // Control variables

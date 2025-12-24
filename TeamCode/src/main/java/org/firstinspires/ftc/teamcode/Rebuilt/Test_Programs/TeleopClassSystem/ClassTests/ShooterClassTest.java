@@ -20,7 +20,7 @@ public class ShooterClassTest extends LinearOpMode {
     public void runOpMode() {
 
         // Initialize ShooterClass: shooter motor = true, hinge = true, magazine1 = "crservo", magazine2 = "none"
-        shooter = new ShooterClass(hardwareMap, telemetry, true, true, "crservo", "none");
+        shooter = new ShooterClass(hardwareMap, telemetry, true, true, true, "CRservo", "none", "none", "none");
 
         telemetry.addData("Status", "Init complete");
         telemetry.update();
@@ -45,11 +45,14 @@ public class ShooterClassTest extends LinearOpMode {
             }
             previousLeftBumper = currentLeftBumper;
 
-            shooter.hingeEnabled = true;
-            shooter.hingeTargetPosition = shooterHingeUp ? 1.0 : 0.0;
+            shooter.hinge1Enabled = true;
+            shooter.hinge1TargetPosition = shooterHingeUp ? 1.0 : 0.0;
+            shooter.hinge2TargetPosition = shooterHingeUp ? 1.0 : 0.0;
+
+            // these values may have to get changes to variables pulled from the main teleop
 
             // -------------------- Update Shooter --------------------
-            shooter.update(shooter.shooterEnabled, shooter.hingeEnabled, shooter.magazineEnabled);
+            shooter.update(shooter.shooterEnabled, shooter.hinge1Enabled, shooter.hinge2Enabled, shooter.magazineEnabled);
 
             // -------------------- Telemetry --------------------
             telemetry.addData("Shooter RPM", shooter.getShooterCurrentRPM());

@@ -28,17 +28,23 @@ public class CombinedClassTeleopTest extends LinearOpMode {
 
     // Shooter components
     public static boolean shooterAttached = false;
-    public static boolean shooterHingeAttached = false;
+    public static boolean shooterHinge1Attached = false;
+    public static boolean shooterHinge2Attached = false;
+
 
     // Magazine configuration
     public static boolean magazineAttached = false;
     public static String magazine1Type = "crservo";  // "servo", "crservo", "motor", or "none"
-    public static String magazine2Type = "crservo";  // "servo", "crservo", "motor", or "none"
+    public static String magazine2Type = "crservo";  // "servo", "crservo", "motor", or "none
+    public static String magazine3Type = "crservo";  // "servo", "crservo", "motor", or "none"
+    public static String magazine4Type = "crservo";  // "servo", "crservo", "motor", or "none"
 
     // Other subsystems
     public static boolean OdometryAttached = true;
     public static boolean TelemetryEnabled = true;
     public static boolean DashboardEnabled = true;
+
+
 
     // ========== DRIVE CONFIGURATION ==========
     public static double normalSpeed = 0.75;
@@ -55,8 +61,12 @@ public class CombinedClassTeleopTest extends LinearOpMode {
     public static double shooterActiveRPM = 1400;
     public static double shooterIdleRPM = 0;
     public static double magazineActivePower = 0.5;
-    public static double hingeUpPosition = 1.0;
-    public static double hingeDownPosition = 0.0;
+    public static double hinge1UpPosition = 1.0;
+    public static double hinge2UpPosition = 1.0;
+    public static double hinge1DownPosition = 0.0;
+    public static double hinge2DownPosition = 0.0;
+
+
 
     // ========== CLASS INSTANCES ==========
     private DriveControlClass drive;
@@ -72,14 +82,14 @@ public class CombinedClassTeleopTest extends LinearOpMode {
     private boolean lastGamepad1RightBumper = false;
     private boolean lastGamepad1BothSticks = false;
     private boolean lastGamepad1Start = false;
-
     private boolean lastGamepad2A = false;
     private boolean lastGamepad2LeftBumper = false;
 
     // ========== STATE VARIABLES (controlled here, not in classes) ==========
     private boolean slowModeActive = startInSlowMode;
     private boolean intakeIsIn = false;
-    private boolean hingeIsUp = false;
+    private boolean hinge1IsUp = false;
+    private boolean hinge2IsUp = false;
 
     @Override
     public void runOpMode() {
@@ -93,9 +103,9 @@ public class CombinedClassTeleopTest extends LinearOpMode {
             intake = new IntakeClass(hardwareMap, telemetry, intake1Type, intake2Type);
         }
 
-        if (shooterAttached || shooterHingeAttached || magazineAttached) {
+        if (shooterAttached || shooterHinge1Attached || shooterHinge2Attached || magazineAttached) {
             shooter = new ShooterClass(hardwareMap, telemetry,
-                    shooterAttached, shooterHingeAttached, magazine1Type, magazine2Type);
+                    shooterAttached, shooterHinge1Attached,shooterHinge2Attached, magazine1Type, magazine2Type, magazine3Type, magazine4Type);
         }
 
         if (OdometryAttached) {
@@ -111,7 +121,7 @@ public class CombinedClassTeleopTest extends LinearOpMode {
         telem.odometry = odometry;
 
         // Set initial states in classes
-        drive.speedMultiplier = slowModeActive ? slowSpeed : normalSpeed;
+        drive.nerf = slowModeActive ? slowSpeed : normalSpeed;
         drive.useFieldCentric = startInFieldCentric;
         drive.useImuForFieldCentric = startWithImu;
         drive.useBackMotorPid = backMotorPidAttached;  // Set initial back motor PID state
@@ -120,9 +130,10 @@ public class CombinedClassTeleopTest extends LinearOpMode {
             intake.targetPosition = intakeOutPosition;
         }
 
-        if (shooterAttached || shooterHingeAttached || magazineAttached) {
+        if (shooterAttached || shooterHinge1Attached || shooterHinge2Attached || magazineAttached) {
             shooter.shooterTargetRPM = shooterIdleRPM;
-            shooter.hingeTargetPosition = hingeDownPosition;
+            shooter.hinge1TargetPosition = hinge1DownPosition;
+            shooter.hinge2TargetPosition = hinge2DownPosition;
             shooter.magazineTargetPower = 0;
         }
 
@@ -139,8 +150,11 @@ public class CombinedClassTeleopTest extends LinearOpMode {
         if (magazineAttached) {
             if (!magazine1Type.equals("none")) telemetry.addData("Mag 1", shooter.getMagazine1Initialized() ? "✓" : "✗");
             if (!magazine2Type.equals("none")) telemetry.addData("Mag 2", shooter.getMagazine2Initialized() ? "✓" : "✗");
+            if (!magazine3Type.equals("none")) telemetry.addData("Mag 3", shooter.getMagazine3Initialized() ? "✓" : "✗");
+            if (!magazine4Type.equals("none")) telemetry.addData("Mag 4", shooter.getMagazine4Initialized() ? "✓" : "✗");
         }
-        if (shooterHingeAttached) telemetry.addData("Hinge", shooter.getHingeInitialized() ? "✓" : "✗");
+        if (shooterHinge1Attached) telemetry.addData("Hinge", shooter.getHinge1Initialized() ? "✓" : "✗");
+        if (shooterHinge2Attached) telemetry.addData("Hinge", shooter.getHinge2Initialized() ? "✓" : "✗");
         if (OdometryAttached) telemetry.addData("Odometry", odometry.getInitialized() ? "✓" : "✗");
         telemetry.update();
 
@@ -151,15 +165,18 @@ public class CombinedClassTeleopTest extends LinearOpMode {
             // ==================== GAMEPAD 1 - DRIVER ====================
 
             // Get raw inputs
-            double rawForward = -gamepad1.left_stick_y;
-            double rawStrafe = -gamepad1.left_stick_x;
-            double rawTurn = -gamepad1.right_stick_x;
+//            double rawForward = -gamepad1.left_stick_y;
+//            double rawStrafe = -gamepad1.left_stick_x;
+//            double rawTurn = -gamepad1.right_stick_x;
 
             // Apply speed multiplier (controlled here, not in class)
-            double forward = rawForward * drive.speedMultiplier;
-            double strafe = rawStrafe * drive.speedMultiplier;
-            double turn = rawTurn * drive.speedMultiplier;
+//            double forward = rawForward * drive.nerf;
+//            double strafe = rawStrafe * drive.nerf;
+//            double turn = rawTurn * drive.nerf;
 
+            double forward = -gamepad1.left_stick_y * drive.nerf;
+            double strafe = -gamepad1.left_stick_x * drive.nerf;
+            double turn = -gamepad1.right_stick_x * drive.nerf;
 
             // ========== DRIVE CONTROL TOGGLES ==========
 
@@ -184,7 +201,7 @@ public class CombinedClassTeleopTest extends LinearOpMode {
             // Toggle slow mode (Right Bumper)
             if (gamepad1.right_bumper && !lastGamepad1RightBumper) {
                 slowModeActive = !slowModeActive;
-                drive.speedMultiplier = slowModeActive ? slowSpeed : normalSpeed;
+                drive.nerf = slowModeActive ? slowSpeed : normalSpeed;
             }
             lastGamepad1RightBumper = gamepad1.right_bumper;
 
@@ -233,7 +250,7 @@ public class CombinedClassTeleopTest extends LinearOpMode {
 
 
             // ========== SHOOTER CONTROL ==========
-            if (shooterAttached || shooterHingeAttached || magazineAttached) {
+            if (shooterAttached || shooterHinge1Attached || shooterHinge2Attached || magazineAttached) {
 
                 // Shooter motor (Right Trigger) - only if shooter attached
                 if (shooterAttached) {
@@ -257,16 +274,21 @@ public class CombinedClassTeleopTest extends LinearOpMode {
                 }
 
                 // Toggle hinge (A button) - only if hinge attached
-                if (shooterHingeAttached) {
+                if (shooterHinge1Attached) {
                     if (gamepad2.a && !lastGamepad2A) {
-                        hingeIsUp = !hingeIsUp;
-                        shooter.hingeTargetPosition = hingeIsUp ? hingeUpPosition : hingeDownPosition;
+                        hinge1IsUp = !hinge1IsUp;
+                        shooter.hinge1TargetPosition = hinge1IsUp ? hinge1UpPosition : hinge1DownPosition;
                     }
+                    if (shooterHinge2Attached) {
+                        if (gamepad2.a && !lastGamepad2A) {
+                            hinge2IsUp = !hinge2IsUp;
+                            shooter.hinge2TargetPosition = hinge2IsUp ? hinge2UpPosition : hinge2DownPosition;
+                        }
                     lastGamepad2A = gamepad2.a;
                 }
 
                 // Update shooter (pass individual enable flags)
-                shooter.update(shooterAttached, shooterHingeAttached, magazineAttached);
+                shooter.update(shooterAttached, shooterHinge1Attached, shooterHinge2Attached, magazineAttached);
             }
 
 
@@ -281,6 +303,7 @@ public class CombinedClassTeleopTest extends LinearOpMode {
             telem.update(TelemetryEnabled, DashboardEnabled);
 
             sleep(20);
+            }
         }
     }
 }

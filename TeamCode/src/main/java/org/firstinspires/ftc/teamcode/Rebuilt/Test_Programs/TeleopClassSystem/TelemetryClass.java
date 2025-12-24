@@ -66,8 +66,9 @@ public class TelemetryClass {
         if (drive != null && drive.getInitialized()) {
             telemetry.addLine("=== DRIVE ===");
             telemetry.addData("Mode", drive.useFieldCentric ? "Field Centric" : "Robot Centric");
+
             if (drive.useFieldCentric) telemetry.addData("Using", drive.useImuForFieldCentric ? "IMU" : "Odometry");
-            telemetry.addData("Speed", "%.2f", drive.speedMultiplier);
+            telemetry.addData("Speed", "%.2f", drive.nerf);
             telemetry.addData("Wheel Brake", drive.useWheelBrake ? "ON" : "OFF");
             telemetry.addData("Back PID", drive.useBackMotorPid ? "ON" : "OFF");
 
@@ -99,9 +100,13 @@ public class TelemetryClass {
             telemetry.addData("Actual RPM", "%.0f", shooter.getShooterCurrentRPM());
             telemetry.addData("At Target", shooter.getShooterAtTarget(50) ? "✓" : "✗");
 
-            if (shooter.getHingeInitialized()) {
-                telemetry.addData("Hinge Target", "%.2f", shooter.hingeTargetPosition);
-                telemetry.addData("Hinge Actual", "%.2f", shooter.getHingePosition());
+            if (shooter.getHinge1Initialized()) {
+                telemetry.addData("Hinge Target", "%.2f", shooter.hinge1TargetPosition);
+                telemetry.addData("Hinge Actual", "%.2f", shooter.getHinge1Position());
+            }
+            if (shooter.getHinge2Initialized()) {
+                telemetry.addData("Hinge Target", "%.2f", shooter.hinge2TargetPosition);
+                telemetry.addData("Hinge Actual", "%.2f", shooter.getHinge2Position());
             }
 
             if (shooter.getMagazineInitialized()) {
@@ -126,7 +131,7 @@ public class TelemetryClass {
         if (drive != null && drive.getInitialized()) {
             packet.put("Field Centric", drive.useFieldCentric);
             packet.put("Use IMU", drive.useImuForFieldCentric);
-            packet.put("Speed Multiplier", drive.speedMultiplier);
+            packet.put("Speed Multiplier", drive.nerf);
             packet.put("Wheel Brake", drive.useWheelBrake);
             packet.put("Back Motor PID", drive.useBackMotorPid);
 
@@ -154,9 +159,13 @@ public class TelemetryClass {
             packet.put("Shooter Actual RPM", shooter.getShooterCurrentRPM());
             packet.put("Shooter At Target", shooter.getShooterAtTarget(50));
 
-            if (shooter.getHingeInitialized()) {
-                packet.put("Hinge Target", shooter.hingeTargetPosition);
-                packet.put("Hinge Actual", shooter.getHingePosition());
+            if (shooter.getHinge1Initialized()) {
+                packet.put("Hinge 1 Target", shooter.hinge1TargetPosition);
+                packet.put("Hinge 1 Actual", shooter.getHinge1Position());
+            }
+            if (shooter.getHinge2Initialized()) {
+                packet.put("Hinge 2 Target", shooter.hinge2TargetPosition);
+                packet.put("Hinge 2 Actual", shooter.getHinge2Position());
             }
 
             if (shooter.getMagazineInitialized()) {

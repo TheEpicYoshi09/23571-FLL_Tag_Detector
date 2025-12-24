@@ -24,7 +24,7 @@ public class DriveControlClass {
     public MotorPowerRegulator_New backRightController;
 
     // Control variables - Public - Set these from main teleop
-    public double speedMultiplier = 0.75;
+    public double nerf = 0.75;
     public boolean useFieldCentric = false;
     public boolean useBackMotorPid = false;
     public boolean useWheelBrake = false;
@@ -47,6 +47,7 @@ public class DriveControlClass {
 
     // Enabled flag - Public
     public boolean enabled = false;
+
 
     /**
      * Constructor - initializes components independently

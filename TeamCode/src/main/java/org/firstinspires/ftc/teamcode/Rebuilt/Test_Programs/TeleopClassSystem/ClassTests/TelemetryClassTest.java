@@ -31,7 +31,7 @@ public class TelemetryClassTest extends LinearOpMode {
 
         // -------------------- Initialize subsystems --------------------
         intake = new IntakeClass(hardwareMap, telemetry, "crservo", "none");
-        shooter = new ShooterClass(hardwareMap, telemetry, true, true, "crservo", "none");
+        shooter = new ShooterClass(hardwareMap, telemetry, true, true, true, "crservo", "none", "none", "none");
         odometry = new OdometryClass(hardwareMap, telemetry);
 
         // -------------------- Initialize TelemetryClass --------------------
@@ -71,11 +71,12 @@ public class TelemetryClassTest extends LinearOpMode {
             }
             previousHingeA = currentA;
 
-            shooter.hingeEnabled = true;
-            shooter.hingeTargetPosition = shooterHingeUp ? 1.0 : 0.0;
+            shooter.hinge1Enabled = true;
+            shooter.hinge2Enabled = true;
+            shooter.hinge1TargetPosition = shooterHingeUp ? 1.0 : 0.0;
 
             // Update shooter
-            shooter.update(shooter.shooterEnabled, shooter.hingeEnabled, shooter.magazineEnabled);
+            shooter.update(shooter.shooterEnabled, shooter.hinge1Enabled, shooter.hinge2Enabled, shooter.magazineEnabled);
 
             // -------------------- Odometry Update --------------------
             odometry.update(true);

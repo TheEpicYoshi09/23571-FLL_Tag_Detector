@@ -17,42 +17,52 @@ public class ShooterClass {
 
     // Hardware - Public - Only initialized ones will be non-null
     public MotorPowerRegulator_New shooterMotor;
-    public Servo hinge;
-    public CRServo magazine1CRServo, magazine2CRServo;
-    public Servo magazine1Servo, magazine2Servo;
-    public DcMotor magazine1Motor, magazine2Motor;
+
+    public Servo hinge1, hinge2;
+    public CRServo magazine1CRServo, magazine2CRServo, magazine3CRServo, magazine4CRServo;
+    public Servo magazine1Servo, magazine2Servo, magazine3Servo, magazine4Servo;
+    public DcMotor magazine1Motor, magazine2Motor, magazine3Motor, magazine4Motor;
+
     public Telemetry telemetry;
 
     // Control variables - Public - Set these from main teleop
     public double shooterTargetRPM = 0;
-    public double hingeTargetPosition = 0;
+    public double hinge1TargetPosition = 0;
+    public double hinge2TargetPosition = 0;
     public double magazineTargetPower = 0;      // For CR servos and motors (-1 to 1)
     public double magazineTargetPosition = 0;   // For regular servos (0-1)
 
     // Component status - Public
     public boolean shooterEnabled = false;
-    public boolean hingeEnabled = false;
+    public boolean hinge1Enabled = false;
+    public boolean hinge2Enabled = false;
     public boolean magazineEnabled = false;
     public boolean shooterInitialized = false;
-    public boolean hingeInitialized = false;
+    public boolean hinge1Initialized = false;
+    public boolean hinge2Initialized = false;
     public boolean magazine1Initialized = false;
     public boolean magazine2Initialized = false;
+    public boolean magazine3Initialized = false;
+    public boolean magazine4Initialized = false;
     public boolean magazineInitialized = false;
 
     // Magazine type tracking - Public
     public String magazine1Type = "none";  // "servo", "crservo", "motor", or "none"
     public String magazine2Type = "none";
+    public String magazine3Type = "none";
+    public String magazine4Type = "none";
 
     /**
      * Constructor with flexible magazine types
      * @param initShooter Initialize shooter motor
-     * @param initHinge Initialize hinge servo
+     * @param initHinge1 Initialize hinge serv
+     * @param initHinge2 Initialize hinge servo
      * @param initMag1Type "servo", "crservo", "motor", or "none"
      * @param initMag2Type "servo", "crservo", "motor", or "none"
      */
     public ShooterClass(HardwareMap hardwareMap, Telemetry telemetry,
-                        boolean initShooter, boolean initHinge,
-                        String initMag1Type, String initMag2Type) {
+                        boolean initShooter, boolean initHinge1, boolean initHinge2,
+                        String initMag1Type, String initMag2Type, String initMag3Type, String initMag4Type) {
         this.telemetry = telemetry;
 
         // Initialize shooter motor
@@ -70,16 +80,17 @@ public class ShooterClass {
         }
 
         // Initialize hinge servo
-        if (initHinge) {
+        if (initHinge1) {
             try {
-                hinge = hardwareMap.get(Servo.class, "sH");
-                hinge.setPosition(0);
-                hingeInitialized = true;
+                hinge1 = hardwareMap.get(Servo.class, "sH");
+                hinge1.setPosition(0);
+                hinge1Initialized = true;
             } catch (Exception e) {
-                hingeInitialized = false;
-                telemetry.addData("Hinge Error", e.getMessage());
+                hinge1Initialized = false;
+                telemetry.addData("hinge1 Error", e.getMessage());
             }
         }
+
 
         // Initialize magazine 1
         if (!initMag1Type.equals("none")) {
@@ -130,16 +141,63 @@ public class ShooterClass {
                 telemetry.addData("Magazine 2 Error", e.getMessage());
             }
         }
+        if (!initMag3Type.equals("none")) {
+            try {
+                if (initMag3Type.equals("servo")) {
+                    magazine3Servo = hardwareMap.get(Servo.class, "mag3");
+                    magazine3Servo.setPosition(0);
+                    magazine3Type = "servo";
+                    magazine3Initialized = true;
+                } else if (initMag3Type.equals("crservo")) {
+                    magazine3CRServo = hardwareMap.get(CRServo.class, "mag3");
+                    magazine3CRServo.setPower(0);
+                    magazine3Type = "crservo";
+                    magazine3Initialized = true;
+                } else if (initMag3Type.equals("motor")) {
+                    magazine3Motor = hardwareMap.get(DcMotor.class, "mag3");
+                    magazine3Motor.setPower(0);
+                    magazine3Type = "motor";
+                    magazine3Initialized = true;
+                }
+            } catch (Exception e) {
+                magazine3Initialized = false;
+                telemetry.addData("Magazine 4 Error", e.getMessage());
+            }
+        }
+        if (!initMag4Type.equals("none")) {
+            try {
+                if (initMag4Type.equals("servo")) {
+                    magazine4Servo = hardwareMap.get(Servo.class, "mag4");
+                    magazine4Servo.setPosition(0);
+                    magazine4Type = "servo";
+                    magazine4Initialized = true;
+                } else if (initMag4Type.equals("crservo")) {
+                    magazine4CRServo = hardwareMap.get(CRServo.class, "mag4");
+                    magazine4CRServo.setPower(0);
+                    magazine4Type = "crservo";
+                    magazine4Initialized = true;
+                } else if (initMag4Type.equals("motor")) {
+                    magazine4Motor = hardwareMap.get(DcMotor.class, "mag4");
+                    magazine4Motor.setPower(0);
+                    magazine4Type = "motor";
+                    magazine4Initialized = true;
+                }
+            } catch (Exception e) {
+                magazine4Initialized = false;
+                telemetry.addData("Magazine 4 Error", e.getMessage());
+            }
+        }
 
-        magazineInitialized = magazine1Initialized || magazine2Initialized;
+        magazineInitialized = magazine1Initialized || magazine2Initialized || magazine3Initialized || magazine4Initialized;
     }
 
     /**
      * Main update - reads public variables and applies them
      */
-    public void update(boolean shooterEnabled, boolean hingeEnabled, boolean magazineEnabled) {
+    public void update(boolean shooterEnabled, boolean hinge1Enabled, boolean hinge2Enabled, boolean magazineEnabled) {
         this.shooterEnabled = shooterEnabled;
-        this.hingeEnabled = hingeEnabled;
+        this.hinge1Enabled = hinge1Enabled;
+        this.hinge2Enabled = hinge2Enabled;
         this.magazineEnabled = magazineEnabled;
 
         // Update shooter motor
@@ -155,10 +213,15 @@ public class ShooterClass {
         }
 
         // Update hinge
-        if (hingeEnabled && hingeInitialized) {
-            hinge.setPosition(hingeTargetPosition);
-        } else if (hingeInitialized) {
-            hinge.setPosition(0);
+        if (hinge1Enabled && hinge1Initialized) {
+            hinge1.setPosition(hinge1TargetPosition);
+        } else if (hinge1Initialized) {
+            hinge1.setPosition(0);
+        }
+        if (hinge2Enabled && hinge2Initialized) {
+            hinge2.setPosition(hinge2TargetPosition);
+        } else if (hinge2Initialized) {
+            hinge2.setPosition(0);
         }
 
         // Update magazine 1
@@ -185,6 +248,28 @@ public class ShooterClass {
             }
         } else if (magazine2Initialized) {
             stopMagazine2();
+        }
+        if (magazineEnabled && magazine3Initialized) {
+            if (magazine3Type.equals("servo")) {
+                magazine3Servo.setPosition(magazineTargetPosition);
+            } else if (magazine3Type.equals("crservo")) {
+                magazine3CRServo.setPower(magazineTargetPower);
+            } else if (magazine3Type.equals("motor")) {
+                magazine3Motor.setPower(magazineTargetPower);
+            }
+        } else if (magazine3Initialized) {
+            stopMagazine3();
+        }
+        if (magazineEnabled && magazine4Initialized) {
+            if (magazine4Type.equals("servo")) {
+                magazine4Servo.setPosition(magazineTargetPosition);
+            } else if (magazine4Type.equals("crservo")) {
+                magazine4CRServo.setPower(magazineTargetPower);
+            } else if (magazine4Type.equals("motor")) {
+                magazine4Motor.setPower(magazineTargetPower);
+            }
+        } else if (magazine4Initialized) {
+            stopMagazine4();
         }
     }
 
@@ -213,16 +298,39 @@ public class ShooterClass {
             magazine2Motor.setPower(0);
         }
     }
+    public void stopMagazine3() {
+        if (magazine3Type.equals("servo")) {
+            magazine3Servo.setPosition(0);
+        } else if (magazine3Type.equals("crservo")) {
+            magazine3CRServo.setPower(0);
+        } else if (magazine3Type.equals("motor")) {
+            magazine3Motor.setPower(0);
+        }
+    }
+    public void stopMagazine4() {
+        if (magazine4Type.equals("servo")) {
+            magazine4Servo.setPosition(0);
+        } else if (magazine4Type.equals("crservo")) {
+            magazine4CRServo.setPower(0);
+        } else if (magazine4Type.equals("motor")) {
+            magazine4Motor.setPower(0);
+        }
+    }
 
     // ==================== GETTERS ====================
 
     public boolean getShooterInitialized() { return shooterInitialized; }
-    public boolean getHingeInitialized() { return hingeInitialized; }
+    public boolean getHinge1Initialized() { return hinge1Initialized; }
+    public boolean getHinge2Initialized() { return hinge2Initialized; }
     public boolean getMagazineInitialized() { return magazineInitialized; }
     public boolean getMagazine1Initialized() { return magazine1Initialized; }
     public boolean getMagazine2Initialized() { return magazine2Initialized; }
+    public boolean getMagazine3Initialized() { return magazine3Initialized; }
+    public boolean getMagazine4Initialized() { return magazine4Initialized; }
     public boolean getShooterEnabled() { return shooterEnabled; }
-    public boolean getHingeEnabled() { return hingeEnabled; }
+    public boolean getHinge1Enabled() { return hinge1Enabled; }
+    public boolean getHinge2Enabled() { return hinge2Enabled; }
+
     public boolean getMagazineEnabled() { return magazineEnabled; }
 
     public double getShooterCurrentRPM() {
@@ -233,7 +341,18 @@ public class ShooterClass {
         return shooterMotor != null && shooterMotor.isAtTarget(tolerance);
     }
 
-    public double getHingePosition() {
-        return hinge != null ? hinge.getPosition() : 0;
+    public double getHinge1Position() {
+        if (hinge1 != null) {
+            return hinge1.getPosition();
+        } else return 0;
+    }
+
+
+    public double getHinge2Position() {
+        if (hinge2 != null) {
+            return hinge2.getPosition();
+        } else return 0;
     }
 }
+
+
