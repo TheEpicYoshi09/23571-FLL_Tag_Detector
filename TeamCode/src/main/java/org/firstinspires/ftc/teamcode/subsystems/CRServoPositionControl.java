@@ -7,43 +7,56 @@ import com.qualcomm.robotcore.hardware.AnalogInput;
 @Config
 public class CRServoPositionControl {
 
-    //CONFIGURABLES
-
     // general constants
     public static double maxVoltage = 3.26;
     public static double degreesPerRev = 360.0;
 
-    // gains (insert muscle emoji here)
+    // gains
     public static double kP = 0.002;
-    public static double kS = 0.07;//static friction
-    public static double maxPower = 1;
-    public static double stiffnessGain = 1.0; // 1.0 = regular behavior
-    public static double brakeZoneDeg = 20.0;
-    public static double kD = 0.000;   // velocity damping
-    //damping helpers
-    private double lastAngleDeg = 0.0;
-    private long lastTimeNs = 0;
+    public static double kI = 0.00000;
+    public static double kD = 0.000;//idk if this works
+    public static double kS = 0.0; // static friction feedforward
+    public static double stiffnessGain = 1.0;
 
-
-
-    // deadbands
+    // shaping
+    public static double maxPower = 1.0;
+    public static double brakeZoneDeg = 35.0;
+    public static double brakeMaxPower = 0.85;// tighter clamp near target
     public static double deadbandDeg = 1.5;
-    //direction
-    public static boolean rotateClockwise = true;
 
-    // hardware
+    //safe d (kinda sounds like safe-ty
+    public static double velFilterAlpha = 0.20;//lower is smooter
+    public static double dTermClamp = 0.20;//caps braekig d
+
+    // integral safety
+    public static double integralLimit = 300.0;// clamp on integral accumulator
+
+    // output slew limit powerunits per second
+    public static double maxOutputSlewPerSec = 3.0;
+
+    // stall
+    public static double stallBoostPower = 1.0;
+    public static double stallVelThresh = 50.0; //degrees perseconds
+    public static double stallErrThresh = 20.0;  // deg
+
+    // direction
+    public static boolean rotateClockwise = true;
 
     private final CRServo servo;
     private final AnalogInput encoder;
 
-    // super sigma wrapping
     private double lastWrappedDeg;
     private double continuousDeg;
-
-    // Target
     private double targetDeg;
 
-    //constructor
+    // damping helpers
+    private double lastAngleDeg = 0.0;
+    private long lastTimeNs = 0;
+
+    // new state
+    private double velEma = 0.0;
+    private double integral = 0.0;
+    private double lastOutput = 0.0;
 
     public CRServoPositionControl(CRServo servo, AnalogInput encoder) {
         this.servo = servo;
@@ -56,11 +69,8 @@ public class CRServoPositionControl {
 
         lastAngleDeg = continuousDeg;
         lastTimeNs = System.nanoTime();
-
     }
 
-    //api
-    //lwkey bruno mars and rose should make APT again but make it API instead would that be tuffy
     public void update() {
         updateContinuousAngle();
 
@@ -72,6 +82,8 @@ public class CRServoPositionControl {
             servo.setPower(0);
             lastAngleDeg = continuousDeg;
             lastTimeNs = System.nanoTime();
+            integral = 0.0;
+            lastOutput = 0.0;
             return;
         }
 
@@ -80,52 +92,75 @@ public class CRServoPositionControl {
         double dt = (now - lastTimeNs) * 1e-9;
         if (dt <= 0) dt = 1e-3;
 
-        double velocity = (continuousDeg - lastAngleDeg) / dt; //edgrees per second
+        // velocity + filter
+        double rawVel = (continuousDeg - lastAngleDeg) / dt; // deg/s
+        velEma = velFilterAlpha * rawVel + (1 - velFilterAlpha) * velEma;
 
         lastAngleDeg = continuousDeg;
         lastTimeNs = now;
 
-        double output;
+        //P shaping near target
+        double brakeScale = (absErr < brakeZoneDeg) ? (0.4 + 0.6 * absErr / brakeZoneDeg) : 1.0;
+        double kP_eff = kP * stiffnessGain * brakeScale;
 
-        //slowing vilocty dampening near target
-        if (absErr < brakeZoneDeg) {
-            output = kP * error * stiffnessGain
-                    - kD * velocity;
+        //Integral gating (only when near-ish and not moving too fast)
+        if (absErr < 40.0 && Math.abs(velEma) < 150.0) {
+            integral += error * dt;
+            integral = clamp(integral, -integralLimit, integralLimit);
         } else {
-            output = kP * error * stiffnessGain;
+            integral *= 0.9; // bleed
         }
 
-        // apply static friction compensation ONLY when driving toward target
-        if (Math.signum(output) == Math.signum(error)) {
-            double sign = Math.signum(output);
-            output = sign * Math.max(Math.abs(output), kS);
+        //D limited
+        boolean movingTowardTarget = Math.signum(velEma) == Math.signum(error);
+        double kD_eff = (absErr < brakeZoneDeg && movingTowardTarget) ? kD : 0.0;
+
+        double pTerm = kP_eff * error;
+        double iTerm = kI * integral;
+        double dTerm = -kD_eff * velEma;
+        dTerm = clamp(dTerm, -dTermClamp, dTermClamp);
+
+        double output = pTerm + iTerm + dTerm;
+
+        //sf compensation and erro
+        double dir = Math.signum(output);
+        if (dir == 0) dir = Math.signum(error);
+        double kS_eff = kS * clamp(absErr / brakeZoneDeg, 0.3, 1.0);
+        if (dir != 0 && Math.signum(error) == dir) {
+            output += dir * kS_eff;
         }
 
-        // clamp
-        output = clamp(output, -maxPower, maxPower);
+        //clamp logic with stall assist
+        double maxClamp = (absErr < brakeZoneDeg) ? brakeMaxPower : maxPower;
+        if (Math.abs(velEma) < stallVelThresh && absErr > stallErrThresh) {
+            maxClamp = Math.max(maxClamp, stallBoostPower);
+        }
+
+        //slew limit
+        double maxDelta = maxOutputSlewPerSec * dt;
+        output = clamp(output, lastOutput - maxDelta, lastOutput + maxDelta);
+
+        //final clamp
+        output = clamp(output, -maxClamp, maxClamp);
+        lastOutput = output;
 
         servo.setPower(output);
     }
 
-
-    //this is working good api think
     public void moveToAngle(double wrappedAngleDeg) {
         updateContinuousAngle();
 
         double currentWrapped = mod(continuousDeg, 360.0);
-
         double delta = wrappedAngleDeg - currentWrapped;
         if (delta > 180)  delta -= 360;
         if (delta < -180) delta += 360;
 
-        // rotation direction
         if (rotateClockwise && delta < 0) delta += 360;
         if (!rotateClockwise && delta > 0) delta -= 360;
 
         targetDeg = continuousDeg + delta;
     }
 
-    // something idk if we'll use but might have to do some refactorign if we do basically moves from current position
     public void moveBy(double deltaDeg) {
         targetDeg += deltaDeg;
     }
@@ -136,14 +171,14 @@ public class CRServoPositionControl {
         continuousDeg = wrapped;
         targetDeg = wrapped;
         servo.setPower(0);
+        integral = 0.0;
+        lastOutput = 0.0;
     }
 
-    //bencoder (ben like a reference to ben falk who is majestic)
     private void updateContinuousAngle() {
         double wrapped = getWrappedAngle();
         double delta = wrapped - lastWrappedDeg;
 
-        // unwrap
         if (delta > 180)  delta -= 360;
         if (delta < -180) delta += 360;
 
@@ -156,8 +191,6 @@ public class CRServoPositionControl {
         return (v / maxVoltage) * degreesPerRev;
     }
 
-    /* ================= UTIL ================= */
-
     private double clamp(double v, double min, double max) {
         return Math.max(min, Math.min(max, v));
     }
@@ -167,27 +200,14 @@ public class CRServoPositionControl {
         return (r < 0) ? r + m : r;
     }
 
-    /* ================= DEBUG ================= */
-
-    public double getCurrentAngle() {
-        return continuousDeg;
-    }
-
-    public double getTargetAngle() {
-        return targetDeg;
-    }
+    public double getCurrentAngle() { return continuousDeg; }
+    public double getTargetAngle() { return targetDeg; }
 
     public double getTargetVoltage() {
-        // wrap target angle
         double wrappedDeg = targetDeg % degreesPerRev;
         if (wrappedDeg < 0) wrappedDeg += degreesPerRev;
-
-        // convert to voltage
         return (wrappedDeg / degreesPerRev) * maxVoltage;
     }
 
-    public double getVoltage()
-    {
-        return encoder.getVoltage();
-    }
+    public double getVoltage() { return encoder.getVoltage(); }
 }
