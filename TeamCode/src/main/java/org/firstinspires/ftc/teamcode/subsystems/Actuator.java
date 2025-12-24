@@ -5,10 +5,9 @@ import com.arcrobotics.ftclib.hardware.SimpleServo;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 @Config
-
 public class Actuator {
-    public final double DOWN = 0.0; // flush with the floor of platform
-    public final double UP = .17; // raised to push it into the flywheel
+    public double DOWN = 0.0; // flush with the floor of platform
+    public double UP = .17; // raised to push it into the flywheel
 
     private boolean activated;
 
