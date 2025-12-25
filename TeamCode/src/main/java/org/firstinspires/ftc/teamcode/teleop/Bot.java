@@ -44,8 +44,8 @@ public class Bot {
 
     public static double TRIGGER_DEADZONE = 0.05;
     public static double SHOOTER_RPM = 5000;
-    public static double NON_INDEX_SPIN_TIME = 2;//seconds of full-power indexer blast
-    public static double SHOOTER_SPINUP = 0.75;
+    public static double NON_INDEX_SPIN_TIME = 6;//seconds of full-power indexer blast
+    public static double SHOOTER_SPINUP = 2.0;
     public static double FULL_BLAST_POWER =1.0;
 
     public Bot(HardwareMap hardwareMap, Telemetry tele, Gamepad gamepad1, Gamepad gamepad2) {
@@ -93,6 +93,15 @@ public class Bot {
         telemetry.addData("Outtake RPM", "Target: %.1f, Actual: %.1f", outtake.getTargetRPM(), outtake.getRPM());
         telemetry.addData("Actuator up?", actuator.isActivated());
         telemetry.addData("Indexer Loaded?", indexer.isLoaded());
+
+        for (Indexer.IndexerState s : Indexer.IndexerState.values()) {
+            telemetry.addData(
+                    "Slot " + s.index,
+                    "%s  (err=%.1f°)",
+                    indexer.getColorAt(s),
+                    indexer.debugSlotErrorDeg(s)
+            );
+        }
         telemetry.update();
     }
 
@@ -106,14 +115,17 @@ public class Bot {
     }
 
     private void handleIntakeState() {
-        indexer.setIntaking(true);
         double leftTrigger = g2.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER);
         if (leftTrigger > TRIGGER_DEADZONE) intake.run();
         else intake.stop();
         if (g2.wasJustPressed(GamepadKeys.Button.DPAD_RIGHT)) indexer.moveTo(indexer.getState().next());
 
         if (g2.wasJustPressed(GamepadKeys.Button.A)) state = FSM.QuickOuttake;
-        if (g2.wasJustPressed(GamepadKeys.Button.B)) state = FSM.SortOuttake;
+        if (g2.wasJustPressed(GamepadKeys.Button.B)){
+            state = FSM.SortOuttake;
+            indexer.setIntaking(false);
+            indexer.moveTo(indexer.getState());
+        }
         if (g2.wasJustPressed(GamepadKeys.Button.Y)) state = FSM.Endgame;
     }
 
@@ -121,11 +133,13 @@ public class Bot {
         if (g2.wasJustPressed(GamepadKeys.Button.X)) {
             Actions.runBlocking(fireWithPeriodic(actionNonIndexedDump()));
         }
-        if (g2.wasJustPressed(GamepadKeys.Button.A)) state = FSM.Intake;
+        if (g2.wasJustPressed(GamepadKeys.Button.A)) {
+            state = FSM.Intake;
+            indexer.setIntaking(true);
+        }
     }
 
     private void handleSortOuttakeState() {
-        indexer.setIntaking(false);
         if (g2.wasJustPressed(GamepadKeys.Button.X)) {
             Actions.runBlocking(fireWithPeriodic(actionFireGreen()));
         }
@@ -133,19 +147,17 @@ public class Bot {
             Actions.runBlocking(fireWithPeriodic(actionFirePurple()));
         }
         if (g2.wasJustPressed(GamepadKeys.Button.A)) {
+            indexer.setIntaking(true);
             state = FSM.Intake;
         }
     }
 
     private void handleEndgameState() {
-        if (g2.wasJustPressed(GamepadKeys.Button.A)) state = FSM.Intake;
-    }
+        if (g2.wasJustPressed(GamepadKeys.Button.A)) {
+            state = FSM.Intake;
 
-    public Action periodics() {
-        return new ParallelAction(
-                new InstantAction(outtake::periodic),
-                new InstantAction(indexer::update)
-        );
+            indexer.setIntaking(true);
+        }
     }
 
     private Action actionNonIndexedDump() {
@@ -159,36 +171,66 @@ public class Bot {
                 new InstantAction(indexer::stopIndexerPower),
                 new InstantAction(outtake::stop),
                 new InstantAction(actuator::down),
-                new InstantAction(() -> indexer.moveTo(Indexer.IndexerState.zero)),
-                new InstantAction(() -> indexer.setIntaking(true))
+                new InstantAction(() -> indexer.setIntaking(true)),
+                new InstantAction(() -> indexer.initializeColors()),
+                new InstantAction(() -> indexer.moveTo(Indexer.IndexerState.zero))
         );
     }
 
     private Action actionFireGreen() {
+        final Indexer.IndexerState slot =
+                indexer.findBestSlotForColor(Indexer.ArtifactColor.GREEN);
+
+        if (slot == null) {
+            return new InstantAction(() -> {});
+        }
+
         return new SequentialAction(
+                new InstantAction(() -> indexer.setIntaking(false)),
                 new InstantAction(actuator::down),
-                new InstantAction(() -> indexer.moveToColor(Indexer.ArtifactColor.GREEN)),
+                new InstantAction(() -> indexer.moveTo(slot)),
+
                 new InstantAction(() -> outtake.set(SHOOTER_RPM)),
-                new SleepAction(2.0),
-                new InstantAction(actuator::upIndexed),// higher position for indexed firing
-                new SleepAction(0.5),
+                new SleepAction(SHOOTER_SPINUP),
+                new InstantAction(actuator::upIndexed),
+                new SleepAction(1),
+
+                new InstantAction(() ->
+                        indexer.assignSlotColor(slot, Indexer.ArtifactColor.EMPTY)
+                ),
+
                 new InstantAction(outtake::stop),
                 new InstantAction(actuator::down)
         );
     }
 
     private Action actionFirePurple() {
+        final Indexer.IndexerState slot =
+                indexer.findBestSlotForColor(Indexer.ArtifactColor.PURPLE);
+
+        if (slot == null) {
+            return new InstantAction(() -> {});
+        }
+
         return new SequentialAction(
                 new InstantAction(actuator::down),
-                new InstantAction(() -> indexer.moveToColor(Indexer.ArtifactColor.PURPLE)),
+                new InstantAction(() -> indexer.moveTo(slot)),
+
                 new InstantAction(() -> outtake.set(SHOOTER_RPM)),
-                new SleepAction(2.0),
+                new SleepAction(SHOOTER_SPINUP),
                 new InstantAction(actuator::upIndexed),
-                new SleepAction(0.75),
+                new SleepAction(1),
+
+                new InstantAction(() ->
+                        indexer.assignSlotColor(slot, Indexer.ArtifactColor.EMPTY)
+                ),
+
                 new InstantAction(outtake::stop),
                 new InstantAction(actuator::down)
         );
     }
+
+
 
     private Action fireWithPeriodic(Action fireAction) {
         return packet -> {
