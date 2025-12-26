@@ -61,6 +61,7 @@ public class Bot {
     }
 
     public void teleopInit() {
+        actuator.down();
         indexer.initializeColors(Indexer.ArtifactColor.EMPTY);
         indexer.moveTo(Indexer.IndexerState.zero);
         indexer.setIntaking(true);
