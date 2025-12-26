@@ -30,11 +30,13 @@ public class Constants {
             // PIDF coefficients for secondary translational movement (fine-tuning)
             .secondaryTranslationalPIDFCoefficients(new PIDFCoefficients(0.1, 0, 0.01, 0.025))
             // PIDF coefficients for secondary heading adjustments (fine-tuning heading control)
-            .secondaryHeadingPIDFCoefficients(new PIDFCoefficients(1.5, 0, 0.05, 0.025))
+            // Increased to better support simultaneous translation and rotation
+            .secondaryHeadingPIDFCoefficients(new PIDFCoefficients(2.5, 0, 0.07, 0.035))
             // PIDF coefficients for secondary drive adjustments (fine-tuning drive control)
             .secondaryDrivePIDFCoefficients(new FilteredPIDFCoefficients(0.002, 0, 0.00002, 0.6, 0.1))
             // PIDF coefficients for heading control (primary control loop)
-            .headingPIDFCoefficients(new PIDFCoefficients(1, 0, 0.035, 0.02))
+            // Increased P and F gains to allow turning while moving
+            .headingPIDFCoefficients(new PIDFCoefficients(2.0, 0, 0.05, 0.04))
             // PIDF coefficients for drive control (primary control loop)
             .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.009, 0.0, 0.0001, 0.6, 0.02))
             // Scaling factor for centripetal force calculations during turns
@@ -86,8 +88,8 @@ public class Constants {
     public static PathConstraints pathConstraints = new PathConstraints(
             0.99, // Maximum velocity scaling factor (percentage of max velocity)
             100,  // Maximum acceleration in inches per second squared
-            1.1,  // Maximum angular velocity in radians per second
-            0.7   // Maximum angular acceleration in radians per second squared
+            1.5,  // Maximum angular velocity in radians per second (increased to allow faster turning while moving)
+            1.0   // Maximum angular acceleration in radians per second squared (increased for more responsive turning)
     );
 
     // Method to create and configure the Follower object
