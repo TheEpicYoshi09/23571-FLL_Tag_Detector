@@ -9,8 +9,8 @@ public class DecodePaths {
     // would be useful if we could start turret sideways to get more time
     public static final Pose BLUE_FAR_START = new Pose(60, 8.75, Math.toRadians(-90)); // public static final Pose BlueFarStart = new Pose(57, 9, Math.toRadians(270));
     //public static final Pose BlueFarShoot = new Pose(57,21, Math.toRadians(180));
-    public static final Pose BLUE_FAR_TO_SHOOT_AREA = new Pose(60, 80, Math.toRadians(-90));
-    public static final Pose BLUE_FAR_TO_SPIKE3 = new Pose(60, 46, Math.toRadians(-90));
+    public static final Pose BLUE_FAR_SHOOT = new Pose(60, 18.75, Math.toRadians(-90));
+    //public static final Pose BLUE_FAR_TO_SPIKE3 = new Pose(60, 46, Math.toRadians(-90));
     public static final Pose BLUE_FAR_LEAVE = new Pose(60, 40, Math.toRadians(-90));
     //public static final Pose BLUE_FAR_GET_ARTIFACTS = new Pose(24, 36, Math.toRadians(-180));
     //public static final Pose BlueFarSpike = new Pose(25,37, Math.toRadians(180)); // public static final Pose BlueFarSpike = new Pose(25,37, Math.toRadians(180));
@@ -18,8 +18,12 @@ public class DecodePaths {
 
     /// RED FAR
     public static final Pose RED_FAR_START = new Pose(84, 8.75, Math.toRadians(-90)); // public static final Pose BlueFarStart = new Pose(57, 9, Math.toRadians(270)); //public static final Pose RedFarStart = new Pose(88,9, Math.toRadians(270));
-    public static final Pose RED_FAR_TO_SHOOT_AREA = new Pose(84, 80, Math.toRadians(-90));
-    public static final Pose RED_FAR_TO_SPIKE3 = new Pose(84, 35.5, Math.toRadians(-90));
+    public static final Pose RED_FAR_SHOOT = new Pose(84, 18.75, Math.toRadians(-90));
+    public static final Pose RED_FAR_SHOOT_TO_SPIKE3 = new Pose(96.75, 34.5, 0);
+    public static final Pose RED_FAR_PICKUP_SPIKE3_PART1 = new Pose(111, 34.5, 0);
+    public static final Pose RED_FAR_PICKUP_SPIKE3_PART2 = new Pose(118, 34.5, 0);
+    public static final Pose RED_FAR_LEAVE = new Pose(84, 34.5, Math.toRadians(-90));
+    //public static final Pose RED_FAR_TO_SPIKE3 = new Pose(84, 35.5, Math.toRadians(-90));
     //public static final Pose RED_FAR_LEAVe = new Pose();
     //public static final Pose RED_FAR_GET_ARTIFACTS = new Pose(120, 36, Math.toRadians(-180));
     //public static final Pose RedFarShoot = new Pose(88,21, Math.toRadians(0));

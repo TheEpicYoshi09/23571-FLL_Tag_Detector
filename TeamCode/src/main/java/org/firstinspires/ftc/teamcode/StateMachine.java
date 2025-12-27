@@ -32,10 +32,11 @@ public class StateMachine {
         NEAR_GOTO_SHOOT_SPIKE1,
         NEAR_PICKUP_SPIKE1,
         FAR_START_TO_SHOOT,
-        FAR_SHOOT_TO_SPIKE3,
-        FAR_SHOOT_ROTATE_TO_SPIKE3,
-        NEAR_START_TO_LEAVE,
-        FAR_START_TO_LEAVE,
+        FAR_SHOOT_TO_SPIKE3_LINEUP,
+        FAR_SPIKE3_PICKUP_PART1,
+        FAR_SPIKE3_PICKUP_PART2,
+        FAR_SPIKE3_TO_SHOOT,
+        FAR_SHOOT_LEAVE,
     }
 
     private State currentState;
@@ -117,12 +118,29 @@ public class StateMachine {
 
         // FAR
         buildPath(AUTO_PATHS.FAR_START_TO_SHOOT,
-                DecodePaths.BLUE_FAR_START, DecodePaths.BLUE_FAR_TO_SHOOT_AREA,
-                DecodePaths.RED_FAR_START, DecodePaths.RED_FAR_TO_SHOOT_AREA);
+                DecodePaths.BLUE_FAR_START, DecodePaths.BLUE_FAR_SHOOT,
+                DecodePaths.RED_FAR_START, DecodePaths.RED_FAR_SHOOT);
 
-        buildPath(AUTO_PATHS.FAR_SHOOT_TO_SPIKE3,
-                DecodePaths.BLUE_FAR_TO_SHOOT_AREA, DecodePaths.BLUE_FAR_TO_SPIKE3,
-                DecodePaths.RED_FAR_TO_SHOOT_AREA, DecodePaths.RED_FAR_TO_SPIKE3);
+        buildPath(AUTO_PATHS.FAR_SHOOT_TO_SPIKE3_LINEUP,
+                null, null,
+                DecodePaths.RED_FAR_SHOOT, DecodePaths.RED_FAR_SHOOT_TO_SPIKE3);
+
+        buildPath(AUTO_PATHS.FAR_SPIKE3_PICKUP_PART1,
+                null, null,
+                DecodePaths.RED_FAR_SHOOT_TO_SPIKE3, DecodePaths.RED_FAR_PICKUP_SPIKE3_PART1);
+
+        buildPath(AUTO_PATHS.FAR_SPIKE3_PICKUP_PART2,
+                null, null,
+                DecodePaths.RED_FAR_PICKUP_SPIKE3_PART1, DecodePaths.RED_FAR_PICKUP_SPIKE3_PART2);
+
+        buildPath(AUTO_PATHS.FAR_SPIKE3_TO_SHOOT,
+                null, null,
+                DecodePaths.RED_FAR_PICKUP_SPIKE3_PART2, DecodePaths.RED_FAR_SHOOT);
+
+        buildPath(AUTO_PATHS.FAR_SHOOT_LEAVE,
+                null, null,
+                DecodePaths.RED_FAR_SHOOT, DecodePaths.RED_FAR_LEAVE
+        );
 
 //        buildPath(AUTO_PATHS.FAR_SHOOT_ROTATE_TO_SPIKE3,
 //                DecodePaths.BLUE_FAR_TO_SPIKE3, DecodePaths.BLUE_FAR_ROTATE_TO_SPIKE3,
@@ -287,7 +305,39 @@ public class StateMachine {
                         if (!follower.isBusy()) {
                             boolean shot = shoot();
                             if (shot) {
-                                follower.followPath(paths.get(AUTO_PATHS.FAR_SHOOT_TO_SPIKE3), true);
+                                follower.followPath(paths.get(AUTO_PATHS.FAR_SHOOT_TO_SPIKE3_LINEUP), true);
+                                setSpindexPosition(2);
+                                robot.runIntake(RobotHardware.IntakeDirection.IN);
+                                autoFarSubStep++;
+                            }
+                        }
+                        break;
+                    case 3:
+                        if (!follower.isBusy()) {
+                            follower.followPath(paths.get(AUTO_PATHS.FAR_SPIKE3_PICKUP_PART1), true);
+                            pathTimer.resetTimer();
+                            autoFarSubStep++;
+                        }
+                        break;
+                    case 4:
+                        if (!follower.isBusy() & pathTimer.getElapsedTimeSeconds() >= 2) {
+                            follower.followPath(paths.get(AUTO_PATHS.FAR_SPIKE3_PICKUP_PART2), true);
+                            pathTimer.resetTimer();
+                            autoFarSubStep++;
+                        }
+                        break;
+                    case 5:
+                        if (!follower.isBusy() & pathTimer.getElapsedTimeSeconds() >= 2) {
+                            robot.runIntake(RobotHardware.IntakeDirection.STOP);
+                            follower.followPath(paths.get(AUTO_PATHS.FAR_SPIKE3_TO_SHOOT), true);
+                            autoFarSubStep++;
+                        }
+                        break;
+                    case 6:
+                        if (!follower.isBusy()) {
+                            boolean shot2 = shoot();
+                            if (shot2) {
+                                follower.followPath(paths.get(AUTO_PATHS.FAR_SHOOT_LEAVE), true);
                                 stopFlywheel();
                                 autoFarSubStep++;
                             }
