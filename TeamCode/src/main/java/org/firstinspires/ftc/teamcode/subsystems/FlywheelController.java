@@ -28,7 +28,7 @@ public class FlywheelController {
     private static final double TICKS_PER_REV = 28.0;
 
     private static final double MID_ZONE_DISTANCE_FT = 3.5;
-    private static final double FAR_ZONE_DISTANCE_FT = 5.5;
+    private static final double FAR_ZONE_DISTANCE_FT = 6.0;
     private static final double FAR_FAR_ZONE_DISTANCE_FT = 8.0;
 
     private final RobotHardware robot;

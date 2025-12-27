@@ -134,7 +134,7 @@ public class ShootingController {
 
         double txPercent = result.getTx();
         if (!Double.isNaN(txPercent)) {
-            return Math.abs(txPercent) <= 0.05;
+            return Math.abs(txPercent) <= 0.075;
         }
 
         List<LLResultTypes.FiducialResult> fiducials = result.getFiducialResults();
