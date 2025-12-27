@@ -25,10 +25,6 @@ public class Competition extends LinearOpMode {
     //GoBildaPinpointDriver odo; // Declare OpMode member for the Odometry Computer
 
     RobotHardware robot = new RobotHardware(this);
-    private TurretTracker turretTracker;
-    private FlywheelController flywheelController;
-    private ShootingController shootingController;
-    private ArtifactTracker artifactTracker;
 
     private boolean dpadUpPreviouslyPressed = false;
     private boolean dpadDownPreviouslyPressed = false;
@@ -36,7 +32,6 @@ public class Competition extends LinearOpMode {
     private boolean dpadRightPreviouslyPressed = false;
 
     private final double[] spindexerPositions = new double[]{Constants.spindexer1, Constants.spindexer2, Constants.spindexer3};
-    private int spindexerIndex = 0;
 
     @Override
     public void runOpMode() {
@@ -46,28 +41,24 @@ public class Competition extends LinearOpMode {
         double oldTime = 0;
 
         //Mecanum Drive
-        double x;
-        double y;
-        double rotation;
+        //double x;
+        //double y;
+        //double rotation;
 
-        //boolean aPressed = false;
-        //boolean bPressed = false;
-
-        // boolean dpadLeft2PreviouslyPressed = false;
-        // dpadRight2PreviouslyPressed = false;
         boolean backButtonPreviouslyPressed = false;
         boolean rightBumperPreviouslyPressed = false;
 
 
         robot.init();  //Hardware configuration in RobotHardware.java
 
+        int spindexerIndex = 0;
         robot.spindexer.setPosition(spindexerPositions[spindexerIndex]);
         robot.spindexerPos = spindexerPositions[spindexerIndex];
 
-        turretTracker = new TurretTracker(robot, telemetry);
-        flywheelController = new FlywheelController(robot, telemetry);
-        shootingController = new ShootingController(robot, flywheelController, telemetry);
-        artifactTracker = new ArtifactTracker(robot, telemetry);
+        TurretTracker turretTracker = new TurretTracker(robot, telemetry);
+        FlywheelController flywheelController = new FlywheelController(robot, telemetry);
+        ShootingController shootingController = new ShootingController(robot, flywheelController, telemetry);
+        ArtifactTracker artifactTracker = new ArtifactTracker(robot, telemetry);
 
         waitForStart();
         resetRuntime();
@@ -108,6 +99,7 @@ public class Competition extends LinearOpMode {
 
             ///MECANUM DRIVE
 
+        /*
             // Get joystick inputs
             y = -gamepad1.left_stick_y * 0.90; // Forward/backward - multiply by 0.90 to scale speed down
             x = gamepad1.left_stick_x * 0.90;  // Strafe - multiply by 0.90 to scale speed down
@@ -118,6 +110,16 @@ public class Competition extends LinearOpMode {
             }
 
             robot.mecanumDrive(x, y, rotation);
+         */
+            robot.updateHeadingOffsetFromAllianceButton();
+            double botHeading = robot.pinpoint.getHeading(AngleUnit.RADIANS);
+            double adjustedHeading = robot.applyHeadingOffset(botHeading);
+
+            double y = -gamepad1.left_stick_y;
+            double x = gamepad1.left_stick_x;
+            double rx = gamepad1.right_stick_x;
+
+            robot.FieldCentricDrive(x, y, rx, adjustedHeading);
 
             /// BUTTON MAPPING
             // D-Pad left/right = turret manual rotate
@@ -232,9 +234,6 @@ public class Competition extends LinearOpMode {
                 }
             }
 
-//            telemetry.addData("Turret", "enabled=%b  targetPos=%d  currentPos=%d", flywheelController.isEnabled(), robot.getTurretTarget(), robot.getTurretPosition());
-//            telemetry.addData("Shooter", shootingController.getShootState());
-//            telemetry.addData("Spindexer", "pos=%.2f", robot.spindexerPos);
             telemetry.addData("Flywheel Tolerance", "%.0f rpm", flywheelController.getRpmTolerance());
             telemetry.addData("Launcher F", "%.0f", FlywheelPidfConfig.launcherF);
             robot.flushPanelsTelemetry(telemetry);
