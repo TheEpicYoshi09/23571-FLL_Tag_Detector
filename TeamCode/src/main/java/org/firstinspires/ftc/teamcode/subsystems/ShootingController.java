@@ -68,7 +68,7 @@ public class ShootingController {
                 }
                 break;
             case FIRE:
-                if (shootTimer.milliseconds() >= 250) {
+                if (shootTimer.milliseconds() >= Constants.SHOOT_FIRE_DURATION_MS) {
                     robot.kicker.setPosition(Constants.kickerDown);
                     shootTimer.reset();
                     shotsRemaining = Math.max(0, shotsRemaining - 1);
@@ -76,7 +76,7 @@ public class ShootingController {
                 }
                 break;
             case RETRACT:
-                if (shootTimer.milliseconds() >= 250) {
+                if (shootTimer.milliseconds() >= Constants.SHOOT_RETRACT_DURATION_MS) {
                     if (shotsRemaining > 0) {
                         advanceSpindexer();
                         shootTimer.reset();
