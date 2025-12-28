@@ -2,6 +2,8 @@ package org.firstinspires.ftc.teamcode;
 
 import static java.lang.Thread.sleep;
 
+import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
@@ -30,7 +32,10 @@ public abstract class HwInit extends OpMode
     DcMotor shooter;
     CRServo carousel;
     CRServo lift;
-
+    MagneticLimit LoadSw = new MagneticLimit();
+    MagneticLimit ShootSw = new MagneticLimit();
+    ColorSensor color_sense = new ColorSensor();
+    Limelight3A limelight;
     Servo RGB_light;
 
     double speed;
@@ -42,12 +47,13 @@ public abstract class HwInit extends OpMode
     boolean move_to_load = false;
     boolean lift_on = false;
     double carousel_speed = 0.22;
-    MagneticLimit LoadSw = new MagneticLimit();
-    MagneticLimit ShootSw = new MagneticLimit();
-    ColorSensor color_sense = new ColorSensor();
     double robot_yaw;
     double robot_roll;
     double robot_pitch;
+
+    int current_tag;
+    int current_alliance;
+    int current_pattern_tag;
 
     int tolerance = 3;
     int posDriveWait= 1600;
@@ -62,35 +68,53 @@ public abstract class HwInit extends OpMode
         backLeftMotor = hardwareMap.get(DcMotorEx.class,"backLeftDrive");
         frontRightMotor = hardwareMap.get(DcMotorEx.class,"frontRightDrive");
         frontLeftMotor = hardwareMap.get(DcMotorEx.class,"frontLeftDrive");
-        intake = hardwareMap.dcMotor.get("intake");
-        shooter = hardwareMap.dcMotor.get("shooter");
-        carousel = hardwareMap.crservo.get("carousel");
-        lift = hardwareMap.crservo.get("lift");
-        RGB_light = hardwareMap.get(Servo.class, "rgb_light");
-        shooter.setDirection(DcMotorSimple.Direction.REVERSE);
         backLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         frontRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         frontLeftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        intake = hardwareMap.dcMotor.get("intake");
+        shooter = hardwareMap.dcMotor.get("shooter");
+        shooter.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        carousel = hardwareMap.crservo.get("carousel");
+        lift = hardwareMap.crservo.get("lift");
+
         LoadSw.init(hardwareMap, "load_switch");
         ShootSw.init(hardwareMap, "shoot_switch");
         color_sense.init(hardwareMap, "color_sensor");
+        RGB_light = hardwareMap.get(Servo.class, "rgb_light");
 
+        IMUinit();
+        LLinit();
+
+
+    }
+
+    private void IMUinit()
+    {
         myIMUParameters= new IMU.Parameters(
-                    new RevHubOrientationOnRobot(
-                            new Orientation(
-                                    AxesReference.INTRINSIC,
-                                    AxesOrder.ZYX,
-                                    AngleUnit.DEGREES,
-                                    90f,
-                                    0f,
-                                    0f,
-                                    0L
-                            )
-                    )
+                new RevHubOrientationOnRobot(
+                        new Orientation(
+                                AxesReference.INTRINSIC,
+                                AxesOrder.ZYX,
+                                AngleUnit.DEGREES,
+                                90f,
+                                0f,
+                                0f,
+                                0L
+                        )
+                )
         );
         imu.initialize(myIMUParameters);
-
+    }
+    private void LLinit()
+    {
+        limelight = hardwareMap.get(Limelight3A.class, "limelight");
+        limelight.setPollRateHz(100);
+        limelight.start();
+        limelight.pipelineSwitch(0);
+        current_tag = 0;
     }
     public void pos_drive_init()
     {
@@ -175,6 +199,35 @@ public abstract class HwInit extends OpMode
         }
     }
 
+    public boolean LimeLightRead() {
+        LLResult result = limelight.getLatestResult();
+        if (result != null) {
+            if (!result.getFiducialResults().isEmpty()) {
+                current_tag = result.getFiducialResults().get(0).getFiducialId();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public char[] tag_to_pattern(int tag)
+    {
+        char[] retval = null;
+        switch (tag)
+        {
+            case 21:
+                retval = "GPP".toCharArray();
+                break;
+            case 22:
+                retval = "PGP".toCharArray();
+                break;
+            case 23:
+                retval = "PPG".toCharArray();
+                break;
+        }
+        return retval;
+    }
+
     public void shooter_off()
     {
         shooter.setPower(0.0);
@@ -196,13 +249,16 @@ public abstract class HwInit extends OpMode
     {
         try {
             lift.setPower(1);
-            sleep(2000);
+            sleep(2100);
             lift.setPower(-1);
-            sleep(2200);
+            sleep(2300);
+            lift.setPower(0);
         } catch (InterruptedException e) {
+            lift.setPower(0);
+            telemetry.addData("error: ", e);
             throw new RuntimeException(e);
         }
-        lift.setPower(0);
+
     }
 
     public void set_carousel_mode()
@@ -219,7 +275,7 @@ public abstract class HwInit extends OpMode
        }
     }
 
-    public void move_to_shoot_from_load(int dir)
+    public void move_to_shoot_from_load(double dir)
     {
         carousel.setPower(dir * carousel_speed);
         if(ShootSw.isLimitSwitchClosed())
@@ -228,7 +284,7 @@ public abstract class HwInit extends OpMode
             move_to_shoot = false;
         }
     }
-    public void move_to_load_from_shoot(int dir)
+    public void move_to_load_from_shoot(double dir)
     {
         carousel.setPower(dir * carousel_speed);
         if(LoadSw.isLimitSwitchClosed())
@@ -237,32 +293,36 @@ public abstract class HwInit extends OpMode
             move_to_load = false;
         }
     }
-    public void move_to_next_shoot_blocking()
+    public void move_to_next_shoot_blocking(double dir)
     {
-        carousel.setPower(carousel_speed);
+        carousel.setPower(dir * carousel_speed);
         try{
             sleep(1000);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
         do{
-            carousel.setPower(carousel_speed);
+            carousel.setPower(dir * carousel_speed);
         } while(!ShootSw.isLimitSwitchClosed());
         carousel.setPower(0.0);
     }
 
-    public void update_light(ColorSensor.DetectedColor color)
+    public void update_light(String color)
     {
         switch (color) {
-            case PURPLE:
+            case "PURPLE":
                 RGB_light.setPosition(0.700);
                 break;
-            case GREEN:
+            case "GREEN":
                 RGB_light.setPosition(0.500);
                 break;
-            case UNK:
-            default:
+            case "RED":
                 RGB_light.setPosition(.275);
+                break;
+            case "UNK":
+                RGB_light.setPosition(0.0);
+            default:
+                RGB_light.setPosition(0.0);
 
         }
     }

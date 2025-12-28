@@ -36,11 +36,11 @@ public class AutoModeNearBlue extends HwInit {
         // raise shooter lift
         run_lift();
         // turn carousel to next shoot position
-        move_to_next_shoot_blocking();
+        move_to_next_shoot_blocking(1);
         // raise shooter lift
         run_lift();
         // turn carousel to next shoot position
-        move_to_next_shoot_blocking();
+        move_to_next_shoot_blocking(1);
         // raise shooter lift
         run_lift();
         shooter_off();
