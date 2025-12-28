@@ -4,6 +4,8 @@ import static java.lang.Thread.sleep;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+
 @TeleOp(name="Mechawks-Tele-1")
 public class   TeleOpMode extends HwInit {
 //far and mid use the trigger buttons which are analog,
@@ -13,7 +15,7 @@ public class   TeleOpMode extends HwInit {
   boolean shooter_near_on = false;
   boolean intake_on = false;
   boolean intake_clear = false;
-  int carousel_dir = 1;
+  double carousel_dir = 1;
 
 
 
@@ -30,9 +32,10 @@ public class   TeleOpMode extends HwInit {
 
     @Override
     public void loop() {
-
+        Boolean state = LimeLightRead();
+        telemetry.addData("current tag: ", current_tag);
         ColorSensor.DetectedColor color = color_sense.getDetectedColor(telemetry);
-        update_light(color);
+        update_light(color.name());
         do_p1_things();
         do_p2_things();
 
@@ -173,7 +176,7 @@ public class   TeleOpMode extends HwInit {
 
         if (gamepad2.bWasPressed())
         {
-             carousel_dir = -1;
+             carousel_dir = -1.1;
         }
 
         intake_on = gamepad2.dpad_up;
