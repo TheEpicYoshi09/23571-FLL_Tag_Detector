@@ -155,42 +155,14 @@ public class IntakeSortingSubsystem implements Subsystem {
 
 
         ArrayList<Slot> used = new ArrayList<>();
-        if(allFull()){
-            //TODO: research how to make this better :sob:
-            for(UniConstants.slotState color : pattern){
 
-                for(int i = 0; i < slots.size(); i++){
+        //TODO: research how to make this better :sob:
+        for(UniConstants.slotState color : pattern){
 
-                    if(slots.get(i).getColorState().equals(color) && !used.contains(slots.get(i))){
-                        switch (i){
-                            case 0:
-                                first = slots.get(i);
-                                break;
-                            case 1:
-                                second = slots.get(i);
-                                break;
-                            case 2:
-                                third = slots.get(i);
-                                break;
-                            default:
-                                break;
-                        }
-                        used.add(slots.get(i));
-                        break;
-                    }
-                }
-                //Default case in case 2P 1G not true
-                if(first == null || second == null || third == null){
-                    first = backSlot;
-                    second = rightSlot;
-                    third = leftSlot;
-                }
+            for(int i = 0; i < slots.size(); i++){
 
-            }
-        } else {
-            for (int i = 0; i < slots.size(); i++) {
-                if (slots.get(i).isFull()) {
-                    switch (i) {
+                if(slots.get(i).getColorState().equals(color) && !used.contains(slots.get(i))){
+                    switch (i){
                         case 0:
                             first = slots.get(i);
                             break;
@@ -200,32 +172,24 @@ public class IntakeSortingSubsystem implements Subsystem {
                         case 2:
                             third = slots.get(i);
                             break;
-                    }
-                } else {
-                    switch (i) {
-                        case 2:
-                            first = slots.get(i);
-                            break;
-                        case 1:
-                            second = slots.get(i);
-                            break;
-                        case 0:
-                            third = slots.get(i);
+                        default:
                             break;
                     }
+                    used.add(slots.get(i));
+                    break;
                 }
-
-                used.add(slots.get(i));
-
+            }
+            //Default case in case 2P 1G not true
+            if(first == null || second == null || third == null){
+                first = backSlot;
+                second = rightSlot;
+                third = leftSlot;
             }
 
-
-
         }
 
-        if(used.size() < 3){
 
-        }
+
 
         return launchInPattern(first, second, third);
 
