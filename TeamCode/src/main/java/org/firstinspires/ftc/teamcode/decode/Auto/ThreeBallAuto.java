@@ -13,7 +13,7 @@ import org.firstinspires.ftc.teamcode.decode.Subsystems.Actions;
 import org.firstinspires.ftc.teamcode.decode.Subsystems.Common;
 import org.firstinspires.ftc.teamcode.decode.Subsystems.FollowPathAction;
 import org.firstinspires.ftc.teamcode.decode.Subsystems.RobotActions;
-
+// shoot positon needs to be adjusted to x: 70, y: 80
 @Autonomous (name = "Red3Ball")
 public class ThreeBallAuto extends AbstractAuto {
     private Follower f;
