@@ -39,5 +39,4 @@ public class ServoTeleOp extends OpMode{
             telemetry.addData("Servo Position", servo.getPosition());
 
         }
-
 }
