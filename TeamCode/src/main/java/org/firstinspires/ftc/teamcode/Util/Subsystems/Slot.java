@@ -36,7 +36,7 @@ public class Slot {
             down = .15;
         } else if (kickerServoName.equals("FLS")) {
             up = .85;
-            down = .45;
+            down = .4;
         } else {
             up = .5;
             down = .9;
