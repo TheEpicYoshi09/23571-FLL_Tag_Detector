@@ -44,7 +44,7 @@ public class Outtake {
         shooter = new MotorEx(hardwareMap, "outtake");
         shooter.setInverted(true);
         shooter2 = new MotorEx(hardwareMap, "outtake-2");
-        shooter.setInverted(false);
+        shooter2.setInverted(false);
 
 
         this.mode = mode;
