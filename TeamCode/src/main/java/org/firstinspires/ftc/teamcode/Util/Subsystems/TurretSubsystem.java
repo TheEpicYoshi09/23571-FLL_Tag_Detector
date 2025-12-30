@@ -5,6 +5,7 @@ import com.bylazar.telemetry.JoinedTelemetry;
 import com.bylazar.telemetry.PanelsTelemetry;
 
 import org.firstinspires.ftc.teamcode.OpModes.NextFTCTeleop;
+import org.firstinspires.ftc.teamcode.Util.PDFLController;
 import org.firstinspires.ftc.teamcode.Util.UniConstants;
 
 import dev.nextftc.control.ControlSystem;
@@ -19,7 +20,6 @@ import dev.nextftc.hardware.impl.MotorEx;
 public class TurretSubsystem implements Subsystem {
     // put hardware, commands, etc here
     JoinedTelemetry telemetry;
-    UniConstants.teamColor color = NextFTCTeleop.color;
 
     MotorEx launcher = new MotorEx(UniConstants.LAUNCHER_STRING).floatMode();
 
@@ -27,9 +27,12 @@ public class TurretSubsystem implements Subsystem {
     public static ControlSystem launcherControl;
     public static double p = .00022, i = 0, d = 0;
 
-    //MotorEx turret = new MotorEx(UniConstants.TURRET_STRING).brakeMode().zeroed();
+    boolean usingTurret = false;
+    MotorEx turret;
     public static double turretTargetAngle = 0;
-    public static ControlSystem turretControl;
+    public static double turretCurrentPos = 0;
+    private PDFLController turretControl;
+    public static double pTurret = 0, dTurret = 0, lTurret = 0, fTurret = 0;
 
 
     public TurretSubsystem(){}
@@ -41,17 +44,10 @@ public class TurretSubsystem implements Subsystem {
         telemetry = new JoinedTelemetry(ActiveOpMode.telemetry(), PanelsTelemetry.INSTANCE.getFtcTelemetry());
 
 
-        // initialization logic (runs on init)
-
-
-
-
-        //TODO: how the freak does this work
-//        turretControl = ControlSystem.builder()
-//                .angular(AngleType.DEGREES,
-//                        feedback -> feedback.posPid(.005, 0, 0)
-//                )
-//                .build();
+        if(usingTurret){
+            turret = new MotorEx(UniConstants.TURRET_STRING).floatMode().zeroed();
+            turretControl = new PDFLController(pTurret, dTurret, fTurret, lTurret);
+        }
 
     }
 
@@ -63,13 +59,16 @@ public class TurretSubsystem implements Subsystem {
                 .build();
         launcherControl.setLastMeasurement(new KineticState(0, launcher.getVelocity() * 2.1));
         launcher.setPower(launcherControl.calculate(new KineticState(0, targetVelocity)));
-        //turret.setPower(turretControl.calculate(new KineticState(turretTargetAngle)));
 
+        if(usingTurret) {
+            turretControl.setPDFL(pTurret, dTurret, fTurret, lTurret);
+            turretCurrentPos = turret.getCurrentPosition();
+            turretControl.update(turretCurrentPos);
+            turret.setPower(turretControl.runPDFL(2));
+        }
     }
 
-    public Command commandTargetAngleDegrees(double degrees){
-        return new RunToPosition(turretControl, degrees, new KineticState(1.5));
-    }
+
 
     public Command commandRunToVelocity(double velocity){
         return new RunToPosition(launcherControl, velocity);
@@ -90,12 +89,14 @@ public class TurretSubsystem implements Subsystem {
         targetVelocity = velo;
     }
 
-    public void setTurretTargetAngleDegrees(double degrees){
-        turretTargetAngle = degrees;
+    //Uses degrees
+    public double angleToTicks(double angle){
+        return angle * UniConstants.TURRET_TICKS_PER_DEGREE;
     }
 
-    public void setTurretTargetAngleRadians(double radians){
-        turretTargetAngle = Math.toDegrees(radians);
+    //Uses degrees
+    public double ticksToAngle(double ticks){
+        return (ticks / UniConstants.TURRET_TICKS_PER_DEGREE) % 360;
     }
 
     public double getCurrentVelocity(){
@@ -111,6 +112,12 @@ public class TurretSubsystem implements Subsystem {
                 telemetry.addData("Turret Target Angle ", turretTargetAngle);
                 telemetry.addData("Target Velocity ", targetVelocity);
                 telemetry.addData("Current Velocity ", getCurrentVelocity());
+                if(usingTurret) {
+                    telemetry.addLine();
+                    telemetry.addData("Turret Position Deg ", ticksToAngle(turretCurrentPos));
+                    telemetry.addData("Turret Target Deg ", turretTargetAngle);
+                }
+
                 telemetry.addLine("END OF OUTTAKE LOG");
             case EXTREME:
 

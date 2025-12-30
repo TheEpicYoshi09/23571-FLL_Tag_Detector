@@ -59,8 +59,7 @@ CONFIG
     public enum slotState{
         PURPLE,
         GREEN,
-        EMPTY,
-        BETWEEN
+        EMPTY
     }
 
     public enum teamColor {
@@ -89,6 +88,8 @@ CONFIG
 
     //Turret Control
     public static final String TURRET_STRING = "TURR";
+    public static final double MOTOR_TURRET_RATIO = (double) 28 / 92;
+    public static final double TURRET_TICKS_PER_DEGREE = (537.7 / MOTOR_TURRET_RATIO) / 360;
 
 
     //Color sensors
@@ -100,8 +101,7 @@ CONFIG
     public static final double ANGLE_OF_LAUNCHER_IN_DEGREES = 35;
     public static  final double HEIGHT_OF_ROBOT_IN_METERS = 0.35; //TODO: Check to make sure this is right
     public static  final double HEIGHT_TO_GOAL_WITH_CLEARANCE_METERS = (1.11125) - (HEIGHT_OF_ROBOT_IN_METERS);
-    public static double MOTOR_TO_TURRET_RATIO =  ((double) 1 /2); //Motor to Turret
-    public static double TURRET_TICKS_PER_DEGREE = (360/537.7) * (1/ MOTOR_TO_TURRET_RATIO);
+
 
 
     public static final ArrayList<Integer> obeliskIDs = new ArrayList<>(List.of(21, 22, 23));
