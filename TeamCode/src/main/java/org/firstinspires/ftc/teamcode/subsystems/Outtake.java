@@ -30,7 +30,7 @@ public class Outtake {
     public static double p = 0.0002;
     public static double i = 0.0;
     public static double d = 0.0;
-    public static double f = 0.0003;   // feedforward from earlier code
+    public static double f = 0.00025;   // 1 / maxactualrpm
 
     // Mode + state
     public Mode mode;
@@ -95,7 +95,7 @@ public class Outtake {
         motorPower = pid + ff;
 
         // Constrain power
-        motorPower = clamp(motorPower, 0.0, 1.0);
+        motorPower = clamp(motorPower, -1.0, 1.0);
 
         shooter.set(motorPower);
         shooter2.set(motorPower);
