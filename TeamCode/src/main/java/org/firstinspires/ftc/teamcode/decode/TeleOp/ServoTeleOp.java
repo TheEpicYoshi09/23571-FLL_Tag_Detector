@@ -1,5 +1,8 @@
 package org.firstinspires.ftc.teamcode.decode.TeleOp;
 
+//import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.gamepad1;
+//import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
+
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -7,8 +10,8 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.teamcode.decode.Subsystems.HoodServo;
 
 @TeleOp
-public class ServoTeleOp {
-    public class Servopos extends OpMode{
+public class ServoTeleOp extends OpMode{
+
         HoodServo servo = new HoodServo();
         @Override
         public void init(){
@@ -24,5 +27,5 @@ public class ServoTeleOp {
             }
 
         }
-    }
+
 }
