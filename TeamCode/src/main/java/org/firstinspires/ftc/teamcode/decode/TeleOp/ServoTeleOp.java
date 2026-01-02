@@ -12,19 +12,31 @@ import org.firstinspires.ftc.teamcode.decode.Subsystems.HoodServo;
 @TeleOp
 public class ServoTeleOp extends OpMode{
 
-        HoodServo servo = new HoodServo();
+        //HoodServo servo = new HoodServo();
+        public Servo servo;
         @Override
         public void init(){
-            servo.init(hardwareMap);
+            //servo.init(hardwareMap);
+            servo = hardwareMap.get(Servo.class, "hoodServo");
+
         }
         @Override
         public void loop(){
+            servo.setDirection(Servo.Direction.REVERSE);
             if (gamepad1.a){
-                servo.setHoodservo(0);
+                servo.setPosition(0);
             }
             else if (gamepad1.x){
-                servo.setHoodservo(1);
+                servo.setPosition(1);
             }
+            else if (gamepad1.b){
+                servo.setPosition(0.5);
+            }
+            else if (gamepad1.y){
+                servo.setPosition(0.5);
+            }
+
+            telemetry.addData("Servo Position", servo.getPosition());
 
         }
 
