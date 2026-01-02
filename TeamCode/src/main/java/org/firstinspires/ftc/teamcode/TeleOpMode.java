@@ -184,7 +184,7 @@ public class   TeleOpMode extends HwInit {
         shooter_near_on = gamepad2.left_bumper;
         shooter_mid_on = gamepad2.left_trigger;
         shooter_far_on = gamepad2.right_trigger;
-        lift_on = gamepad2.y;
+        lift_on = gamepad2.yWasPressed();
 
     }
 }
