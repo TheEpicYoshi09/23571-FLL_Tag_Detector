@@ -36,6 +36,7 @@ public abstract class HwInit extends OpMode
     CRServo lift;
     MagneticLimit LoadSw = new MagneticLimit();
     MagneticLimit ShootSw = new MagneticLimit();
+    TouchSwitch shooterPosSw = new TouchSwitch();
     ColorSensor color_sense = new ColorSensor();
     Limelight3A limelight;
     Servo RGB_light;
@@ -84,6 +85,7 @@ public abstract class HwInit extends OpMode
 
         LoadSw.init(hardwareMap, "load_switch");
         ShootSw.init(hardwareMap, "shoot_switch");
+        shooterPosSw.init(hardwareMap, "shoot_pos_switch");
         color_sense.init(hardwareMap, "color_sensor");
         RGB_light = hardwareMap.get(Servo.class, "rgb_light");
 
@@ -252,8 +254,10 @@ public abstract class HwInit extends OpMode
         try {
             lift.setPower(1);
             sleep(2100);
-            lift.setPower(-1);
-            sleep(2300);
+            do {
+                lift.setPower(-1);
+            }while(!shooterPosSw.isLimitSwitchPressed());
+
             lift.setPower(0);
         } catch (InterruptedException e) {
             lift.setPower(0);

@@ -67,6 +67,7 @@ public class   TeleOpMode extends HwInit {
         }else {
             telemetry.addData("Shoot State", ShootSw.isLimitSwitchClosed());
         }
+        telemetry.addData("Shoot Pos Switch: ", shooterPosSw.isLimitSwitchPressed());
 
         if (lift_on) {
             if (ShootSw.isLimitSwitchClosed())

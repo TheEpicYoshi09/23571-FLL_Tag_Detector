@@ -10,7 +10,8 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 public class ColorSensor {
     private NormalizedColorSensor colorSensor;
-    private final boolean DEBUG_ON = true;public enum DetectedColor
+    private final boolean DEBUG_ON = false;
+    public enum DetectedColor
     {
         PURPLE,
         GREEN,
