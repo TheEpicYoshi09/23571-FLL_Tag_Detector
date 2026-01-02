@@ -115,6 +115,11 @@ public class ShootingController {
      */
     public boolean updateAndIsComplete() {
         update();
+        if (shotsRemaining == 1) {
+            robot.runIntake(RobotHardware.IntakeDirection.IN);
+        } else if (shotsRemaining == 0) {
+            robot.runIntake(RobotHardware.IntakeDirection.STOP);
+        }
         return shootState == ShootState.IDLE && shotsRemaining == 0;
     }
 
@@ -161,5 +166,9 @@ public class ShootingController {
         spindexerIndex = (spindexerIndex + 1) % spindexerPositions.length;
         robot.spindexerPos = spindexerPositions[spindexerIndex];
         robot.spindexer.setPosition(robot.spindexerPos);
+    }
+
+    public int getSpindexerIndex() {
+        return spindexerIndex;
     }
 }

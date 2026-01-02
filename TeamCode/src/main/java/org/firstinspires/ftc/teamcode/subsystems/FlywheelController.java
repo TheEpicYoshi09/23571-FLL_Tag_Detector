@@ -83,7 +83,7 @@ public class FlywheelController {
     }
 
     public boolean isAtSpeed() {
-        return (getCurrentRpm() >= (targetRpm - rpmTolerance)) && ( getCurrentRpm() < (targetRpm + 750) );
+        return (getCurrentRpm() >= (targetRpm - (rpmTolerance/2))) && ( getCurrentRpm() <= (targetRpm + rpmTolerance) );
         //return Math.abs(getCurrentRpm() - targetRpm) <= rpmTolerance;
     }
 
@@ -253,7 +253,7 @@ public class FlywheelController {
 
         double currentRpm = Math.abs(getCurrentRpm());
         double minimumRpm = targetRpm - rpmTolerance;
-        double maxRpm = targetRpm + 750;
+        double maxRpm = targetRpm + rpmTolerance;
 
         if (currentRpm >= maxRpm) {
             setFrontLedColor(LEDColors.RED);

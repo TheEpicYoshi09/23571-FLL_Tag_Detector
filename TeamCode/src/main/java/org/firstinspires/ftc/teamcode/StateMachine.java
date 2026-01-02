@@ -4,6 +4,7 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
+import com.qualcomm.hardware.lynx.commands.core.LynxI2cConfigureChannelCommand;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.pedroPathing.DecodePaths;
@@ -38,6 +39,8 @@ public class StateMachine {
         FAR_SPIKE3_PICKUP_PART2,
         FAR_SPIKE3_TO_SHOOT,
         FAR_SHOOT_LEAVE,
+
+        NEAR_SHOOT_TO_WALL,
     }
 
     private State currentState;
@@ -139,6 +142,12 @@ public class StateMachine {
                 DecodePaths.BLUE_FAR_SHOOT, DecodePaths.BLUE_FAR_LEAVE,
                 DecodePaths.RED_FAR_SHOOT, DecodePaths.RED_FAR_LEAVE
         );
+
+        /// NEAR LEAVE
+        buildPath(AUTO_PATHS.NEAR_SHOOT_TO_WALL,
+                DecodePaths.BLUE_NEAR_START, DecodePaths.BLUE_NEAR_FROM_SHOOT_TO_WALL,
+                DecodePaths.RED_NEAR_START, DecodePaths.RED_NEAR_FROM_SHOOT_TO_WALL
+        );;
     }
 
     private boolean shoot(PathChain breakPath) {
@@ -197,8 +206,7 @@ public class StateMachine {
     }
 
     private void breakOutAuto(PathChain breakPath) {
-        if (autoTimer.getElapsedTimeSeconds() >= 27.5) {
-            setState(State.HOME, true);
+        if (autoTimer.getElapsedTimeSeconds() >= 29.1) {            setState(State.HOME, true);
             robot.runIntake(RobotHardware.IntakeDirection.STOP);
             stopFlywheel();
             follower.followPath(breakPath);
@@ -289,6 +297,7 @@ public class StateMachine {
             case AUTO_FAR:
                 switch (autoFarSubStep) {
                     case 0:
+                        autoTimer.resetTimer();
                         follower.followPath(paths.get(AUTO_PATHS.FAR_START_TO_SHOOT), true);
                         runFlywheel();
                         autoFarSubStep++;
@@ -318,20 +327,34 @@ public class StateMachine {
                         }
                         break;
                     case 4:
-                        if (!follower.isBusy() & pathTimer.getElapsedTimeSeconds() >= 2) {
-                            follower.followPath(paths.get(AUTO_PATHS.FAR_SPIKE3_PICKUP_PART2), true);
+                        if (!follower.isBusy() & pathTimer.getElapsedTimeSeconds() >= 1) {
+                            setSpindexPosition(0);
                             pathTimer.resetTimer();
                             autoFarSubStep++;
                         }
                         break;
                     case 5:
-                        if (!follower.isBusy() & pathTimer.getElapsedTimeSeconds() >= 2) {
+                        if (!follower.isBusy() & pathTimer.getElapsedTimeSeconds() >= 1.125) {
+                            setSpindexPosition(2);
+                            pathTimer.resetTimer();
+                            autoFarSubStep++;
+                        }
+                        break;
+                    case 6:
+                        if (!follower.isBusy() & pathTimer.getElapsedTimeSeconds() >= 1.375) {
+                            follower.followPath(paths.get(AUTO_PATHS.FAR_SPIKE3_PICKUP_PART2), true);
+                            pathTimer.resetTimer();
+                            autoFarSubStep++;
+                        }
+                        break;
+                    case 7:
+                        if (!follower.isBusy() & pathTimer.getElapsedTimeSeconds() >= 1.45) {
                             robot.runIntake(RobotHardware.IntakeDirection.STOP);
                             follower.followPath(paths.get(AUTO_PATHS.FAR_SPIKE3_TO_SHOOT), true);
                             autoFarSubStep++;
                         }
                         break;
-                    case 6:
+                    case 8:
                         if (!follower.isBusy()) {
                             boolean shot2 = shoot(paths.get(AUTO_PATHS.FAR_SHOOT_LEAVE));
                             if (shot2) {
@@ -344,6 +367,14 @@ public class StateMachine {
                     default:
                         break;
                 }
+                break;
+            case AUTO_LEAVE_NEAR:
+                follower.followPath(paths.get(AUTO_PATHS.NEAR_SHOOT_TO_WALL), true);
+                break;
+            case AUTO_LEAVE_FAR:
+                follower.followPath(paths.get(AUTO_PATHS.FAR_SHOOT_LEAVE), false);
+                break;
+            default:
                 break;
         }
     }

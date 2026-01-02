@@ -36,4 +36,10 @@ public class DecodePaths {
     public static final Pose RED_NEAR_GOTO_ARTIFACTS = new Pose(119.8, 98, Math.toRadians(-90));
     public static final Pose RED_NEAR_PICKUP_ARTIFACTS = new Pose(119.8, 90, Math.toRadians(-90));
     public static final Pose RED_NEAR_GO_INSIDE_ZONE = new Pose(84, 132.5, Math.toRadians(-90));
+
+    /// BLUE CLOSE LEAVE ONLY
+    public static final Pose BLUE_NEAR_FROM_SHOOT_TO_WALL = new Pose(59, 133.6, Math.toRadians(-90));
+
+    // RED CLOSE LEAVE ONLY
+    public static final Pose RED_NEAR_FROM_SHOOT_TO_WALL = new Pose(85, 133.6, Math.toRadians(-90));
 }
