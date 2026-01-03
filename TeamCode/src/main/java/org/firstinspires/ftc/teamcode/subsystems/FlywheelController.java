@@ -28,7 +28,7 @@ public class FlywheelController {
     private static final double TICKS_PER_REV = 28.0;
 
     private static final double MID_ZONE_DISTANCE_FT = 3.5;
-    private static final double FAR_ZONE_DISTANCE_FT = 5.5;
+    private static final double FAR_ZONE_DISTANCE_FT = 6.0;
     private static final double FAR_FAR_ZONE_DISTANCE_FT = 8.0;
 
     private final RobotHardware robot;
@@ -83,7 +83,7 @@ public class FlywheelController {
     }
 
     public boolean isAtSpeed() {
-        return (getCurrentRpm() >= (targetRpm - rpmTolerance)) && ( getCurrentRpm() < (targetRpm + 750) );
+        return (getCurrentRpm() >= (targetRpm - (rpmTolerance/2))) && ( getCurrentRpm() <= (targetRpm + rpmTolerance) );
         //return Math.abs(getCurrentRpm() - targetRpm) <= rpmTolerance;
     }
 
@@ -253,7 +253,7 @@ public class FlywheelController {
 
         double currentRpm = Math.abs(getCurrentRpm());
         double minimumRpm = targetRpm - rpmTolerance;
-        double maxRpm = targetRpm + 750;
+        double maxRpm = targetRpm + rpmTolerance;
 
         if (currentRpm >= maxRpm) {
             setFrontLedColor(LEDColors.RED);

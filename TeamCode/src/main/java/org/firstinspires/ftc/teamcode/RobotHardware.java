@@ -68,6 +68,7 @@ public class RobotHardware {
     public rgbIndicator rearRGB2;
     public rgbIndicator rearRGB3;
     private DigitalChannel allianceButton;
+    private double headingOffsetRadians = 0.0;
     private double targetRPM = 0;
     private boolean flywheelOn = false;
     private int turretTargetPosition = 0;
@@ -128,7 +129,12 @@ public class RobotHardware {
         ///GoBilda Odometry Pod Setup
         //Deploy to Control Hub to make Odometry Pod show in hardware selection list
         pinpoint = myOpMode.hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
-        pinpoint.setOffsets(-100, -65, DistanceUnit.MM);  //TODO update offsets
+        // Apply the Pedro Pathing tuner odometry offsets (recorded in inches) to the Pinpoint localizer.
+        // The Pinpoint firmware stores offsets in millimeters, but its driver converts when given a DistanceUnit
+        // so we can supply inch measurements directly. Forward pod is the Y offset, strafe pod is the X offset.
+        double forwardPodOffsetInches = -3.375;   // Pedro Pathing forward pod Y offset
+        double strafePodOffsetInches = 5.5625;    // Pedro Pathing strafe pod X offset
+        pinpoint.setOffsets(forwardPodOffsetInches, strafePodOffsetInches, DistanceUnit.INCH);
         pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
         pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.REVERSED);
         pinpoint.resetPosAndIMU();
@@ -289,6 +295,22 @@ public class RobotHardware {
         myOpMode.telemetry.addData("Selected pipeline", pipeline);
     }
 
+    public void updateHeadingOffsetFromAllianceButton() {
+        refreshAllianceFromSwitchState();
+        // The robot always starts parked sideways relative to the drivers.
+        // Blue alliance: bot front points to the right (+X), so add +90 degrees to align field-forward.
+        // Red alliance: bot front points to the left (-X), so add -90 degrees to align field-forward.
+        headingOffsetRadians = allianceColorRed ? -Math.PI / 2.0 : Math.PI / 2.0;
+    }
+
+    public double getHeadingOffsetRadians() {
+        return headingOffsetRadians;
+    }
+
+    public double applyHeadingOffset(double headingRadians) {
+        return headingRadians + headingOffsetRadians;
+    }
+
     /**
      * Calculates the left/right motor powers required to achieve the requested
      * robot motions: Drive (Axial motion) and Turn (Yaw motion).
@@ -336,6 +358,14 @@ public class RobotHardware {
         double rightBackPower = (rotY + rotX - rx) / denominator;
 
         setDrivePower(leftFrontPower, rightFrontPower, leftBackPower, rightBackPower);
+    }
+
+    /**
+     * Backwards-compatible wrapper for older code that referenced
+     * {@code FieldCentricdrive} with a lowercase "d".
+     */
+    public void FieldCentricdrive(double x, double y, double rx, double botHeading){
+        FieldCentricDrive(x, y, rx, botHeading);
     }
 
     /**

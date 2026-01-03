@@ -15,9 +15,10 @@ import org.firstinspires.ftc.teamcode.subsystems.FlywheelController;
 import org.firstinspires.ftc.teamcode.subsystems.ShootingController;
 import org.firstinspires.ftc.teamcode.subsystems.TurretTracker;
 
-@Autonomous(name = "Auto Leave Near", group = "Auto V1")
-public class LeaveNear extends LinearOpMode {
+@Autonomous(name = "Auto Far (Only Leave)", group = "Auto V1")
+public class OnlyLeaveFar extends LinearOpMode {
     RobotHardware hardware = new RobotHardware(this);
+
     TelemetryManager panelsTelemetry;
     FieldManager panelsField;
 
@@ -43,7 +44,7 @@ public class LeaveNear extends LinearOpMode {
         drawer.draw();
 
         waitForStart();
-        stateMachine.setState(StateMachine.State.AUTO_FAR);
+        stateMachine.setState(StateMachine.State.AUTO_LEAVE_FAR);
 
         while (opModeIsActive()) {
             stateMachine.update();
