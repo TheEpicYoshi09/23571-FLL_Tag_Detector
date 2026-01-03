@@ -63,9 +63,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
  * main robot "loop," continuously checking for conditions that allow us to move to the next step.
  */
 
-@Autonomous(name="FrontAuto12Balls", group="StarterBot")
+@Autonomous(name="AprilTagAuto", group="StarterBot")
 //@Disabled
-public class FrontAuto12Balls extends OpMode
+public class AprilTagAuto extends OpMode
 {
 
     final double FEED_TIME = 0.125; //The feeder servos run this long when a shot is requested.
@@ -76,8 +76,8 @@ public class FrontAuto12Balls extends OpMode
      * velocity. Here we are setting the target and minimum velocity that the launcher should run
      * at. The minimum velocity is a threshold for determining when to fire.
      */
-    final double LAUNCHER_TARGET_VELOCITY = 1110;
-    final double LAUNCHER_MIN_VELOCITY = 1090;
+    final double LAUNCHER_TARGET_VELOCITY = 1485;
+    final double LAUNCHER_MIN_VELOCITY = 1450;
 
     /*
      * The number of seconds that we wait between each of our 3 shots from the launcher. This
@@ -170,8 +170,10 @@ public class FrontAuto12Balls extends OpMode
         WAIT_FOR_LAUNCH2,
         DRIVING_TO_GOAL,
         COMPLETE,
-        DRIVING_AWAY_FROM_GOAL2,
+        EXIT_FROM_GOAL,
         ROTATE3,
+        ALLIGN,
+        ALLIGN2
     }
 
     private AutonomousState autonomousState;
@@ -199,7 +201,7 @@ public class FrontAuto12Balls extends OpMode
          * Later in our code, we will progress through the state machine by moving to other enum members.
          * We do the same for our launcher state machine, setting it to IDLE before we use it later.
          */
-        autonomousState = AutonomousState.LAUNCH;
+        autonomousState = AutonomousState.DRIVING_AWAY_FROM_GOAL;
         launchState = LaunchState.IDLE;
 
 
@@ -355,15 +357,7 @@ public class FrontAuto12Balls extends OpMode
              * "false" condition means that we are continuing to call the function every loop,
              * allowing it to cycle through and continue the process of launching the first ball.
              */
-            case LAUNCH:
-
-                angle.setPosition(GOAL_ANGLE);
-
-                launch(true);
-                autonomousState = AutonomousState.WAIT_FOR_LAUNCH;
-                break;
-
-            case WAIT_FOR_LAUNCH:
+            
                 /*
                  * A technique we leverage frequently in this code are functions which return a
                  * boolean. We are using this function in two ways. This function actually moves the
@@ -375,21 +369,6 @@ public class FrontAuto12Balls extends OpMode
                  * state on our state machine. Otherwise, we reset the encoders on our drive motors
                  * and move onto the next state.
                  */
-                if (launch(false)) {
-                    shotsToFire -= 1;
-                    if (shotsToFire > 0) {
-                        autonomousState = AutonomousState.LAUNCH;
-                    } else {
-                        leftFrontDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                        leftBackDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                        rightFrontDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                        rightBackDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                        launcher.setVelocity(0);
-                        intake.setPower(0.6);
-                        autonomousState = AutonomousState.DRIVING_AWAY_FROM_GOAL;
-                    }
-                }
-                break;
 
             case DRIVING_AWAY_FROM_GOAL:
                 /*
@@ -406,8 +385,37 @@ public class FrontAuto12Balls extends OpMode
                     leftBackDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                     rightFrontDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                     rightBackDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                    autonomousState = AutonomousState.ROTATING;
+                    autonomousState = AutonomousState.ALLIGN;
                     intake.setPower(0);
+                }
+                break;
+
+            case ALLIGN: 
+                    autonomousState = AutonomousState.LAUNCH;
+                break;
+
+            case LAUNCH:
+
+                angle.setPosition(GOAL_ANGLE);
+
+                launch(true);
+                autonomousState = AutonomousState.WAIT_FOR_LAUNCH;
+                break;
+
+            case WAIT_FOR_LAUNCH:
+                if (launch(false)) {
+                    shotsToFire -= 1;
+                    if (shotsToFire > 0) {
+                        autonomousState = AprilTagAuto.AutonomousState.LAUNCH;
+                    } else {
+                        leftFrontDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                        leftBackDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                        rightFrontDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                        rightBackDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                        launcher.setVelocity(0);
+                        intake.setPower(0.6);
+                        autonomousState = AprilTagAuto.AutonomousState.ROTATING;
+                    }
                 }
                 break;
 
@@ -432,7 +440,7 @@ public class FrontAuto12Balls extends OpMode
 
             case DRIVING_OFF_LINE:
 
-                launcher.setVelocity(-150);
+                launcher.setVelocity(-200);
 
                 if (drive(DRIVE_SPEED * 0.5, 52.5, DistanceUnit.INCH, 0.7)) {
                     leftFrontDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -474,19 +482,10 @@ public class FrontAuto12Balls extends OpMode
                 }
                 break;
 
-            case DRIVING_TO_GOAL:
-
-                if (drive(DRIVE_SPEED * 2, 58, DistanceUnit.INCH, 0.9)) {
-                    leftFrontDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                    leftBackDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                    rightFrontDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                    rightBackDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            case ALLIGN2:
+                shotsToFire = 3;
                     autonomousState = AutonomousState.LAUNCH2;
-                    intake.setPower(0);
-                    shotsToFire = 3;
-                }
                 break;
-
 
             case LAUNCH2:
                 launch(true);
@@ -505,12 +504,26 @@ public class FrontAuto12Balls extends OpMode
                         rightFrontDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                         rightBackDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                         launcher.setVelocity(0);
-                        autonomousState = AutonomousState.DRIVING_AWAY_FROM_GOAL2;
+                        intake.setPower(0.6);
+                        autonomousState = AutonomousState.EXIT_FROM_GOAL;
                     }
                 }
                 break;
+//
+//            case DRIVING_TO_GOAL:
+//
+//                if (drive(DRIVE_SPEED * 2, 58, DistanceUnit.INCH, 0.9)) {
+//                    leftFrontDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+//                    leftBackDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+//                    rightFrontDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+//                    rightBackDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+//                    autonomousState = AutonomousState.LAUNCH2;
+//                    intake.setPower(0);
+//                    shotsToFire = 3;
+//                }
+//                break;
 
-            case DRIVING_AWAY_FROM_GOAL2:
+            case EXIT_FROM_GOAL:
 
                 if (alliance == Alliance.BLUE) {
 
@@ -523,9 +536,6 @@ public class FrontAuto12Balls extends OpMode
                             intake.setPower(0);
                         }
                     }
-
-
-
 
                     break;
 
