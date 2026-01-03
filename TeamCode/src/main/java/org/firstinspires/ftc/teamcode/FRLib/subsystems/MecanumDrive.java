@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
@@ -74,10 +75,10 @@ public class MecanumDrive {
         }
 
         // Initialize all 4 drive motors
-        frontLeft = createMotor("front_left_motor", DcMotor.Direction.REVERSE);
-        frontRight = createMotor("front_right_motor", DcMotor.Direction.FORWARD);
-        rearLeft = createMotor("back_left_motor", DcMotor.Direction.REVERSE);
-        rearRight = createMotor("back_right_motor", DcMotor.Direction.FORWARD);
+        frontLeft = createMotor("front_left", DcMotor.Direction.FORWARD);
+        frontRight = createMotor("front_right", DcMotor.Direction.REVERSE);
+        rearLeft = createMotor("rear_left", DcMotor.Direction.FORWARD);
+        rearRight = createMotor("rear_right", DcMotor.Direction.REVERSE);
 
         motors = new MotorW[]{frontLeft, frontRight, rearLeft, rearRight};
 

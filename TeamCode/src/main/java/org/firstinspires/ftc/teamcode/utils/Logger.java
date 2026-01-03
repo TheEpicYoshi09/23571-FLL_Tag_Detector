@@ -68,6 +68,15 @@ public class Logger {
         fields.put(field, data);
     }
 
+    public void logData(String field, Object data) {
+        if (!currentMode.includes(LoggerMode.CRITICAL)) return;
+
+        System.out.println(field + ": " + data);
+
+        // store current value (overwrites old)
+        fields.put(field, data);
+    }
+
     public void update() {
         // full clear
         telemetry.clearAll();
