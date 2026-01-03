@@ -334,8 +334,8 @@ public class StateMachine {
                         }
                         break;
                     case 5:
-                        if (!follower.isBusy() & pathTimer.getElapsedTimeSeconds() >= 1.125) {
-                            setSpindexPosition(2);
+                        if (!follower.isBusy() & pathTimer.getElapsedTimeSeconds() >= 1) {
+                            //setSpindexPosition(2);
                             pathTimer.resetTimer();
                             autoFarSubStep++;
                         }
