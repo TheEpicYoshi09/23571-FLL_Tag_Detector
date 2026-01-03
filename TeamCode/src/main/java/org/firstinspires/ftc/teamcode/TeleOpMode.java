@@ -1,12 +1,12 @@
 package org.firstinspires.ftc.teamcode;
 
 import static com.qualcomm.robotcore.util.ElapsedTime.Resolution.MILLISECONDS;
-import static java.lang.Thread.sleep;
+//import static java.lang.Thread.sleep;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.Telemetry;
+//import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 @TeleOp(name="Mechawks-Tele-1")
 public class   TeleOpMode extends HwInit {
