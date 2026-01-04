@@ -18,6 +18,7 @@ public class FakeTeleop extends OpMode {
     DcMotor frontRightDrive;
     DcMotor backLeftDrive;
     DcMotor backRightDrive;
+    DcMotor loaderMotor;
 
     // This declares the IMU needed to get the current direction the robot is facing
     IMU imu;
@@ -26,8 +27,10 @@ public class FakeTeleop extends OpMode {
     public void init() {
         frontLeftDrive = hardwareMap.get(DcMotor.class, "frontLeftMotor");
         frontRightDrive = hardwareMap.get(DcMotor.class, "FrontRightMotor");
-        backLeftDrive = hardwareMap.get(DcMotor.class, "back_left_drive");
-        backRightDrive = hardwareMap.get(DcMotor.class, "back_right_drive");
+        backLeftDrive = hardwareMap.get(DcMotor.class, "backLeftMotor");
+        backRightDrive = hardwareMap.get(DcMotor.class, "backRightMotor");
+        loaderMotor = hardwareMap.get(DcMotor.class, "loaderMotor");
+
 
         // We set the left motors in reverse which is needed for drive trains where the left
         // motors are opposite to the right ones.
@@ -40,6 +43,8 @@ public class FakeTeleop extends OpMode {
         frontRightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         backLeftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         backRightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        loaderMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
 
         imu = hardwareMap.get(IMU.class, "imu");
         // This needs to be changed to match the orientation on your robot
@@ -72,6 +77,15 @@ public class FakeTeleop extends OpMode {
         } else {
             driveFieldRelative(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x);
         }
+        if (gamepad1.x){
+            loaderMotor.setPower(0.5);
+        }
+        else if (gamepad1.b){
+            loaderMotor.setPower(0.8);
+        }
+        else{
+            loaderMotor.setPower(0);
+        }
     }
 
     // This routine drives the robot field relative
@@ -100,6 +114,7 @@ public class FakeTeleop extends OpMode {
         double frontRightPower = forward - right - rotate;
         double backRightPower = forward + right - rotate;
         double backLeftPower = forward - right + rotate;
+
 
         double maxPower = 1.0;
         double maxSpeed = 1.0;  // make this slower for outreaches
