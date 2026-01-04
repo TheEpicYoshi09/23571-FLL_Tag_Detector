@@ -16,7 +16,7 @@ import org.firstinspires.ftc.teamcode.utils.Logger;
 
 public class Launcher {
 
-    final double FEED_TIME = 0.20;
+    final double FEED_TIME = 0.25;
     //The feeder servos run this long when a shot is requested.
     final double STOP_SPEED = 0.0;
     //We send this power to the servos when we want them to stop.
@@ -37,8 +37,8 @@ public class Launcher {
      * velocity. Here we are setting the target, and minimum velocity that the launcher should run
      * at. The minimum velocity is a threshold for determining when to fire.
      */
-    final double LAUNCHER_TARGET_VELOCITY = 1510;
-    final double LAUNCHER_MIN_VELOCITY = 1500;
+    final double LAUNCHER_TARGET_VELOCITY = 1530;
+    final double LAUNCHER_MIN_VELOCITY = 1515;
 
     double launcherTargetVelocity = LAUNCHER_TARGET_VELOCITY;
     double launcherMinVelocity = LAUNCHER_MIN_VELOCITY;

@@ -3,29 +3,49 @@ package org.firstinspires.ftc.teamcode.members.vishruth;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.FRLib.hardware.IMUW;
 import org.firstinspires.ftc.teamcode.FRLib.subsystems.Launcher;
 import org.firstinspires.ftc.teamcode.FRLib.subsystems.MecanumDrive;
 import org.firstinspires.ftc.teamcode.utils.Logger;
+import org.firstinspires.ftc.teamcode.utils.VelocityProfiler;
+
 @TeleOp
 public class MecanumLauncher extends OurOpmode{
-
+    ElapsedTime time = new ElapsedTime();
     Launcher launcher;
     MecanumDrive drive;
     IMUW imu;
-
+    double profilerOutput;
+    double power = 0.2;
+    VelocityProfiler profiler = new VelocityProfiler();
     @Override
     protected void Loop() {
-        drive.driveVectorField(-gamepad1.left_stick_y,gamepad1.left_stick_x,gamepad1.right_stick_x,0.5 + (gamepad1.left_bumper? 0.2 : 0),imu);
-
+        drive.driveVectorField(-gamepad1.left_stick_y,gamepad1.left_stick_x,gamepad1.right_stick_x,power,imu);
+        profilerOutput = profiler.velocityProfileProportional(1,0.5);
         launcher.launchTeleOp(gamepad1.rightBumperWasPressed());
         
         if (gamepad1.bWasPressed()){
             launcher.stopFlywheel();
             logger.logData(Logger.LoggerMode.CRITICAL,"Flywheel","Stopped");
         }
-        
+
+        if (gamepad1.leftBumperWasPressed()){
+            imu.resetYaw();
+        }
+
+        if(gamepad1.xWasPressed()){
+            power = power + 0.1;
+        } else if (gamepad1.aWasPressed()) {
+            power = power -0.1;
+        }
+
+        if(time.seconds()>2){
+            requestOpModeStop();
+            telemetry.addLine(Double.toString(profilerOutput));
+        }
+
         if (gamepad1.yWasPressed()){
             launcher.spinUpFlywheel();
             logger.logData(Logger.LoggerMode.CRITICAL,"Flywheel","Spinning Up");
@@ -41,11 +61,18 @@ public class MecanumLauncher extends OurOpmode{
         logger.logData("Gampad1 LeftstickY",gamepad1.left_stick_y);
         logger.logData("Gampad1 Leftstickx",gamepad1.left_stick_x);
         logger.logData("Gampad1 RightstickX",gamepad1.right_stick_x);
+        logger.logData("Power",power);
+        logger.logData("FrontLeft",drive.frontLeft.getRawMotor().getPower());
+        logger.logData("FrontRight",drive.frontRight.getRawMotor().getPower());
+        logger.logData("RearLeft",drive.rearLeft.getRawMotor().getPower());
+        logger.logData("RearRight",drive.rearRight.getRawMotor().getPower());
         logger.update();
+
     }
 
     @Override
     protected void initialize() {
+
         logger = new Logger(telemetry);
         launcher = new Launcher(this);
         drive = new MecanumDrive(this,logger, MecanumDrive.RobotName.BOB);
