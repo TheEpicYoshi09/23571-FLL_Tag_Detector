@@ -31,6 +31,8 @@ public class BetterVisionTM implements Subsystem {
     private double distanceToGoal = 0;
     private double deltaAngle = 0;
 
+    public static final BetterVisionTM INSTANCE = new BetterVisionTM();
+
     private Timer timer = new Timer();
 
     public BetterVisionTM() {}
@@ -161,7 +163,10 @@ public class BetterVisionTM implements Subsystem {
 
     @Override
     public void periodic() {
+
+        if(!NextFTCTeleop.patternFull){
             getDetections();
+        }
 
     }
 

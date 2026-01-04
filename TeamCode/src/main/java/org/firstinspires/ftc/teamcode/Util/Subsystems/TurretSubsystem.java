@@ -9,10 +9,8 @@ import org.firstinspires.ftc.teamcode.Util.PDFLController;
 import org.firstinspires.ftc.teamcode.Util.UniConstants;
 
 import dev.nextftc.control.ControlSystem;
-import dev.nextftc.core.commands.Command;
 import dev.nextftc.core.subsystems.Subsystem;
 import dev.nextftc.ftc.ActiveOpMode;
-import dev.nextftc.hardware.controllable.RunToPosition;
 import dev.nextftc.hardware.impl.MotorEx;
 
 @Configurable
@@ -20,7 +18,11 @@ public class TurretSubsystem implements Subsystem {
     // put hardware, commands, etc here
     JoinedTelemetry telemetry;
 
+    public static final TurretSubsystem INSTANCE = new TurretSubsystem();
+
     MotorEx launcher = new MotorEx(UniConstants.LAUNCHER_STRING).floatMode();
+
+
 
     public static int targetVelocity = 0;
     public static ControlSystem launcherControl;
@@ -134,18 +136,11 @@ public class TurretSubsystem implements Subsystem {
                 break;
             case ENABLED:
                 telemetry.addLine("START OF OUTTAKE LOG");
-                telemetry.addData("Turret Target Angle ", turretTargetAngle);
-                telemetry.addData("Target Velocity ", targetVelocity);
-                telemetry.addData("Current Velocity ", launcher.getVelocity());
                 telemetry.addData("Current RPM ", launcher.getVelocity() * 2.1);
                 telemetry.addLine();
                 telemetry.addData("Turret Position Deg ", ticksToAngle(turretCurrentPos));
-                telemetry.addData("Turret Position Ticks ", (turretCurrentPos));
                 telemetry.addData("Turret Target Deg ", turretTargetAngle);
                 telemetry.addData("Motor Power: ", motorPower);
-
-
-
                 telemetry.addLine("END OF OUTTAKE LOG");
             case EXTREME:
 
