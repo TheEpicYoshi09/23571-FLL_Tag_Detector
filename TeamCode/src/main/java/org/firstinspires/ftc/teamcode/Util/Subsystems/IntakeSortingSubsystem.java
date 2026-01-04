@@ -14,7 +14,7 @@ import java.util.Arrays;
 import dev.nextftc.core.commands.Command;
 import dev.nextftc.core.commands.delays.Delay;
 import dev.nextftc.core.commands.groups.SequentialGroup;
-import dev.nextftc.core.commands.utility.LambdaCommand;
+import dev.nextftc.core.commands.utility.InstantCommand;
 import dev.nextftc.core.subsystems.Subsystem;
 import dev.nextftc.ftc.ActiveOpMode;
 import dev.nextftc.hardware.impl.MotorEx;
@@ -28,7 +28,7 @@ public class IntakeSortingSubsystem implements Subsystem {
     public boolean isEnabled = false;
     public static boolean isReversed = false;
 
-
+    public static final IntakeSortingSubsystem INSTANCE = new IntakeSortingSubsystem();
 
 
 
@@ -98,28 +98,9 @@ public class IntakeSortingSubsystem implements Subsystem {
     }
     public boolean shouldRumble(){return allFull();}
 
-    //Command Testing
     public Command setServoState(Slot slot, UniConstants.servoState state){
-        return new LambdaCommand()
-                .setStart(() -> {
-                    // Runs on start
-                    slot.setTargetPosition(state);
-
-                })
-                .setUpdate(() -> {
-                    // Runs on update
-                })
-                .setStop(interrupted -> {
-                    // Runs on stop
-
-                })
-                .setIsDone(() -> true) // Returns if the command has finished
-                .requires(this)
-                .setInterruptible(false)
-                .named("Set Servo State"); // sets the name of the command; optional
+        return new InstantCommand(() -> {slot.setTargetPosition(state);}).named(slot.name + " Set Servo State");
     }
-
-
 
     public Command launchInPattern(Slot first, Slot second, Slot third){
         return new SequentialGroup(
@@ -382,13 +363,8 @@ public class IntakeSortingSubsystem implements Subsystem {
                 case DISABLED:
                     break;
                 case ENABLED:
-                    telemetry.addLine("START OF SLOT LOG");
                     telemetry.addData("Name ", name);
-                    telemetry.addData("Kicker Up ", up);
-                    telemetry.addData("Kicker Down ", down);
                     telemetry.addData("Color State ", colorState);
-                    telemetry.addData("Is Full ", isFull());
-                    telemetry.addLine("END OF SLOT LOG");
                     telemetry.addLine();
                     break;
                 case EXTREME:

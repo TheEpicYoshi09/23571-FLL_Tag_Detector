@@ -22,8 +22,9 @@ public class MecDriveSubsystem implements Subsystem {
     UniConstants.teamColor color = NextFTCTeleop.color;
     public static boolean debug = false;
     private Follower follower;
+    private double distanceToGoal = 0;
 
-
+    public static final MecDriveSubsystem INSTANCE = new MecDriveSubsystem();
 
     //For calculated turret angle
     private static double changeInTurretAngle = 0;
@@ -42,6 +43,7 @@ public class MecDriveSubsystem implements Subsystem {
 
     @Override
     public void periodic(){
+        color = NextFTCTeleop.color;
         follower.update();
     }
 
@@ -86,7 +88,8 @@ public class MecDriveSubsystem implements Subsystem {
         while (changeInTurretAngle < -180) changeInTurretAngle += 360;
 
         // Return distance in meters
-        return Math.hypot(x, y) / 39.37;
+        distanceToGoal = Math.hypot(x, y) / 39.37;
+        return distanceToGoal;
     }
 
     public double getCalculatedTurretAngle(){
@@ -118,7 +121,8 @@ public class MecDriveSubsystem implements Subsystem {
                 telemetry.addData("Pose X ", follower.getPose().getX());
                 telemetry.addData("Pose Y ", follower.getPose().getY());
                 telemetry.addData("Pose Heading Degrees ", Math.toDegrees(follower.getPose().getHeading()));
-                telemetry.addData("Calculated Angle ", getCalculatedTurretAngle());
+                telemetry.addData("Distance to Goal: ", distanceToGoal);
+                telemetry.addData("Color: ", color);
                 telemetry.addLine("END OF MEC DRIVE LOG");
                 break;
             case EXTREME:
