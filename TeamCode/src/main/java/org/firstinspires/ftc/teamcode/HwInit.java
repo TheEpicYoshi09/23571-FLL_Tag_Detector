@@ -19,8 +19,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 
-import java.util.TimerTask;
-
 public abstract class HwInit extends OpMode
 {
     IMU imu;
@@ -249,11 +247,11 @@ public abstract class HwInit extends OpMode
         shooter.setPower(0.70);
     }
 
-    public void run_lift()
+    public void run_lift_blocking()
     {
         try {
             lift.setPower(1);
-            sleep(2100);
+            sleep(900);
             do {
                 lift.setPower(-1);
             }while(!shooterPosSw.isLimitSwitchPressed());
