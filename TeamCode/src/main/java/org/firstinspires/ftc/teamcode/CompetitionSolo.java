@@ -22,8 +22,6 @@ import java.util.Locale;
 @TeleOp(name = "Competition Main (SOLO MODE)", group = "TeleOp")
 public class CompetitionSolo extends LinearOpMode {
 
-    //GoBildaPinpointDriver odo; // Declare OpMode member for the Odometry Computer
-
     RobotHardware robot = new RobotHardware(this);
 
     private boolean dpadUpPreviouslyPressed = false;
@@ -35,15 +33,7 @@ public class CompetitionSolo extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-
-        ///Variable Setup
-        //Odometry
         double oldTime = 0;
-
-        //Mecanum Drive
-        //double x;
-        //double y;
-        //double rotation;
 
         boolean backButtonPreviouslyPressed = false;
         boolean rightBumperPreviouslyPressed = false;
@@ -68,7 +58,6 @@ public class CompetitionSolo extends LinearOpMode {
             robot.refreshLimelightResult();
             artifactTracker.update();
 
-            //Limelight Data
             LLResult result = robot.getLatestLimelightResult();
             if (result != null) {
                 if (result.isValid()) {
@@ -78,8 +67,7 @@ public class CompetitionSolo extends LinearOpMode {
                 }
             }
 
-            //Odometry
-            robot.pinpoint.update(); //Update odometry
+            robot.pinpoint.update();
             double newTime = getRuntime();
             double loopTime = newTime - oldTime;
             double frequency = 1 / loopTime;
@@ -93,24 +81,6 @@ public class CompetitionSolo extends LinearOpMode {
 
             telemetry.addData("Velocities (mm/s,deg/s)", "X: %.0f  Y: %.0f  H: %.1f", VelX, VelY, headingVel);
 
-            //telemetry.addData("Status", robot.pinpoint.getDeviceStatus());
-            //telemetry.addData("Pinpoint Frequency", robot.pinpoint.getFrequency()); //prints/gets the current refresh rate of the Pinpoint
-            //telemetry.addData("REV Hub Frequency: ", frequency); //prints the control system refresh rate
-
-            ///MECANUM DRIVE
-
-        /*
-            // Get joystick inputs
-            y = -gamepad1.left_stick_y * 0.90; // Forward/backward - multiply by 0.90 to scale speed down
-            x = gamepad1.left_stick_x * 0.90;  // Strafe - multiply by 0.90 to scale speed down
-            if (gamepad1.right_stick_button) {
-                rotation = gamepad1.right_stick_x * 0.50; //Slow rotation mode when button pressed in
-            } else {
-                rotation = gamepad1.right_stick_x * 0.75; // Rotation - multiply by 0.75 to scale speed down
-            }
-
-            robot.mecanumDrive(x, y, rotation);
-         */
             robot.updateHeadingOffsetFromAllianceButton();
             double botHeading = robot.pinpoint.getHeading(AngleUnit.RADIANS);
             double adjustedHeading = robot.applyHeadingOffset(botHeading);
@@ -191,30 +161,7 @@ public class CompetitionSolo extends LinearOpMode {
                 robot.runIntake(RobotHardware.IntakeDirection.STOP);
             }
 
-            /*
-            // ----- Spindexer test control -----
-
-            boolean dpadLeft2  = gamepad1.dpad_left;
-            boolean dpadRight2 = gamepad1.dpad_right;
-
-            // Edge trigger LEFT (-0.05)
-            if (dpadLeft2 && !dpadLeft2PreviouslyPressed) {
-                robot.adjustSpindexer(-0.01);
-            }
-
-            // Edge trigger RIGHT (+0.05)
-            if (dpadRight2 && !dpadRight2PreviouslyPressed) {
-                robot.adjustSpindexer(0.01);
-            }
-
-            // update previous
-            dpadLeft2PreviouslyPressed  = dpadLeft2;
-            dpadRight2PreviouslyPressed = dpadRight2;
-
-             */
-
             if (shootingController.isIdle()) {
-                //Manual Lift Control
                 if (gamepad1.left_trigger >= 0.5) {
                     robot.kicker.setPosition(Constants.kickerUp);
                 } else {

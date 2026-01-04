@@ -42,8 +42,7 @@ public class FlywheelController {
     private boolean measuringSpinup = false;
     private double spinupSetpointRpm = 0.0;
 
-    public FlywheelController(RobotHardware robot,
-                              Telemetry telemetry) {
+    public FlywheelController(RobotHardware robot, Telemetry telemetry) {
         this.robot = robot;
         this.telemetry = telemetry;
         this.panelsTelemetry = robot.getPanelsTelemetry();
@@ -56,7 +55,6 @@ public class FlywheelController {
      */
     public void toggle() {
         flywheelEnabled = !flywheelEnabled;
-
         if (flywheelEnabled) {
             setFlywheelRpm(Constants.DEFAULT_RPM);
         } else {
@@ -78,13 +76,15 @@ public class FlywheelController {
             telemetry.addLine("ERROR: launcher motor is NULL!");
             return 0.0;
         }
-
         return (launcherGroup.group.getVelocity() * 60.0) / TICKS_PER_REV;
     }
 
     public boolean isAtSpeed() {
-        return (getCurrentRpm() >= (targetRpm - (rpmTolerance/2))) && ( getCurrentRpm() <= (targetRpm + rpmTolerance) );
-        //return Math.abs(getCurrentRpm() - targetRpm) <= rpmTolerance;
+        // EXAMPLE:
+        // RPM : 2,200
+        // RPM TOLERANCE : 100
+        // RANGE : 2,300 - 2,150
+        return (getCurrentRpm() >= (targetRpm - (rpmTolerance/2))) && ( getCurrentRpm() <= (targetRpm + rpmTolerance) ); //return Math.abs(getCurrentRpm() - targetRpm) <= rpmTolerance;
     }
 
     public double getRpmTolerance() {
@@ -149,6 +149,8 @@ public class FlywheelController {
 
                     if (distanceFeet >= FAR_FAR_ZONE_DISTANCE_FT) {
                         rpm = Constants.LAUNCH_ZONE_FAR_FAR_RPM;
+                    } else if (distanceFeet < MID_ZONE_DISTANCE_FT) {
+                        rpm = Constants.LAUNCH_ZONE_MID_RPM;
                     } else {
                         double clampedDistance = Range.clip(distanceFeet, MID_ZONE_DISTANCE_FT, FAR_ZONE_DISTANCE_FT);
                         double distanceRatio = (clampedDistance - MID_ZONE_DISTANCE_FT) / (FAR_ZONE_DISTANCE_FT - MID_ZONE_DISTANCE_FT);
@@ -243,40 +245,20 @@ public class FlywheelController {
             return;
         }
 
-        double error = Math.abs(getCurrentRpm() - targetRpm);
-
-        // get minimum target rpm
-        // red anything not specified
-        // orange within half threshold
-        // yellow within 1/4 threshold
-        // green within threshold
-
         double currentRpm = Math.abs(getCurrentRpm());
         double minimumRpm = targetRpm - rpmTolerance;
         double maxRpm = targetRpm + rpmTolerance;
 
-        if (currentRpm >= maxRpm) {
-            setFrontLedColor(LEDColors.RED);
-        } else if (currentRpm >= minimumRpm) {
+        if (isAtSpeed() ) {
             setFrontLedColor(LEDColors.GREEN);
-        } else if (currentRpm <= minimumRpm - (minimumRpm/2)) {
-            setFrontLedColor(LEDColors.YELLOW);
-        } else if (currentRpm <= minimumRpm - (minimumRpm/4)) {
+        } else if (currentRpm > maxRpm ) {
+            setFrontLedColor(LEDColors.RED);
+        } else if (currentRpm >= minimumRpm * 0.75) {
             setFrontLedColor(LEDColors.ORANGE);
+        } else if (currentRpm >= minimumRpm * 0.5) {
+            setFrontLedColor(LEDColors.YELLOW);
         } else {
             setFrontLedColor(LEDColors.RED);
         }
-
-//        if (error > 250.0) {
-//            setFrontLedColor(LEDColors.RED);
-//        } else if (error <= 50.0) {
-//            setFrontLedColor(LEDColors.GREEN);
-//        } else if (error <= 100.0) {
-//            setFrontLedColor(LEDColors.YELLOW);
-//        } else if (error <= 175.0) {
-//            setFrontLedColor(LEDColors.ORANGE);
-//        } else {
-//            setFrontLedColor(LEDColors.RED);
-//        }
     }
 }

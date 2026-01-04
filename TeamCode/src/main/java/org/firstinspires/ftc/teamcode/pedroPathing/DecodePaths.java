@@ -1,6 +1,13 @@
 package org.firstinspires.ftc.teamcode.pedroPathing;
 
+import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
+import com.pedropathing.paths.PathChain;
+
+import org.firstinspires.ftc.teamcode.RobotHardware;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class DecodePaths {
 
@@ -42,4 +49,81 @@ public class DecodePaths {
 
     // RED CLOSE LEAVE ONLY
     public static final Pose RED_NEAR_FROM_SHOOT_TO_WALL = new Pose(85, 133.6, Math.toRadians(-90));
+
+
+    /// PATH CHAINING METHODS
+
+    public enum AUTO_PATHS {
+        NEAR_PATH_TO_SHOOT_AREA,
+        NEAR_SHOOT_AREA_TO_SPIKE1,
+        NEAR_GOTO_SHOOT_SPIKE1,
+        NEAR_PICKUP_SPIKE1,
+        FAR_START_TO_SHOOT,
+        FAR_SHOOT_TO_SPIKE3_LINEUP,
+        FAR_SPIKE3_PICKUP_PART1,
+        FAR_SPIKE3_PICKUP_PART2,
+        FAR_SPIKE3_TO_SHOOT,
+        FAR_SHOOT_LEAVE,
+
+        NEAR_SHOOT_TO_WALL,
+    }
+
+    public static PathChain buildPath(RobotHardware robot, Follower follower, Pose blueFrom, Pose blueTo, Pose redFrom, Pose redTo) {
+        Pose from = robot.allianceColorBlue ? blueFrom : redFrom;
+        Pose to = robot.allianceColorBlue ? blueTo : redTo;
+        return Constants.buildPath(follower, from, to);
+    }
+
+    public static Map<AUTO_PATHS, PathChain> buildPaths(RobotHardware robot, Follower follower) {
+        Map<AUTO_PATHS, PathChain> paths = new HashMap<>();
+
+        /// NEAR
+        paths.put(AUTO_PATHS.NEAR_PATH_TO_SHOOT_AREA, buildPath(robot, follower,
+                BLUE_NEAR_START, BLUE_NEAR_SHOOT,
+                RED_NEAR_START, RED_NEAR_SHOOT));
+
+        paths.put(AUTO_PATHS.NEAR_SHOOT_AREA_TO_SPIKE1, buildPath(robot, follower,
+                BLUE_NEAR_SHOOT, BLUE_NEAR_GOTO_ARTIFACTS,
+                RED_NEAR_SHOOT, RED_NEAR_GOTO_ARTIFACTS));
+
+        paths.put(AUTO_PATHS.NEAR_PICKUP_SPIKE1, buildPath(robot, follower,
+                BLUE_NEAR_GOTO_ARTIFACTS, BLUE_NEAR_PICKUP_ARTIFACTS,
+                RED_NEAR_GOTO_ARTIFACTS, RED_NEAR_PICKUP_ARTIFACTS));
+
+        paths.put(AUTO_PATHS.NEAR_GOTO_SHOOT_SPIKE1, buildPath(robot, follower,
+                BLUE_NEAR_PICKUP_ARTIFACTS, BLUE_NEAR_GO_INSIDE_ZONE,
+                RED_NEAR_PICKUP_ARTIFACTS, RED_NEAR_GO_INSIDE_ZONE));
+
+        /// FAR
+        paths.put(AUTO_PATHS.FAR_START_TO_SHOOT, buildPath(robot, follower,
+                BLUE_FAR_START, BLUE_FAR_SHOOT,
+                RED_FAR_START, RED_FAR_SHOOT));
+
+        paths.put(AUTO_PATHS.FAR_SHOOT_TO_SPIKE3_LINEUP, buildPath(robot, follower,
+                BLUE_FAR_SHOOT, BLUE_FAR_SHOOT_TO_SPIKE3,
+                RED_FAR_SHOOT, RED_FAR_SHOOT_TO_SPIKE3));
+
+        paths.put(AUTO_PATHS.FAR_SPIKE3_PICKUP_PART1, buildPath(robot, follower,
+                BLUE_FAR_SHOOT_TO_SPIKE3, BLUE_FAR_PICKUP_SPIKE3_PART1,
+                RED_FAR_SHOOT_TO_SPIKE3, RED_FAR_PICKUP_SPIKE3_PART1));
+
+        paths.put(AUTO_PATHS.FAR_SPIKE3_PICKUP_PART2, buildPath(robot, follower,
+                BLUE_FAR_PICKUP_SPIKE3_PART1, BLUE_FAR_PICKUP_SPIKE3_PART2,
+                RED_FAR_PICKUP_SPIKE3_PART1, RED_FAR_PICKUP_SPIKE3_PART2));
+
+        paths.put(AUTO_PATHS.FAR_SPIKE3_TO_SHOOT, buildPath(robot, follower,
+                BLUE_FAR_PICKUP_SPIKE3_PART2, BLUE_FAR_SHOOT,
+                RED_FAR_PICKUP_SPIKE3_PART2, RED_FAR_SHOOT));
+
+        paths.put(AUTO_PATHS.FAR_SHOOT_LEAVE, buildPath(robot, follower,
+                BLUE_FAR_SHOOT, BLUE_FAR_LEAVE,
+                RED_FAR_SHOOT, RED_FAR_LEAVE));
+
+        /// NEAR LEAVE
+        paths.put(AUTO_PATHS.NEAR_SHOOT_TO_WALL, buildPath(robot, follower,
+                BLUE_NEAR_START, BLUE_NEAR_FROM_SHOOT_TO_WALL,
+                RED_NEAR_START, RED_NEAR_FROM_SHOOT_TO_WALL));
+
+        return paths;
+    }
 }

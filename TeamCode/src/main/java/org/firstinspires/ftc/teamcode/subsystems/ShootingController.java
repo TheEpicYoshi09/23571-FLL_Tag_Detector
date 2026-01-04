@@ -113,7 +113,7 @@ public class ShootingController {
      *
      * @return true once the controller has completed the queued shots and returned to IDLE
      */
-    public boolean updateAndIsComplete() {
+    public boolean updateAndIsComplete(boolean runIntakeOnLastShot) {
         update();
         if (shotsRemaining == 1) {
             robot.runIntake(RobotHardware.IntakeDirection.IN);
@@ -122,6 +122,8 @@ public class ShootingController {
         }
         return shootState == ShootState.IDLE && shotsRemaining == 0;
     }
+
+    public boolean updateAndIsComplete() { return updateAndIsComplete(false); }
 
     public boolean isIdle() {
         return shootState == ShootState.IDLE;
