@@ -68,23 +68,22 @@ public class Turret extends SubsystemBase {
   @Config
   public static class TurretControlConfig {
 
-    // PID
+      // PID
+      public static double kP = 0.005;
 
-            public static double kP = 0.005;
+      public static double kI = 0;
 
-    public static double kI = 0;
+      public static double kD = 0;
 
-    public static double kD = 0;
+      // Feedforward
 
-    // Feedforward
+      public static double ks = 0;
 
-            public static double ks = 0;
+      public static double kv_left = 0.000425;
 
-    public static double kv_left = 0.000425;
+      public static double kv_right = 0.000425;
 
-    public static double kv_right = 0.000425;
-
-    public static double ka = 0;
+      public static double ka = 0;
   }
 
   SimpleMotorFeedforward leftFeedforward = new SimpleMotorFeedforward(TurretControlConfig.ks, TurretControlConfig.kv_left, TurretControlConfig.ka);
