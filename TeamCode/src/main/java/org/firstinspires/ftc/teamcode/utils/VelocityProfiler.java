@@ -1,26 +1,23 @@
 package org.firstinspires.ftc.teamcode.utils;
 
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
 
 public class VelocityProfiler {
 
     //double value = 0;
 
-    LinearOpMode opMode;
+
 
     double smoothingFactor;
 
-    double currentValueLeftY = 0;
-    double currentValueLeftX = 0;
-    double currentValueRightX = 0;
+    double currentValue1 = 0;
+    double currentValue2 = 0;
+    double currentValue3 = 0;
+    double currentValue4 = 0;
 
-    double currentValue = 0;
 
-
-    public VelocityProfiler(LinearOpMode opMode,double smoothingFactor){
-    this.opMode = opMode;
-    this.smoothingFactor = smoothingFactor;
+    public VelocityProfiler(double smoothingFactor){
+    this.smoothingFactor = Range.clip(smoothingFactor,0.0,1.0);
     }
 
     //ElapsedTime timer = new ElapsedTime();
@@ -35,16 +32,16 @@ public class VelocityProfiler {
 //    public double velocityProfileIncrement(double value){
 //        if(timer.milliseconds() >= 200) {
 //        this.value = value;
-//        if (value - currentValue > 0){
-//            currentValue = currentValue + 0.2;
-//        } else if (value - currentValue == 0) {
-//            currentValue = currentValue + 0;
-//        } else if (value - currentValue < 0) {
-//            currentValue = currentValue - 0.2;
+//        if (value - currentValue4 > 0){
+//            currentValue4 = currentValue4 + 0.2;
+//        } else if (value - currentValue4 == 0) {
+//            currentValue4 = currentValue4 + 0;
+//        } else if (value - currentValue4 < 0) {
+//            currentValue4 = currentValue4 - 0.2;
 //        }
 //            resetElapsedTime();
 //        }
-//        return currentValue;
+//        return currentValue4;
 //    }
 
 
@@ -59,36 +56,36 @@ public class VelocityProfiler {
 //        double maxChange = maxRate * deltaTime;
 //
 //        // Difference between target and current value
-//        double error = targetValue - currentValue;
+//        double error = targetValue - currentValue4;
 //
 //        // If we can reach the target this update, snap to it
 //        if (Math.abs(error) <= maxChange) {
-//            currentValue = targetValue;
+//            currentValue4 = targetValue;
 //        }
 //        // Otherwise, move toward the target at the allowed rate
 //        else {
-//            currentValue += Math.signum(error) * maxChange;
+//            currentValue4 += Math.signum(error) * maxChange;
 //        }
 //
-//        return currentValue;
+//        return currentValue4;
 //    }
 
-    public double velocityProfileLeftY(){
-        currentValueLeftY = currentValueLeftY + (-opMode.gamepad1.left_stick_y - currentValueLeftY) * smoothingFactor;
-        return currentValueLeftY;
+    public double velocityProfileInput1(double inputTarget){
+        currentValue1 = currentValue1 + (inputTarget - currentValue1) * smoothingFactor;
+        return currentValue1;
     }
-    public double velocityProfileLeftX(){
-        currentValueLeftX = currentValueLeftY + (-opMode.gamepad1.left_stick_x - currentValueLeftX) * smoothingFactor;
-        return currentValueLeftX;
+    public double velocityProfileInput2(double inputTarget){
+        currentValue2 = currentValue2 + (inputTarget - currentValue2) * smoothingFactor;
+        return currentValue2;
     }
-    public double velocityProfileRightX(){
-        currentValueRightX = currentValueRightX + (-opMode.gamepad1.right_stick_x - currentValueRightX) * smoothingFactor;
-        return currentValueRightX;
+    public double velocityProfileInput3(double inputTarget){
+        currentValue3 = currentValue3 + (inputTarget - currentValue3) * smoothingFactor;
+        return currentValue3;
     }
 
-    double velocityProfileProportional(double target){
-        currentValue = currentValue + (target - currentValue) * smoothingFactor;
-        return currentValue;
+    public double velocityProfileInput4(double inputTarget){
+        currentValue4 = currentValue4 + (inputTarget - currentValue4) * smoothingFactor;
+        return currentValue4;
     }
 // double power = velocityProfileIncrement(gamepad1.left_stick_y)
 

@@ -15,16 +15,17 @@ public class MecanumLauncher extends OurOpmode{
     Launcher launcher;
     MecanumDrive drive;
     IMUW imu;
-    double power = 0.2;
-    VelocityProfiler profiler = new VelocityProfiler(this,0.075);
+    double power;
+    VelocityProfiler profiler = new VelocityProfiler(0.075);
 
     @Override
     protected void Loop() {
+        power = gamepad1.right_bumper ? 0.75 : 0.2;
         drive.driveVectorField(
-                profiler.velocityProfileLeftY(),
-                profiler.velocityProfileLeftX(),
-                profiler.velocityProfileRightX(),
-                (gamepad1.right_bumper ? 0.75 : 0.2),
+                profiler.velocityProfileInput1(-gamepad1.left_stick_y),
+                profiler.velocityProfileInput2(gamepad1.left_stick_x),
+                profiler.velocityProfileInput3(gamepad1.right_stick_x),
+                power,
                 imu);
 
 
@@ -37,15 +38,13 @@ public class MecanumLauncher extends OurOpmode{
 
         if (gamepad1.leftBumperWasPressed()){
             imu.resetYaw();
+            logger.logData("imu","reset");
         }
-
 //        if(gamepad1.xWasPressed()){
 //            power = power + 0.1;
 //        } else if (gamepad1.aWasPressed()) {
 //            power = power -0.1;
 //        }
-
-
         if (gamepad2.yWasPressed()){
             launcher.spinUpFlywheel();
             logger.logData(Logger.LoggerMode.CRITICAL,"Flywheel","Spinning Up");
@@ -60,10 +59,6 @@ public class MecanumLauncher extends OurOpmode{
         logger.logData(Logger.LoggerMode.STATUS,"FlyWheelVelocity",launcher.getLauncher().getVelocity());
         logger.logData("TargetVelocity",launcher.getLauncherTargetVelocity());
         logger.logData(Logger.LoggerMode.STATUS,"Launch-state",launcher.getLaunchStatesT());
-        logger.logData("Gampad1 LeftstickY",gamepad1.left_stick_y);
-        logger.logData("Gampad1 Leftstickx",gamepad1.left_stick_x);
-        logger.logData("Gampad1 RightstickX",gamepad1.right_stick_x);
-        logger.logData("Power",power);
         logger.logData("FrontLeft",drive.frontLeft.getRawMotor().getPower());
         logger.logData("FrontRight",drive.frontRight.getRawMotor().getPower());
         logger.logData("RearLeft",drive.rearLeft.getRawMotor().getPower());
