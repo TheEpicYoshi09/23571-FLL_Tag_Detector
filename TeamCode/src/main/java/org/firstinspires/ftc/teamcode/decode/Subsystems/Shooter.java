@@ -9,9 +9,18 @@ public class Shooter {
     private MotorEx shooter;
     private MotorEx followerShooter;
 
+    public double FAR_VELOCITY = 2600;
+    public double CLOSE_VELOCITY = 2600;
+
     public Shooter(HardwareMap hardwareMap) {
         shooter = new MotorEx(hardwareMap, "leftShooterMotor", Motor.GoBILDA.BARE);
         followerShooter = new MotorEx(hardwareMap, "rightShooterMotor", Motor.GoBILDA.BARE);
+
+        shooter.setZeroPowerBehavior(Motor.ZeroPowerBehavior.FLOAT);
+        followerShooter.setZeroPowerBehavior(Motor.ZeroPowerBehavior.FLOAT);
+
+        shooter.resetEncoder();
+        followerShooter.resetEncoder();
     }
 
     public void shootArtifacts() {
@@ -19,9 +28,21 @@ public class Shooter {
         followerShooter.set(1);
     }
 
-    public void velocityShooter(){
+
+public void getVelocity(){
+    shooter.getVelocity();
+}
+    public void velocityShooterFar(){
+        shooter.setVelocity(FAR_VELOCITY);
+        followerShooter.setVelocity(FAR_VELOCITY);
 
     }
+    public void velocityShooterClose(){
+        shooter.setVelocity(CLOSE_VELOCITY);
+        followerShooter.setVelocity(CLOSE_VELOCITY);
+
+    }
+
 
     public void stop() {
         shooter.set(0);
