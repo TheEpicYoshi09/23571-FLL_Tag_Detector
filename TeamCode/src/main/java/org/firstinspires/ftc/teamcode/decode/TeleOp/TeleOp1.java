@@ -101,18 +101,6 @@ public class TeleOp1 extends LinearOpMode {
                 intake.setPower(0);
             }
 
-            //   if (gamepad1.dpad_left) {
-            //   followerWheelMotor.setPower(1);
-            //   flyWheelMotor.setPower(1);
-            // }
-            // else if (gamepad1.dpad_right) {
-            //   followerWheelMotor.setPower(0.5);
-            //   flyWheelMotor.setPower(0.5);
-            // } else {
-            //     followerWheelMotor.setPower(0);
-            //   flyWheelMotor.setPower(0);
-            // }
-
 
             if (gamepad1.y) {
                 loader.setDirection(DcMotorSimple.Direction.FORWARD);

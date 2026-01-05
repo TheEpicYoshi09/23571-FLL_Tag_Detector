@@ -19,6 +19,10 @@ public class Shooter {
         followerShooter.set(1);
     }
 
+    public void velocityShooter(){
+
+    }
+
     public void stop() {
         shooter.set(0);
         followerShooter.set(0);
