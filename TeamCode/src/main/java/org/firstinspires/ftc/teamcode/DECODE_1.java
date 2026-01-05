@@ -269,8 +269,6 @@ public class DECODE_1 extends OpMode {
         blinkin.setPattern(RAINBOW_RAINBOW_PALETTE);
     }
 
-
-
     private void readyToRUMBLE() {
         telemetry.addData(">", "Are we RUMBLING? %s\n", gamepad1.isRumbling() ? "YES" : "no");
         if (!secondHalf && runtime.seconds() > HALF_TIME) {
