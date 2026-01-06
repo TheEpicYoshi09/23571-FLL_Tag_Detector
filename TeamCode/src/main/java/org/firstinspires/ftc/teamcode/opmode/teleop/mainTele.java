@@ -34,7 +34,7 @@ public class mainTele extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
-            robot.UpdatePeriodic();
+            robot.update();
 
             // Read joystick Values  for Gamepad 1 --------------------------------------
             double forward = -gamepad1.left_stick_y; // Forward is negative on the stick
@@ -100,10 +100,9 @@ public class mainTele extends LinearOpMode {
                     robot.shooter.startIntake(1);
                 } else if (gamepad2.right_bumper ) {
                     robot.shooter.reverseIntake(0.5);
-                } else if (gamepad2.left_trigger > 0.3) {
-                    robot.shooter.unBlockIntake();
-                    robot.shooter.startIntake(1);
-
+                //} else if (gamepad2.left_trigger > 0.3) {
+//                    robot.shooter.unBlockIntake();
+//                    robot.shooter.startIntake(1);
                 } else {
                     robot.shooter.stopIntake();
                 }
@@ -111,8 +110,10 @@ public class mainTele extends LinearOpMode {
                 // Control Outtake ----------------------------------------------
                 if (gamepad2.right_trigger > 0) {
                     //telemetry.addLine("Velocity= " + launcher.getVelocity());
-                    robot.shooter.startOuttake();
-                } else if (!gamepad2.left_bumper) {
+                    robot.shooter.startOuttake(1);
+                } else if (gamepad2.left_trigger > 0.3) {
+                    robot.shooter.startOuttake(-gamepad2.left_trigger);
+                } else {
                     robot.shooter.stopOuttake();
                 }
             }
@@ -120,7 +121,7 @@ public class mainTele extends LinearOpMode {
             robot.drive.drive(forward, strafe, turn);
 
             // Loop updates
-            robot.UpdatePeriodic();
+            robot.update();
 
             // Display info on driver station --------------------------------
             robot.addTelemetry(telemetry);

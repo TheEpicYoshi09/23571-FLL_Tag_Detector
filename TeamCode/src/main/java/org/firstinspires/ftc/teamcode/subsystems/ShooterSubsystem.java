@@ -109,7 +109,7 @@ public class ShooterSubsystem {
 
             case SPIN_UP:
                 lastVelocity = outtakeMotor.getVelocity();
-                if (shotType == "short"){
+                if ("short".equals(shotType)) {
                     if (Math.abs(shortShotVelocity - outtakeMotor.getVelocity()) < velocityTolerance) {
                     //if (timer.milliseconds() >= spinUpMs) {
                         state = State.FEED;
@@ -244,11 +244,8 @@ public class ShooterSubsystem {
         intake.setPower(0);
     }
 
-    private double pos;
-
-
-    public void startOuttake() {
-        outtakeMotor.setPower(1);
+    public void startOuttake(double power) {
+        outtakeMotor.setPower(power);
     }
 
     public void stopOuttake() {
@@ -258,7 +255,6 @@ public class ShooterSubsystem {
     public void addTelemetry(Telemetry telemetry) {
         telemetry.addLine("----- Shooter -----");
         telemetry.addData("Shooter Velocity = ", lastVelocity);
-        telemetry.addData("Servo Position = ", pos);
         telemetry.addData("Vertical Aim Pos", anglePos);
 
     }

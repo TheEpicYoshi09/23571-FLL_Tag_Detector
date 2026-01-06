@@ -52,11 +52,11 @@ public class Robot {
     }
 
     /** Called every control loop — optional, but great practice */
-    public void UpdatePeriodic() {
+    public void update() {
         // --- Update Subsystems
-        drive.periodic();
+        drive.update();
         shooter.update();
-        vision.periodic();
+        vision.update();
 
         // Read Vision output
         double headingDeg = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);

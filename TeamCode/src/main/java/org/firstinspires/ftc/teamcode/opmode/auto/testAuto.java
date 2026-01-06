@@ -24,9 +24,9 @@ public class testAuto extends LinearOpMode {
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()){
             while (opModeIsActive()) {
-                robot.UpdatePeriodic(); // updates vision pose
+                robot.update(); // updates vision pose
 
-                robot.UpdatePeriodic(); // updates vision pose
+                robot.update(); // updates vision pose
 
                 if (robot.vision.hasFieldPose()) {
                     double x = robot.vision.getFieldX();
@@ -37,7 +37,7 @@ public class testAuto extends LinearOpMode {
                 }
             }
             robot.shooter.update();
-            robot.UpdatePeriodic();
+            robot.update();
         }
     }
 }

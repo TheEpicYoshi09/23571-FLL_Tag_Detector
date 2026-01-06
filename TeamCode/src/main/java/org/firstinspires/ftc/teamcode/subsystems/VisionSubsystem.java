@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
@@ -19,6 +20,14 @@ public class VisionSubsystem {
     private double tx;    // horizontal offset
     private double ty;    // vertical offset
     private double ta;    // target area
+
+    // Distance to April Tag
+    private double tagDistanceMeters = -1.0;
+    private double tagForwardMeters = -1.0;   // absolute Z component if useful
+
+    // fiducial count for telemetry/debugging
+    private int fiducialCount = 0;
+
 
     // Field pose (meters, degrees)
     private double fieldX = 0.0;
@@ -69,11 +78,17 @@ public class VisionSubsystem {
     }
 
     public double getFieldX() {
-        return fieldX; }
+        return fieldX;
+    }
+
     public double getFieldY() {
-        return fieldY; }
+        return fieldY;
+    }
+
     public double getFieldYaw() {
-        return fieldYaw; }
+        return fieldYaw;
+    }
+
     public boolean hasFieldPose() {
         return hasFieldPose;
     }
@@ -82,53 +97,91 @@ public class VisionSubsystem {
     public boolean hasTarget() {
         return hasTarget;
     }
+
     public double getTx() {
         return tx;
     }
 
+    // Distance to April Tag
+    public boolean hasTagDistance() {
+        return tagDistanceMeters > 0;
+    }
+
+    public double getTagDistanceMeters() {
+        return tagDistanceMeters;
+    }
 
 
-
-    public void periodic() {
+    public void update() {
         LLResult result = limelight.getLatestResult();
 
-        if (result != null && result.isValid()) {
-            hasTarget = true;
-
-            // 2D offsets
-            tx = result.getTx();
-            ty = result.getTy();
-            ta = result.getTa();
-
-            // ---- 3D robot pose from AprilTags ----
-            // Try the MT2 (MegaTag2) fused pose first:
-            Pose3D botposeMT2 = result.getBotpose_MT2();
-            if (botposeMT2 != null) {
-                hasFieldPose = true;
-                fieldX = botposeMT2.getPosition().x;
-                fieldY = botposeMT2.getPosition().y;
-                // yaw is the rotation about vertical axis
-                fieldYaw = botposeMT2.getOrientation().getYaw(AngleUnit.DEGREES);
-            } else {
-                // Fall back to basic botpose if MT2 is unavailable
-                Pose3D botpose = result.getBotpose();
-                if (botpose != null) {
-                    hasFieldPose = true;
-                    fieldX = botpose.getPosition().x;
-                    fieldY = botpose.getPosition().y;
-                    fieldYaw = botpose.getOrientation().getYaw(AngleUnit.DEGREES);
-                } else {
-                    hasFieldPose = false;
-                }
-            }
-        } else {
+        // Early-out if no valid result
+        if (result == null || !result.isValid()) {
             hasTarget = false;
             hasFieldPose = false;
+            tagDistanceMeters = -1.0;
+            tagForwardMeters = -1.0;
+            fiducialCount = 0;
+            return;
+        }
+
+        hasTarget = true;
+
+        // 2D offsets
+        tx = result.getTx();
+        ty = result.getTy();
+        ta = result.getTa();
+
+        // Distance to April Tag (from fiducial results)
+        if (result.getFiducialResults() != null && !result.getFiducialResults().isEmpty()) {
+            fiducialCount = result.getFiducialResults().size();
+
+            LLResultTypes.FiducialResult tag = result.getFiducialResults().get(0);
+            Pose3D camToTag = tag.getCameraPoseTargetSpace();
+
+            if (camToTag != null) {
+                double x = camToTag.getPosition().x;
+                double y = camToTag.getPosition().y;
+                double z = camToTag.getPosition().z;
+
+                // True straight-line distance (meters)
+                tagDistanceMeters = Math.sqrt(x * x + y * y + z * z);
+
+                // Absolute forward component (useful if z is forward/back)
+                tagForwardMeters = Math.abs(z);
+            } else {
+                tagDistanceMeters = -1.0;
+                tagForwardMeters = -1.0;
+            }
+        } else {
+            fiducialCount = 0;
+            tagDistanceMeters = -1.0;
+            tagForwardMeters = -1.0;
+        }
+
+        // ---- 3D robot pose from AprilTags ----
+        Pose3D botposeMT2 = result.getBotpose_MT2();
+        if (botposeMT2 != null) {
+            hasFieldPose = true;
+            fieldX = botposeMT2.getPosition().x;
+            fieldY = botposeMT2.getPosition().y;
+            fieldYaw = botposeMT2.getOrientation().getYaw(AngleUnit.DEGREES);
+        } else {
+            // Fall back to basic botpose if MT2 is unavailable
+            Pose3D botpose = result.getBotpose();
+            if (botpose != null) {
+                hasFieldPose = true;
+                fieldX = botpose.getPosition().x;
+                fieldY = botpose.getPosition().y;
+                fieldYaw = botpose.getOrientation().getYaw(AngleUnit.DEGREES);
+            } else {
+                hasFieldPose = false;
+            }
         }
     }
 
 
-
+    private static final double METERS_TO_FEET = 3.28084;
 
     public void addTelemetry(Telemetry telemetry) {
         telemetry.addLine("----- Vision -----");
@@ -140,6 +193,30 @@ public class VisionSubsystem {
         telemetry.addLine("");
         telemetry.addData("Field X (m)", fieldX);
         telemetry.addData("Field Y (m)", fieldY);
-        telemetry.addData("Field Yaw (deg)","%.1f°", fieldYaw);
+        telemetry.addData("Has Distance", hasTagDistance());
+
+        telemetry.addData("Fiducial Count", fiducialCount);
+
+        if (tagDistanceMeters > 0) {
+            telemetry.addData("Tag Dist (m) Euclidean", "%.3f", tagDistanceMeters);
+            telemetry.addData("Tag Dist (ft) Euclidean", "%.3f",
+                    tagDistanceMeters * METERS_TO_FEET);
+        } else {
+            telemetry.addData("Tag Dist (m) Euclidean", "n/a");
+            telemetry.addData("Tag Dist (ft) Euclidean", "n/a");
+        }
+
+        if (tagForwardMeters > 0) {
+            telemetry.addData("Tag Dist (m) ForwardZ", "%.3f", tagForwardMeters);
+            telemetry.addData("Tag Dist (ft) ForwardZ", "%.3f",
+                    tagForwardMeters * METERS_TO_FEET);
+        } else {
+            telemetry.addData("Tag Dist (m) ForwardZ", "n/a");
+            telemetry.addData("Tag Dist (ft) ForwardZ", "n/a");
+        }
+
+
+
     }
 }
+

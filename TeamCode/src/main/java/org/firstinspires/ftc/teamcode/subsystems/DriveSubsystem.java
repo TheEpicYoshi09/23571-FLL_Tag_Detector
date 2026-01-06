@@ -84,7 +84,7 @@ public class DriveSubsystem {
         telemetry.addData("BR Power", lastRbPower);
     }
 
-    public void periodic() {
+    public void update() {
         // Add odometry later if needed
     }
 
