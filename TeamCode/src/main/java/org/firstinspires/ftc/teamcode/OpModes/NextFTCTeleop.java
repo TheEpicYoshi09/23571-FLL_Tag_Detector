@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.sun.tools.javac.util.List;
 
+import org.firstinspires.ftc.teamcode.Util.Poses;
 import org.firstinspires.ftc.teamcode.Util.Subsystems.BetterVisionTM;
 import org.firstinspires.ftc.teamcode.Util.Subsystems.IntakeSortingSubsystem;
 import org.firstinspires.ftc.teamcode.Util.Subsystems.MecDriveSubsystem;
@@ -17,6 +18,7 @@ import org.firstinspires.ftc.teamcode.Util.Timer;
 import org.firstinspires.ftc.teamcode.Util.UniConstants;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import dev.nextftc.core.commands.CommandManager;
 import dev.nextftc.core.components.BindingsComponent;
@@ -45,7 +47,7 @@ public class NextFTCTeleop extends NextFTCOpMode {
     private boolean botCentric = true;
 
     public static boolean patternFull = false;
-    ArrayList<UniConstants.slotState> pattern;
+    public static ArrayList<UniConstants.slotState> pattern = new ArrayList<>(Arrays.asList(null,null,null));
     private boolean enableRumble = false;
 
     Timer driverTimer = new Timer();
@@ -60,7 +62,7 @@ public class NextFTCTeleop extends NextFTCOpMode {
         ); //Subsystems
     }
 
-    public static Pose startPose = new Pose(72, 72, Math.toRadians(90));
+    public static Pose startPose = Poses.blueTopStart;
 
     private boolean turretForward = true;
 
@@ -71,13 +73,12 @@ public class NextFTCTeleop extends NextFTCOpMode {
     @Override
     public void onInit() {
         joinedTelemetry = new JoinedTelemetry(telemetry, PanelsTelemetry.INSTANCE.getFtcTelemetry());
-        pattern = new ArrayList<>(List.of(null, null, null));
-        patternFull = false;
 
         if(MecDriveSubsystem.INSTANCE.getFollower().getPose().roughlyEquals(new Pose(0, 0), 5)){
             MecDriveSubsystem.INSTANCE.setPose(startPose);
         }
 
+        patternFull = !pattern.contains(null);
 
         //manager = CommandManager.INSTANCE;
     }
@@ -126,7 +127,7 @@ public class NextFTCTeleop extends NextFTCOpMode {
         }
 
         if(gamepad1.a){
-            TurretSubsystem.INSTANCE.setMotorPower(.6);
+            TurretSubsystem.INSTANCE.setMotorPower(.67);
         }
 
         if(gamepad1.b){
@@ -142,7 +143,7 @@ public class NextFTCTeleop extends NextFTCOpMode {
         if(gamepad1.dpad_up){turretForward = true;}
         if(gamepad1.dpad_down){turretForward = false;}
 
-//        Able to switch between driver and robot centric
+        //Able to switch between driver and robot centric
         if(gamepad1.y && driverTimer.getTimeSeconds() > .5){
             botCentric = !botCentric;
             driverTimer.reset();
