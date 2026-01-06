@@ -8,6 +8,7 @@ import com.bylazar.telemetry.PanelsTelemetry;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.teamcode.Util.IfElseCommand;
 import org.firstinspires.ftc.teamcode.Util.UniConstants;
 
 import java.util.ArrayList;
@@ -100,6 +101,13 @@ public class IntakeSortingSubsystem implements Subsystem {
     }
     public boolean shouldRumble(){return allFull();}
 
+    public Command runActive(){
+        return new InstantCommand(() -> {forwardIntake(); enableActive();});
+    }
+    public Command stopActive(){
+        return new InstantCommand(this::disableActive);
+    }
+
     public Command setServoState(Slot slot, UniConstants.servoState state) {
         return new InstantCommand(() -> {slot.setTargetPosition(state);}).named(slot.name + " Set Servo State");
     }
@@ -107,15 +115,15 @@ public class IntakeSortingSubsystem implements Subsystem {
     public Command launchInPattern(Slot first, Slot second, Slot third){
         return new SequentialGroup(
                 setServoState(first, UniConstants.servoState.UP),
-                new Delay(UniConstants.FLICKER_TIME_UP),
+                new Delay(UniConstants.FAST_FLICKER_TIME_UP),
                 setServoState(first, UniConstants.servoState.DOWN),
-                new Delay(UniConstants.FLICKER_TIME_DOWN),
+                new Delay(UniConstants.FAST_FLICKER_TIME_DOWN),
                 setServoState(second, UniConstants.servoState.UP),
-                new Delay(UniConstants.FLICKER_TIME_UP),
+                new Delay(UniConstants.FAST_FLICKER_TIME_UP),
                 setServoState(second, UniConstants.servoState.DOWN),
-                new Delay(UniConstants.FLICKER_TIME_DOWN),
+                new Delay(UniConstants.FAST_FLICKER_TIME_DOWN),
                 setServoState(third, UniConstants.servoState.UP),
-                new Delay(UniConstants.FLICKER_TIME_UP),
+                new Delay(UniConstants.FAST_FLICKER_TIME_UP),
                 setServoState(third, UniConstants.servoState.DOWN)
         );
     }
@@ -225,6 +233,10 @@ public class IntakeSortingSubsystem implements Subsystem {
 
     public boolean allFull() {
         return backSlot.isFull() && rightSlot.isFull() && leftSlot.isFull();
+    }
+
+    public boolean isFast(Slot slot){
+        return slot.name.equals("FLS") || slot.name.equals("FBS");
     }
 
 

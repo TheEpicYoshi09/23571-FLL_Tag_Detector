@@ -9,6 +9,9 @@ import org.firstinspires.ftc.teamcode.Util.PDFLController;
 import org.firstinspires.ftc.teamcode.Util.UniConstants;
 
 import dev.nextftc.control.ControlSystem;
+import dev.nextftc.core.commands.Command;
+import dev.nextftc.core.commands.utility.InstantCommand;
+import dev.nextftc.core.commands.utility.LambdaCommand;
 import dev.nextftc.core.subsystems.Subsystem;
 import dev.nextftc.ftc.ActiveOpMode;
 import dev.nextftc.hardware.impl.MotorEx;
@@ -26,8 +29,8 @@ public class TurretSubsystem implements Subsystem {
 
     public static int targetVelocity = 0;
     public static ControlSystem launcherControl;
-    public static double pLaunch = .00, iLaunch = 0, dLaunch = 0, fLaunch = 0, lLaunch = 0.01;
-    private PDFLController launcherController = new PDFLController(pLaunch, dLaunch, fLaunch, lLaunch);
+//    public static double pLaunch = .00, iLaunch = 0, dLaunch = 0, fLaunch = 0, lLaunch = 0.01;
+//    private PDFLController launcherController = new PDFLController(pLaunch, dLaunch, fLaunch, lLaunch);
     private double launcherCurrentVelo = 0;
 
 
@@ -36,7 +39,7 @@ public class TurretSubsystem implements Subsystem {
     public static double turretTargetAngle = 0;
     private double heading = 0;
     private double turretCurrentPos = 0;
-    private final double pTurret = 0.003, dTurret = 0, lTurret = 0.125, fTurret = 0;
+    public static double pTurret = 0.0025, dTurret = 0, lTurret = 0.125, fTurret = 0;
     private final PDFLController turretControl = new PDFLController(pTurret, dTurret, fTurret, lTurret);
 
     private double motorPower = 0.0;
@@ -62,8 +65,9 @@ public class TurretSubsystem implements Subsystem {
             launcher.setPower(debugPower);
 
             //Full turret control
+            turretControl.setPDFL(pTurret, dTurret, fTurret, lTurret);
             turretCurrentPos = turret.getCurrentPosition();
-            turretTargetAngle = Math.max(-65.0, Math.min(65.0, turretTargetAngle));
+            turretTargetAngle = Math.max(-65.0, Math.min(90, turretTargetAngle));
             turretControl.setTarget(angleToTicks(turretTargetAngle));
             turretControl.update(turretCurrentPos);
             turret.setPower(turretControl.runPDFL(angleToTicks(0.5)));
@@ -116,7 +120,6 @@ public class TurretSubsystem implements Subsystem {
 
     public void init(){
         turret.getMotor().setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        turret.getMotor().setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         turretCurrentPos = 0;
         turretTargetAngle = 0;
         targetVelocity = 0;
@@ -128,7 +131,9 @@ public class TurretSubsystem implements Subsystem {
         return turretTargetAngle;
     }
 
-
+    public Command SetMotorPower(double power){
+        return new InstantCommand(() -> setMotorPower(power));
+    }
 
     public void sendTelemetry(UniConstants.loggingState state){
         switch(state){
@@ -142,6 +147,7 @@ public class TurretSubsystem implements Subsystem {
                 telemetry.addData("Turret Target Deg ", turretTargetAngle);
                 telemetry.addData("Motor Power: ", motorPower);
                 telemetry.addLine("END OF OUTTAKE LOG");
+                break;
             case EXTREME:
 
                 telemetry.addLine("START OF OUTTAKE LOG");
