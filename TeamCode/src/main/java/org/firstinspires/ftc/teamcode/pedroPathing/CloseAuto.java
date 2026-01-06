@@ -62,7 +62,6 @@ public class CloseAuto extends LinearOpMode {
         panelsTelemetry.update(telemetry);
 
         follower.update(); // Update Pedro Pathing
-        pathState = autonomousPathUpdate(); // Update autonomous state machine
 
         ch = new Chassis(hardwareMap);
 
@@ -136,7 +135,7 @@ public class CloseAuto extends LinearOpMode {
         launchFlapRight.setPosition(0.4);
 
         while (opModeIsActive()) {
-           follower.update(); // Update Pedro Pathing
+            follower.update(); // Update Pedro Pathing
             pathState = autonomousPathUpdate(); // Update autonomous state machine
 
             // Log values to Panels and Driver Station

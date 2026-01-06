@@ -97,6 +97,8 @@ public class FarAuto extends LinearOpMode {
             limelight.readObelisk(telemetry);
             GlobalStorage.setPattern(limelight.getObelisk());
 
+            telemetry.addData("start",autoPoses.startPose);
+            telemetry.addData("launch",autoPoses.launchPose);
             telemetry.addData("Pattern", limelight.getObelisk());
             telemetry.addData("Is Tag Recent", limelight.seeObelisk);
             telemetry.addData("team ID", teamID);
@@ -171,7 +173,7 @@ public class FarAuto extends LinearOpMode {
                 .addPath(
                         new BezierLine(autoPoses.launchPose, autoPoses.readyPickUp1)
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(Math.abs(angleOffset-70)), Math.toRadians(0))
+                .setLinearHeadingInterpolation(Math.toRadians(Math.abs(angleOffset-70)), Math.toRadians(angleOffset))
                 .build();
 
         COLLECT11 = follower
@@ -381,7 +383,7 @@ public class FarAuto extends LinearOpMode {
         public void build(double startOffset, int sign, double line1Y, double line2Y) {
 
             startPose = new Pose(81.850-startOffset, 8.348, Math.toRadians(90));
-            launchPose = new Pose(startPose.getX()+5*sign, 19.324);
+            launchPose = new Pose(startPose.getX()+5*sign, 15.324);
 
             readyPickUp1 = new Pose(startPose.getX()+20*sign, line1Y);
             line11 = new Pose(startPose.getX()+25*sign, line1Y);
