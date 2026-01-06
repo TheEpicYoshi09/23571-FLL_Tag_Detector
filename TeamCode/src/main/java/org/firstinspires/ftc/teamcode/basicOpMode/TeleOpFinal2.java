@@ -16,7 +16,7 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 import java.util.List;
 
-@TeleOp(name = "Q1 TeleOp - Blu", group = "TeleOp")
+@TeleOp(name = "Q1 TeleOp - Bl", group = "TeleOp")
 public class TeleOpFinal2 extends LinearOpMode {
 
     public DcMotorEx lf;
