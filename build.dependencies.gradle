@@ -18,6 +18,10 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.7.1'
     //NEW STUFF LINE BELLOW THIS
     implementation 'com.acmerobotics.dashboard:dashboard:0.5.1'
+    implementation 'org.apache.commons:commons-math3:3.6.1'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.20.1'
+    implementation 'com.acmerobotics.roadrunner:core:0.5.6'
+
 //MIGHT NEED UPDATED FOR MORE RECENT VERSIONS
 }
 
