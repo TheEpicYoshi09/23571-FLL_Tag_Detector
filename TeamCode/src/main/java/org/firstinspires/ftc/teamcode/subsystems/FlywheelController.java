@@ -212,7 +212,7 @@ public class FlywheelController {
         return (rpm * TICKS_PER_REV) / 60.0;
     }
 
-    private void publishPanelsFlywheelTelemetry(double target, double current) {
+    public void publishPanelsFlywheelTelemetry(double target, double current) {
         if (panelsTelemetry == null) {
             panelsTelemetry = robot.getPanelsTelemetry();
         }

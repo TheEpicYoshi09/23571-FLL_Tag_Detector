@@ -1,18 +1,23 @@
 package org.firstinspires.ftc.teamcode.Testing;
 
 import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
+import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
+import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit;
 import org.firstinspires.ftc.teamcode.Constants;
 import org.firstinspires.ftc.teamcode.RobotHardware;
+import org.firstinspires.ftc.teamcode.drivers.rgbIndicator;
 import org.firstinspires.ftc.teamcode.subsystems.ArtifactTracker;
 import org.firstinspires.ftc.teamcode.subsystems.FlywheelController;
 import org.firstinspires.ftc.teamcode.subsystems.FlywheelPidfConfig;
@@ -21,6 +26,7 @@ import org.firstinspires.ftc.teamcode.subsystems.ShootingController;
 import org.firstinspires.ftc.teamcode.subsystems.TurretTracker;
 //import org.firstinspires.ftc.teamcode.drivers.GoBildaPinpointDriver;
 
+import java.util.List;
 import java.util.Locale;
 
 // <3.5 ft - 2,200 rpm
@@ -34,10 +40,19 @@ public class RPMTest extends LinearOpMode {
 
     RobotHardware robot = new RobotHardware(this);
 
+    private static final double MID_ZONE_DISTANCE_FT = 3.5;
+    private static final double FAR_ZONE_DISTANCE_FT = 6.0;
+    private static final double FAR_FAR_ZONE_DISTANCE_FT = 8.0;
+
     private boolean dpadUpPreviouslyPressed = false;
     private boolean dpadDownPreviouslyPressed = false;
     private boolean dpadLeftPreviouslyPressed = false;
     private boolean dpadRightPreviouslyPressed = false;
+
+    private boolean dpadUpPreviouslyPressed2 = false;
+    private boolean dpadDownPreviouslyPressed2 = false;
+    private boolean dpadLeftPreviouslyPressed2 = false;
+    private boolean dpadRightPreviouslyPressed2 = false;
 
     private final double[] spindexerPositions = new double[]{Constants.spindexer1, Constants.spindexer2, Constants.spindexer3};
 
@@ -45,6 +60,7 @@ public class RPMTest extends LinearOpMode {
     private double spinupSetpointRpm = 0.0;
     private final ElapsedTime spinupTimer = new ElapsedTime();
     private boolean measuringSpinup = false;
+    private FlywheelController flywheelController;
 
     private double rpmToTicksPerSecond(double rpm) {
         return (rpm * TICKS_PER_REV) / 60.0;
@@ -69,6 +85,82 @@ public class RPMTest extends LinearOpMode {
         launcherGroup.group.setVelocity(ticksPerSecond);
     }
 
+    public double getCurrentRpm() {
+        LauncherMotorGroup launcherGroup = robot.launcherGroup;
+        if (launcherGroup == null) {
+            telemetry.addLine("ERROR: launcher motor is NULL!");
+            return 0.0;
+        }
+        return (launcherGroup.group.getVelocity() * 60.0) / TICKS_PER_REV;
+    }
+
+    private boolean isAtSpeed() {
+        return (getCurrentRpm() >= (targetRpm - ((double) 85 /2))) && ( getCurrentRpm() <= (targetRpm + 85) );
+    }
+    private void setFrontLedColor(double color) {
+        if (robot.frontLED != null) {
+            robot.frontLED.setColor(color);
+        }
+    }
+
+    private void updateFrontLedColor() {
+        if (robot.frontLED == null) {
+            return;
+        }
+
+        if (!flywheelController.isEnabled()) {
+            setFrontLedColor(rgbIndicator.LEDColors.OFF);
+            return;
+        }
+
+        if (targetRpm == Constants.DEFAULT_RPM) {
+            setFrontLedColor(rgbIndicator.LEDColors.VIOLET);
+            return;
+        }
+
+        double currentRpm = Math.abs(targetRpm);
+        double minimumRpm = targetRpm - 85;
+        double maxRpm = targetRpm + 85;
+
+        if ( isAtSpeed() ) {
+            setFrontLedColor(rgbIndicator.LEDColors.GREEN);
+        } else if (currentRpm > maxRpm ) {
+            setFrontLedColor(rgbIndicator.LEDColors.RED);
+        } else if (currentRpm >= minimumRpm * 0.75) {
+            setFrontLedColor(rgbIndicator.LEDColors.ORANGE);
+        } else if (currentRpm >= minimumRpm * 0.5) {
+            setFrontLedColor(rgbIndicator.LEDColors.YELLOW);
+        } else {
+            setFrontLedColor(rgbIndicator.LEDColors.RED);
+        }
+    }
+
+    public void update() {
+        robot.launcherGroup.refreshLauncherPIDFFromConfig();
+
+        if (!flywheelController.isEnabled()) {
+            setFrontLedColor(rgbIndicator.LEDColors.OFF);
+            flywheelController.publishPanelsFlywheelTelemetry(targetRpm, getCurrentRpm());
+            return;
+        }
+
+        if (robot.launcherGroup == null) {
+            telemetry.addLine("ERROR: launcher motor is NULL!");
+            setFrontLedColor(rgbIndicator.LEDColors.OFF);
+            return;
+        }
+
+        updateFrontLedColor();
+
+        flywheelController.publishPanelsFlywheelTelemetry(targetRpm, getCurrentRpm());
+
+        if (measuringSpinup && isAtSpeed()) {
+            double elapsedSeconds = spinupTimer.seconds();
+            RobotLog.ii("FlywheelController", "Spin-up to %.0f RPM reached in %.2f s", spinupSetpointRpm, elapsedSeconds);
+            measuringSpinup = false;
+        }
+    }
+
     @Override
     public void runOpMode() {
         double oldTime = 0;
@@ -84,7 +176,7 @@ public class RPMTest extends LinearOpMode {
         robot.spindexerPos = spindexerPositions[spindexerIndex];
 
         TurretTracker turretTracker = new TurretTracker(robot, telemetry);
-        FlywheelController flywheelController = new FlywheelController(robot, telemetry);
+        flywheelController = new FlywheelController(robot, telemetry);
         ShootingController shootingController = new ShootingController(robot, flywheelController, telemetry);
         ArtifactTracker artifactTracker = new ArtifactTracker(robot, telemetry);
 
@@ -168,11 +260,38 @@ public class RPMTest extends LinearOpMode {
                 setFlywheelRpm(targetRpm + 10);
             }
 
+            boolean dpadUp2 = gamepad1.dpad_up;
+            boolean dpadDown2 = gamepad1.dpad_down;
+            boolean dpadLeft2 = gamepad1.dpad_left;
+            boolean dpadRight2 = gamepad1.dpad_right;
+
+            if (dpadUp2 && !dpadUpPreviouslyPressed2) {
+                flywheelController.adjustLauncherFeedforward(1.0);
+            }
+
+            if (dpadDown2 && !dpadDownPreviouslyPressed2) {
+                flywheelController.adjustLauncherFeedforward(-1.0);
+            }
+
+            if (dpadRight2 && !dpadRightPreviouslyPressed2) {
+                flywheelController.adjustLauncherFeedforward(10.0);
+            }
+
+            if (dpadLeft2 && !dpadLeftPreviouslyPressed2) {
+                flywheelController.adjustLauncherFeedforward(-10.0);
+            }
+
             dpadUpPreviouslyPressed = dpadUp;
             dpadDownPreviouslyPressed = dpadDown;
             dpadLeftPreviouslyPressed = dpadLeft;
             dpadRightPreviouslyPressed = dpadRight;
 
+            dpadUpPreviouslyPressed2 = dpadUp2;
+            dpadDownPreviouslyPressed2 = dpadDown2;
+            dpadLeftPreviouslyPressed2 = dpadLeft2;
+            dpadRightPreviouslyPressed2 = dpadRight2;
+
+            update();
             shootingController.update();
 
             if (shootingController.isIdle()) {
