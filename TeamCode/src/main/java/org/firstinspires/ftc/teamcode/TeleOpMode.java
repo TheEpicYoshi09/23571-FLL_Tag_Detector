@@ -234,14 +234,14 @@ public class   TeleOpMode extends HwInit {
 
         carousel_on = (gamepad2.x || gamepad2.b);
 
-        if (gamepad2.xWasPressed())
+        if (gamepad2.x)
         {
             carousel_dir = 1;
         }
 
-        if (gamepad2.bWasPressed())
+        if (gamepad2.b)
         {
-             carousel_dir = -1.1;
+             carousel_dir = -1;
         }
 
         intake_on = gamepad2.dpad_up;

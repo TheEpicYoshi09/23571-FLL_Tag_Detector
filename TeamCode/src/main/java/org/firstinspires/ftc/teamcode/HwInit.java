@@ -47,7 +47,7 @@ public abstract class HwInit extends OpMode
     boolean move_to_shoot = false;
     boolean move_to_load = false;
     boolean lift_on = false;
-    double carousel_speed = 0.22;
+    double carousel_speed = 0.19;
     double robot_yaw;
     double robot_roll;
     double robot_pitch;
@@ -251,7 +251,7 @@ public abstract class HwInit extends OpMode
     {
         try {
             lift.setPower(1);
-            sleep(900);
+            sleep(1000);
             do {
                 lift.setPower(-1);
             }while(!shooterPosSw.isLimitSwitchPressed());

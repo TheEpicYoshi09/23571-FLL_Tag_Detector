@@ -1,68 +1,114 @@
 package org.firstinspires.ftc.teamcode;
+
 import static java.lang.Thread.sleep;
 
 @com.qualcomm.robotcore.eventloop.opmode.Autonomous(name="Auto Mode Near Blue")
-public class AutoModeNearBlue extends HwInit {
-
-    public void init()
-    {
+public class AutoModeNearBlue extends HwInit
+{
+    @Override
+    public void init() {
         Hw_init();
     }
+
     @Override
     public void start()
     {
-
-        // start touching Blue goal
-        // start with robot aimed correctly at goal
-        // start with part of robot touching  goal
+        // Assumptions
+        // start at wall closest to pattern tag
+        // start with part of robot touching front wall
         // start within or touching shooting line (triangle)
-        // start with artifacts loaded in correct motif with first ball to shoot in position
+        // start with artifacts loaded with first ball in shoot position below
+
+        //      Intake
+        // Green --- Purple
+        //     \\    //
+        //      Purple
+        //      Shooter
+
 
         // actions
+
+        //assumes above load positions and normal Clockwise operation
+        char[] load_pattern = {'P','P','G'};
+        int carousel_pos = 0;
+
+        // actions
+
+        // drive backwards within shoot zone
+        posStraight(2.5F,1500, -1, 1);
+        //rotate 45 CCW
+        posTurn(0.5F,1500, -1, 1);
+
+        LimeLightRead();
+        telemetry.addData("current tag: ", current_tag);
+        char[] pattern = tag_to_pattern(current_tag);
+        //TODO: check for null on pattern. this means it did not find tag 21 - 23 and doesn't know what pattern
+        // easy response is just fire what you've got, advanced response is look for it
+        if (null == pattern)
+        {
+            pattern = load_pattern;
+        }
+
         // turn shooter motor on to far speed
-        shooter_on_near();
+        shooter_on_mid();
 
-        //go to good shoot place
-        posStraight(2.5f,1500, -1, 1);
+        //rotate 45 CCW
+        posTurn(0.5F,1500, 1, 1);
 
+        //TODO Verify Tag
+
+        //shoot
         try{
             //TODO: adjust this time if needed
-            sleep(500);
+            sleep(1300);
         }
         catch (InterruptedException e)
         {
             throw new RuntimeException(e);
         }
-        // raise shooter lift
-        run_lift_blocking();
-        // turn carousel to next shoot position
-        move_to_next_shoot_blocking(1);
-        // raise shooter lift
-        run_lift_blocking();
-        // turn carousel to next shoot position
-        move_to_next_shoot_blocking(1);
-        // raise shooter lift
-        run_lift_blocking();
-        shooter_off();
+
+        for (int i=0; i < pattern.length; i++)
+        {
+            update_light( pattern[i]=='P'? "PURPLE" : "GREEN" );
+            telemetry.addData("pattern color: ", pattern[i]);
+            telemetry.addData("loop: ", i);
+            telemetry.addData("carousel_pos; ", carousel_pos);
+
+            if (pattern[i] == load_pattern[carousel_pos])
+            {
+                //First one correct, fire in the hole
+                run_lift_blocking();
+                telemetry.addLine("FIRE 1!");
+            }
+            else
+            {
+                if (pattern[i] == load_pattern[(carousel_pos + 1) % 3]) {
+                    move_to_next_shoot_blocking(1);
+                    carousel_pos = (carousel_pos + 1) % 3;
+                    //FIRE!
+                    run_lift_blocking();
+                    telemetry.addLine("FIRE 2!");
+                }
+                else if (pattern[i] == load_pattern[(carousel_pos + 2) % 3]) {
+                    move_to_next_shoot_blocking(-1);
+                    carousel_pos = (carousel_pos + 2) % 3;
+                    //FIRE!
+                    run_lift_blocking();
+                    telemetry.addLine("FIRE 3!");
+                }
+            }
+            load_pattern[carousel_pos] = 'E';
+            //update_light("UNK");
+        }
+
+
         // drive out of shoot zone
         posStrafe(1,1500, -1,1);
-        //TODO: probably backwards. think about how you can do this the same on
-        //  both sides so you can ignore red/blue. what if other robot is in your spot?
-
-
-
-
-
-
-
+        shooter_off();
     }
-
-
     @Override
     public void loop() {
-
         update_imu();
-
         if (LoadSw.isLimitSwitchClosed()) {
             telemetry.addData("Load State", LoadSw.isLimitSwitchClosed());
         }else {
@@ -73,52 +119,12 @@ public class AutoModeNearBlue extends HwInit {
         }else {
             telemetry.addData("Shoot State", ShootSw.isLimitSwitchClosed());
         }
-        /*
-        if (lift_on) {
+        telemetry.addData("Shoot Pos Switch: ", shooterPosSw.isLimitSwitchPressed());
 
-            try {
-                lift.setPower(1);
-                sleep(2000);
-                lift.setPower(-1);
-                sleep(2000);
-            } catch (InterruptedException e) { //WHY IS IT DOING THIS PLEASE HELP
-                throw new RuntimeException(e);
-            }
-            lift.setPower(0);
-        }else {
-            lift.setPower(0);
-        }*/
-
-        //forward 5 secs (go to shooting zone (probably))
-/*timer.reset();
-        while (timer.time() <=5){
-            frontRightMotor.setPower(1);
-            frontLeftMotor.setPower(1);
-            backRightMotor.setPower(1);
-            backLeftMotor.setPower(1);
-        }*/
-        //total time:5
-
-        //launch shooter
-        /*timer.reset();
-        while (timer.time() <=5){
-            //lift on
-            //shooter on
-        }*/
-
-        //launch shooter
-       /* timer.reset();
-        while (timer.time() <=5){
-            //lift on
-            //shooter on
-        }*/
-
-        //launch shooter
-        /*timer.reset();
-        while (timer.time() <=6){
-            //lift on
-            //shooter on
-        }*/
-        //time:30ish
     }
+
+
+
 }
+
+
