@@ -3,6 +3,8 @@ package org.firstinspires.ftc.teamcode;
 import static com.qualcomm.robotcore.util.ElapsedTime.Resolution.MILLISECONDS;
 //import static java.lang.Thread.sleep;
 
+import static java.lang.Thread.sleep;
+
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -19,11 +21,11 @@ public class   TeleOpMode extends HwInit {
   boolean intake_clear = false;
   double carousel_dir = 1;
   ElapsedTime lift_up_timer = new ElapsedTime(MILLISECONDS);
-  double lift_up_time_limit = 2100;
+  double lift_up_time_limit = 900;
   boolean move_lift_up = false;
   boolean move_lift_down = false;
 
-
+  long tick = 0;
 
 
     public void init()
@@ -34,10 +36,15 @@ public class   TeleOpMode extends HwInit {
         //initialise bumpers as "not pressed"
         r_bump_1 = false;
         l_bump_1 = false;
+
+        //you probably dont want to do this.
+        //telemetry.setAutoClear(false);
     }
 
     @Override
     public void loop() {
+        double liftPow = lift.getPower();
+        telemetry.addData("lift power: ", liftPow);
         Boolean state = LimeLightRead();
         telemetry.addData("current tag: ", current_tag);
         ColorSensor.DetectedColor color = color_sense.getDetectedColor(telemetry);
@@ -57,6 +64,64 @@ public class   TeleOpMode extends HwInit {
         {
             move_to_shoot_from_load(carousel_dir);
         }
+        try {
+            if (lift_on) {
+                if (ShootSw.isLimitSwitchClosed()) {
+                    telemetry.addLine()
+                            .addData("lift_on: lift UP: ", move_lift_up)
+                            .addData(" lift DOWN: ", move_lift_down);
+                    move_lift_up = true;
+                    lift_up_timer.reset();
+                }
+            }
+            if (move_lift_up) {
+                lift.setPower(1.0);
+                telemetry.addData("timer: ", lift_up_timer.time());
+
+                if (lift_up_timer.time() >= lift_up_time_limit) {
+                    //lift.setPower(0); //removed while debugging - may overload command bus?
+                    move_lift_up = false;
+                    move_lift_down = true;
+                    lift_up_timer.reset();
+                }
+                telemetry.addLine()
+                        .addData("end of move up: lift UP: ", move_lift_up)
+                        .addData(" lift DOWN: ", move_lift_down);
+            }
+            if (move_lift_down) {
+                lift.setPower(-1.0);
+                if (shooterPosSw.isLimitSwitchPressed()) {
+                telemetry.addLine()
+                        .addData("down switch pressed: lift UP: " , move_lift_up)
+                        .addData(" lift DOWN: ", move_lift_down);
+                    move_lift_down = false;
+                    lift.setPower(0.0);
+                    liftPow = lift.getPower();
+
+                    telemetry.addData("lift poooooooooooooooooooooooooooooooooooooooooower: ", liftPow);
+                }
+            /*telemetry.addLine()
+                    .addData("end lift down: lift UP: " , move_lift_up)
+                    .addData(" lift DOWN: ", move_lift_down);*/
+            }
+        } catch (Exception e) {
+            telemetry.addLine("EXCEPTIONAL!!!");
+            try {
+                sleep(1000);
+            } catch (InterruptedException ex) {
+                throw new RuntimeException(ex);
+            }
+            throw new RuntimeException(e);
+        }
+        //failsafe
+        if (!move_lift_down &&
+                !move_lift_up)
+        {
+            lift.setPower(0.0);
+            telemetry.addLine()
+                    .addData("end failsafe: lift UP: " , move_lift_up)
+                    .addData(" lift DOWN: ", move_lift_down);
+        }
 
         run_motors();
         telemetry.update();
@@ -75,32 +140,7 @@ public class   TeleOpMode extends HwInit {
         }
         telemetry.addData("Shoot Pos Switch: ", shooterPosSw.isLimitSwitchPressed());
 
-        if (lift_on) {
-            if (ShootSw.isLimitSwitchClosed())
-            {
-                move_lift_up = true;
-                lift_up_timer.reset();
-            }
-        }
-        if(move_lift_up)
-        {
-            lift.setPower(1);
-            if (lift_up_timer.time() >= lift_up_time_limit)
-            {
-                lift.setPower(0);
-                move_lift_up = false;
-                move_lift_down = true;
-            }
-        }
-        if (move_lift_down)
-        {
-            lift.setPower(-1);
-            if (shooterPosSw.isLimitSwitchPressed())
-            {
-                lift.setPower(0);
-                move_lift_down = false;
-            }
-        }
+
 
         if (intake_on)
         {
@@ -194,14 +234,14 @@ public class   TeleOpMode extends HwInit {
 
         carousel_on = (gamepad2.x || gamepad2.b);
 
-        if (gamepad2.xWasPressed())
+        if (gamepad2.x)
         {
             carousel_dir = 1;
         }
 
-        if (gamepad2.bWasPressed())
+        if (gamepad2.b)
         {
-             carousel_dir = -1.1;
+             carousel_dir = -1;
         }
 
         intake_on = gamepad2.dpad_up;

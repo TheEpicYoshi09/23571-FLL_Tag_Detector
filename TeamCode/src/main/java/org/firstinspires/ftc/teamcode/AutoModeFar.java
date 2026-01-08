@@ -49,16 +49,15 @@ public class AutoModeFar extends HwInit {
       final char[] blink = pattern;
       // FTC: dont use threads
       // me: lolwut
-      new Thread() {
-          @Override public void run() { blink_pattern(blink); }
-      }.start();
+      /*new Thread() {
+          @Override public void run() { blink_pattern(blink); }*/
 
 
       // turn shooter motor on to far speed
       shooter_on_far();
       try{
           //TODO: adjust this time if needed
-          sleep(1000);
+          sleep(1200);
       }
       catch (InterruptedException e)
       {
@@ -75,7 +74,7 @@ public class AutoModeFar extends HwInit {
           if (pattern[i] == load_pattern[carousel_pos])
           {
               //First one correct, fire in the hole
-              run_lift();
+              run_lift_blocking();
               telemetry.addLine("FIRE 1!");
           }
           else
@@ -84,14 +83,14 @@ public class AutoModeFar extends HwInit {
                   move_to_next_shoot_blocking(1);
                   carousel_pos = (carousel_pos + 1) % 3;
                   //FIRE!
-                  run_lift();
+                  run_lift_blocking();
                   telemetry.addLine("FIRE 2!");
               }
               else if (pattern[i] == load_pattern[(carousel_pos + 2) % 3]) {
-                  move_to_next_shoot_blocking(-1.1);
+                  move_to_next_shoot_blocking(-1);
                   carousel_pos = (carousel_pos + 2) % 3;
                   //FIRE!
-                  run_lift();
+                  run_lift_blocking();
                   telemetry.addLine("FIRE 3!");
               }
           }
