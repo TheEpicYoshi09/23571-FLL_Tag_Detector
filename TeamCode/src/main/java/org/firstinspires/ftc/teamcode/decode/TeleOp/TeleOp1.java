@@ -117,10 +117,10 @@ public class TeleOp1 extends LinearOpMode {
             else {
                 loader.setPower(0);
             }
-            if(gamepad1.x){
+            if(gamepad1.x){ // far
                 servo.setPosition(0.5);
             }
-            else if(gamepad1.b){
+            else if(gamepad1.b){ // close
                 servo.setPosition(0.75);
             }
 
