@@ -223,15 +223,17 @@ public class DriveControlClass {
         backLeftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         backRightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        frontLeftDrive.setDirection(DcMotorSimple.Direction.REVERSE);
+        frontLeftDrive.setDirection(DcMotorSimple.Direction.FORWARD);
         frontRightDrive.setDirection(DcMotorSimple.Direction.FORWARD);
         backLeftDrive.setDirection(DcMotorSimple.Direction.FORWARD);
-        backRightDrive.setDirection(DcMotorSimple.Direction.REVERSE);
+        backRightDrive.setDirection(DcMotorSimple.Direction.FORWARD);
 
-        backLeftDrive.setPower(forward - strafe + turn);
-        backRightDrive.setPower(-forward + strafe + turn);
-        frontLeftDrive.setPower(forward + strafe + turn);
-        frontRightDrive.setPower(-forward - strafe + turn);
+        backLeftDrive.setPower(-forward - strafe + turn);
+        backRightDrive.setPower(forward - strafe + turn);
+        frontLeftDrive.setPower(-forward + strafe + turn);
+        frontRightDrive.setPower(forward + strafe + turn);
+        telemetry.addLine("Running");
+
     }
 
     /**
