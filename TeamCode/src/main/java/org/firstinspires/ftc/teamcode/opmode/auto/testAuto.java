@@ -45,7 +45,7 @@ public class testAuto extends LinearOpMode {
         AutoStep autoStep = AutoStep.POSITION;
 
         // safety timeout values (adjust as needed)
-        final double SHOOT_TIMEOUT_S = 3.0;    // max seconds to wait for shooter
+        final double SHOOT_TIMEOUT_S = 7;    // max seconds to wait for shooter
         final double AIM_TOLERANCE_DEG = 5.0;  // aim tolerance in degrees
 
         while (opModeIsActive() && autoStep != AutoStep.DONE) {
@@ -70,7 +70,7 @@ public class testAuto extends LinearOpMode {
             telemetry.addData("TxOffset", robot.turret.getTxOffset());
             telemetry.addData("ShooterBusy", robot.shooter.isBusy());
             telemetry.addData("DriveBusy", robot.drive.isBusy());
-            telemetry.addData("Outtake Velecity", robot.shooter.getOuttakeVelocity());
+            telemetry.addData("Outtake Velocity", robot.shooter.getOuttakeVelocity());
 
 
             switch (autoStep) {
@@ -109,20 +109,20 @@ public class testAuto extends LinearOpMode {
                         timer.reset();
                         autoStep = AutoStep.DONE;
 
-//                        if (timer.seconds() > 5) {
-//                            autoStep = AutoStep.DRIVE;
-//                            robot.drive.resetEncoders();
-//                            robot.drive.setTargetForwardInches(10, 0.8);
-//                            robot.drive.setRunToPositionMode();
-//                        }
+                        if (timer.seconds() > 7) {
+                            autoStep = AutoStep.DRIVE;
+                            robot.drive.resetEncoders();
+                            robot.drive.setTargetForwardInches(10, 0.8);
+                            robot.drive.setRunToPositionMode();
+                        }
 
-//                    } else if (timer.seconds() > SHOOT_TIMEOUT_S) {
-//                        // shooter stuck — bail out to next step to avoid stall
-//                        telemetry.addData("WARN", "Shooter timeout, continuing.");
-////                        autoStep = AutoStep.DRIVE;
-////                        robot.drive.resetEncoders();
-////                        robot.drive.setTargetForwardInches(10, 0.8);
-////                        robot.drive.setRunToPositionMode();
+                    } else if (timer.seconds() > SHOOT_TIMEOUT_S) {
+                        // shooter stuck — bail out to next step to avoid stall
+                        telemetry.addData("WARN", "Shooter timeout, continuing.");
+                        autoStep = AutoStep.DRIVE;
+                        robot.drive.resetEncoders();
+                        robot.drive.setTargetForwardInches(10, 0.8);
+                        robot.drive.setRunToPositionMode();
 
                     }
                     break;
