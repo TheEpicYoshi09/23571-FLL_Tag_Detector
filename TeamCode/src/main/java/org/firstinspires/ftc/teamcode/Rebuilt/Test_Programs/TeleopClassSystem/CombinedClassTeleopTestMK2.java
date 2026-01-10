@@ -18,7 +18,7 @@ public class CombinedClassTeleopTestMK2 extends LinearOpMode {
     // Drive components
     public static boolean driveMotorsAttached = true;
     public static boolean imuAttached = true;
-    public static boolean backMotorPidAttached = true;
+    public static boolean backMotorPidAttached = false;
 
     // Intake configuration
     public static boolean IntakeAttached = true;
