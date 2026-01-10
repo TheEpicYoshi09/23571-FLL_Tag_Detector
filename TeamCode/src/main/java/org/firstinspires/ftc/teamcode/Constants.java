@@ -11,9 +11,9 @@ public class Constants {
 
     /// LAUNCHER SETPOINTS
     public static final double DEFAULT_RPM = 1500.0;
-    public static final double LAUNCH_ZONE_MID_RPM = 2000.0; // ~3.5 ft
-    public static final double LAUNCH_ZONE_FAR_RPM = 2200.0; // ~5.5 ft
-    public static final double LAUNCH_ZONE_FAR_FAR_RPM = 2700.0; // >8 ft
+    public static final double LAUNCH_ZONE_MID_RPM = 2200.0; // ~3.5 ft, OLD : 2000.0
+    public static final double LAUNCH_ZONE_FAR_RPM = 2350.0; // ~5.5 ft, OLD : 2200.0
+    public static final double LAUNCH_ZONE_FAR_FAR_RPM = 2700.0; // ~8 ft, OLD : 2700.0
     public static final double FLYWHEEL_TOLERANCE_RPM = 85.0;
     public static final double LAUNCHER_GEAR_REDUCTION = 16.0 / 24.0; // motor:flywheel = 2:3
 

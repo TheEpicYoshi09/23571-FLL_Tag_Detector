@@ -61,6 +61,9 @@ public class ShootingController {
 
         switch (shootState) {
             case WAIT_FOR_SPINUP:
+                telemetry.addData("IS AT SPEED?", flywheelController.isAtSpeed());
+                telemetry.addData("IS AIMED AT TARGET?", isAimedAtTarget());
+                telemetry.addData("SHOOT TIMER", shootTimer.milliseconds());
                 if (flywheelController.isAtSpeed() && isAimedAtTarget() && shootTimer.milliseconds() >= 250) {
                     robot.kicker.setPosition(Constants.kickerUp);
                     shootTimer.reset();
@@ -113,15 +116,19 @@ public class ShootingController {
      *
      * @return true once the controller has completed the queued shots and returned to IDLE
      */
-    public boolean updateAndIsComplete() {
+    public boolean updateAndIsComplete(boolean runIntakeOnLastShot) {
         update();
-        if (shotsRemaining == 1) {
-            robot.runIntake(RobotHardware.IntakeDirection.IN);
-        } else if (shotsRemaining == 0) {
-            robot.runIntake(RobotHardware.IntakeDirection.STOP);
+        if (runIntakeOnLastShot) {
+            if (shotsRemaining == 1) {
+                robot.runIntake(RobotHardware.IntakeDirection.IN);
+            } else if (shotsRemaining == 0) {
+                robot.runIntake(RobotHardware.IntakeDirection.STOP);
+            }
         }
         return shootState == ShootState.IDLE && shotsRemaining == 0;
     }
+
+    public boolean updateAndIsComplete() { return updateAndIsComplete(false); }
 
     public boolean isIdle() {
         return shootState == ShootState.IDLE;
@@ -139,7 +146,8 @@ public class ShootingController {
 
         double txPercent = result.getTx();
         if (!Double.isNaN(txPercent)) {
-            return Math.abs(txPercent) <= 0.075;
+            telemetry.addData("*** TX PERCENT", Math.abs(txPercent));
+            return Math.abs(txPercent) <= 0.525; // USE TO BE <=, AND 0.075
         }
 
         List<LLResultTypes.FiducialResult> fiducials = result.getFiducialResults();
@@ -148,7 +156,8 @@ public class ShootingController {
         }
 
         double txDegrees = fiducials.get(0).getTargetXDegrees();
-        return Math.abs(txDegrees) <= 5.0;
+        telemetry.addData("*** TX DEGREES", txDegrees);
+        return Math.abs(txDegrees) <= 10.0;
     }
 
     private void syncSpindexerIndex() {
