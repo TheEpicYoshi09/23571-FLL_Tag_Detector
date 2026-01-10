@@ -32,6 +32,9 @@ public class ShooterSubsystem {
     // Tunables
     private final int shortShotVelocity = 950; // spin power
     private final int longShotVelocity = 1250; // spin power
+    private final int AutoShortShotVelocity = 950; // spin power
+    private final int AutoLongShotVelocity = 1100; // spin power
+
     private final int ejectVelocity = 500;
     private final double targetPower = 1.0; // spin power
     private final double intakePower = 1.0; // spin power
@@ -88,7 +91,7 @@ public class ShooterSubsystem {
 
     /** Start a single, timed shot. Returns immediately (non-blocking). */
     public void startShot(int shots, String type) {
-        if(busy) {
+        if (busy) {
             //telemetry.addLine("Shooter is busy");
             //telemetry.update();
             return; // ignore if already running
@@ -102,10 +105,16 @@ public class ShooterSubsystem {
         timer.reset();
 
         //launcher.setPower(targetPower);
-        if (Objects.equals(shotType, "short")){
+        if (Objects.equals(shotType, "short")) {
             outtakeMotor.setVelocity(shortShotVelocity);
-        } else {
+        } else if (Objects.equals(shotType, "long")) {
             outtakeMotor.setVelocity(longShotVelocity);
+        } else if (Objects.equals(shotType, "autoShort")) {
+            outtakeMotor.setVelocity(AutoShortShotVelocity);
+        } else {
+            if (Objects.equals(shotType, "autoLong")) {
+                outtakeMotor.setVelocity(AutoLongShotVelocity);
+            }
         }
     }
 

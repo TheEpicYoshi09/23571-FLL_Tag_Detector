@@ -17,7 +17,12 @@ public class TurretSubsystem {
     double turnPower = 0;
 
     // Limelight aiming constants --------------------------------------------------------
-    private static final double TURRET_KP = 0.06; // tune on field orig 0.015
+    private static double TURRET_KP = 0.06; // tune on field orig 0.015
+
+    public void setTurretKP(double kp) {
+        TURRET_KP = kp;
+    }
+
     private static final double MAX_AUTO_POWER = 1;
     private static final double TX_DEADBAND = 1.0; // degrees
 

@@ -111,7 +111,6 @@ public class DriveSubsystem {
         frontRightMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         backLeftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         backRightMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
     }
 
     public void setTargetForwardInches(double inches, double power) {
