@@ -15,6 +15,7 @@ import java.util.Map;
 
 public class StateMachine {
     public enum State {
+        STOP,
         HOME,
         AUTO_HOME_NEAR,
         AUTO_NEAR,
@@ -31,6 +32,7 @@ public class StateMachine {
     private final FlywheelController flywheelController;
     private final TurretTracker turretTracker;
     private final FindGoal findGoal;
+    private final boolean runTrackTurret = false;
 
     private Timer pathTimer = new Timer();
     private Timer autoTimer = new Timer();
@@ -217,8 +219,9 @@ public class StateMachine {
                         break;
                     case 7:
                         if ( completedPath() ) {
-                            if ( shoot() ) {
+                            if ( shoot(null, true) ) {
                                 stopFlywheel();
+                                setState(State.STOP);
                                 autoNearSubStep++;
                             }
                         }
@@ -289,6 +292,11 @@ public class StateMachine {
                                 stopFlywheel();
                                 autoFarSubStep++;
                             }
+                        }
+                        break;
+                    case 9:
+                        if (completedPath()) {
+                            setState(State.STOP);
                         }
                         break;
                     default:

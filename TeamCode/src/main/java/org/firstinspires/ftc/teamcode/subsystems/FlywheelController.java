@@ -99,6 +99,10 @@ public class FlywheelController {
         FlywheelPidfConfig.launcherF += delta;
     }
 
+    public void setLauncherFeedforward(double delta) {
+        FlywheelPidfConfig.launcherF = delta;
+    }
+
     /**
      * Restore driver-tunable values to their default Constants-based settings.
      */
@@ -148,10 +152,13 @@ public class FlywheelController {
                     double distanceFeet = distanceMeters * 3.28084;
 
                     if (distanceFeet >= FAR_FAR_ZONE_DISTANCE_FT) {
+                        //setLauncherFeedforward(29);
                         rpm = Constants.LAUNCH_ZONE_FAR_FAR_RPM;
                     } else if (distanceFeet < MID_ZONE_DISTANCE_FT) {
+                        //setLauncherFeedforward(31);
                         rpm = Constants.LAUNCH_ZONE_MID_RPM;
                     } else {
+                        //setLauncherFeedforward(31);
                         double clampedDistance = Range.clip(distanceFeet, MID_ZONE_DISTANCE_FT, FAR_ZONE_DISTANCE_FT);
                         double distanceRatio = (clampedDistance - MID_ZONE_DISTANCE_FT) / (FAR_ZONE_DISTANCE_FT - MID_ZONE_DISTANCE_FT);
                         rpm = Constants.LAUNCH_ZONE_MID_RPM

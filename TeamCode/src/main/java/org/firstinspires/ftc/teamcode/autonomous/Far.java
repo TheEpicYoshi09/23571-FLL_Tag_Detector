@@ -50,6 +50,11 @@ public class Far extends LinearOpMode {
             follower.update();
             drawer.draw();
 
+            if (stateMachine.getState() == StateMachine.State.STOP) {
+                stop();
+                break;
+            }
+
             panelsTelemetry.debug("State", stateMachine.getState());
             panelsTelemetry.debug("Pose X", follower.getPose().getX());
             panelsTelemetry.debug("Pose Y", follower.getPose().getY());
