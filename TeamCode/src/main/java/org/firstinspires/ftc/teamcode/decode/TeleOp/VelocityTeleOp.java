@@ -42,10 +42,10 @@ public class VelocityTeleOp extends LinearOpMode {
             // Shooter velocity control - use right trigger to control speed
             if (gp1.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) > 0.1) {
                 // Spin up to 2600 ticks/sec when right trigger is pressed
-                robot.shooter.setVelocity(2600);
+                robot.shooter.setVelocity(2200);
             } else if (gp1.isDown(GamepadKeys.Button.A)) {
                 // Alternative: Press A to spin up shooter
-                robot.shooter.setVelocity(2600);
+                robot.shooter.setVelocity(1750);
             } else if (gp1.isDown(GamepadKeys.Button.Y)) {
                 // Press Y to stop shooter
                 robot.shooter.stop();
