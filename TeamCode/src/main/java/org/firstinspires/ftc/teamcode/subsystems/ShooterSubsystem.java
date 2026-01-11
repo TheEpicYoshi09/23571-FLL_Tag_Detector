@@ -30,13 +30,16 @@ public class ShooterSubsystem {
     private final Servo leftVerticalServo;
 
     // Tunables
-    private final int shortShotVelocity = 1400; // spin power
-    private final int longShotVelocity = 2000; // spin power
-    private final int ejectVelocity = 1000;
+    private final int shortShotVelocity = 950; // spin power
+    private final int longShotVelocity = 1250; // spin power
+    private final int AutoShortShotVelocity = 960; // spin power
+    private final int AutoLongShotVelocity = 1000; // spin power
+
+    private final int ejectVelocity = 500;
     private final double targetPower = 1.0; // spin power
     private final double intakePower = 1.0; // spin power
     private final long spinUpMs = 2000; // wait time before feed
-    private final long feedMs = 1000; // time to press the ball
+    private final long feedMs = 2000; // time to press the ball
     private final long spinDownMs = 1000; // optional coast-down window
     private final int velocityTolerance = 35; // how far away from the target velocity is OK
     private String shotType = "";
@@ -51,6 +54,15 @@ public class ShooterSubsystem {
     private int numberOfShots = 0;
     private int numberOfBalls = 0;
     private double lastVelocity = 0;
+
+    // --- Dynamic Shot Power ---
+//    public static double shotSpeed(double distance){
+//        return MathFunctions
+//    }
+//
+//    public static double hoodAngle(double distance){
+//        return MathFunctions
+//    }
 
 
     public ShooterSubsystem(HardwareMap hardwareMap) {
@@ -79,7 +91,7 @@ public class ShooterSubsystem {
 
     /** Start a single, timed shot. Returns immediately (non-blocking). */
     public void startShot(int shots, String type) {
-        if(busy) {
+        if (busy) {
             //telemetry.addLine("Shooter is busy");
             //telemetry.update();
             return; // ignore if already running
@@ -93,10 +105,16 @@ public class ShooterSubsystem {
         timer.reset();
 
         //launcher.setPower(targetPower);
-        if (Objects.equals(shotType, "short")){
+        if (Objects.equals(shotType, "short")) {
             outtakeMotor.setVelocity(shortShotVelocity);
-        } else {
+        } else if (Objects.equals(shotType, "long")) {
             outtakeMotor.setVelocity(longShotVelocity);
+        } else if (Objects.equals(shotType, "autoShort")) {
+            outtakeMotor.setVelocity(AutoShortShotVelocity);
+        } else {
+            if (Objects.equals(shotType, "autoLong")) {
+                outtakeMotor.setVelocity(AutoLongShotVelocity);
+            }
         }
     }
 
@@ -208,6 +226,9 @@ public class ShooterSubsystem {
 
         leftVerticalServo.setPosition(anglePos);
     }
+    public void hoodAngle(double position) {
+        leftVerticalServo.setPosition(position);
+    }
 
 
     public void angleUp() {
@@ -252,9 +273,15 @@ public class ShooterSubsystem {
         outtakeMotor.setPower(0);
     }
 
+    // --- Getters ---
+    public double getOuttakeVelocity() {
+        return outtakeMotor.getVelocity();
+    }
+
+
     public void addTelemetry(Telemetry telemetry) {
         telemetry.addLine("----- Shooter -----");
-        telemetry.addData("Shooter Velocity = ", lastVelocity);
+        telemetry.addData("Shooter Velocity = ", getOuttakeVelocity());
         telemetry.addData("Vertical Aim Pos", anglePos);
 
     }

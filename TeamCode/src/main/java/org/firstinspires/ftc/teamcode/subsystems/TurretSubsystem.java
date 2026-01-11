@@ -13,12 +13,17 @@ public class TurretSubsystem {
     private final double turretMin = 0.15;
     private double TurretPos = 0;
     // Setup for Speed for both Turret and Angle -----------------------------------------
-    private final double speed = 0.8;
+    private final double speed = 1;
     double turnPower = 0;
 
     // Limelight aiming constants --------------------------------------------------------
-    private static final double TURRET_KP = 0.5; // tune on field
-    private static final double MAX_AUTO_POWER = 0.5;
+    private static double TURRET_KP = 0.06; // tune on field orig 0.015
+
+    public void setTurretKP(double kp) {
+        TURRET_KP = kp;
+    }
+
+    private static final double MAX_AUTO_POWER = 1;
     private static final double TX_DEADBAND = 1.0; // degrees
 
     // Aiming ------------------------------------------------------------------------------
@@ -85,6 +90,21 @@ public class TurretSubsystem {
 
 
     // Manual Aiming
+    public void turretRunToPosition(int targetTicks) {
+        if (state == State.MANUAL) {
+            return; // do not override manual control
+        }
+
+        // Set the target
+        turntableMotor.setTargetPosition(targetTicks);
+
+        // Switch mode
+        turntableMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        // Apply power (FTC SDK requires power > 0 to move)
+        turntableMotor.setPower(0.5); // adjust speed as needed
+    }
+
     public void manualAiming(double horizontal) {
 
         // Deadzone
@@ -109,6 +129,17 @@ public class TurretSubsystem {
         }
     }
 
+    // Horizontal aim offset (degrees)
+    // + = shift right, - = shift left
+    private double txOffsetDeg = 0.0;
+
+    public void setTxOffset(double offset) {
+        txOffsetDeg = offset;
+    }
+
+    public double getTxOffset() {
+        return txOffsetDeg;
+    }
 
     public void toggleAutoAim() {
         autoAimEnabled = !autoAimEnabled;
@@ -129,13 +160,12 @@ public class TurretSubsystem {
             return;
         }
 
-        double power = tx * TURRET_KP;
+        double power = tx * (TURRET_KP * -1);
         power = Math.max(-MAX_AUTO_POWER, Math.min(MAX_AUTO_POWER, power));
 
         int currentPos = turntableMotor.getCurrentPosition();
 
-        if ((currentPos <= TURRET_MIN_TICKS && power < 0) ||
-                (currentPos >= TURRET_MAX_TICKS && power > 0)) {
+        if ((currentPos <= TURRET_MIN_TICKS && power < 0) || (currentPos >= TURRET_MAX_TICKS && power > 0)) {
             turntableMotor.setPower(0);
         } else {
             turntableMotor.setPower(power);
@@ -155,20 +185,35 @@ public class TurretSubsystem {
 
     }
     public void update(double horizontalInput, double tx, boolean hasTarget) {
-        // Detect manual override
+
+        // 1. Manual ALWAYS wins
         if (Math.abs(horizontalInput) > MANUAL_DEADZONE) {
             manualOverride = true;
-        } else if (manualOverride) {
-            manualOverride = false;  // release override when stick returns to center
+            autoAimEnabled = false;       // force-disable auto aim
+            state = State.MANUAL;
+            manualAiming(horizontalInput);
+            return;
         }
 
-        // Decide what to run
-        if (autoAimEnabled && !manualOverride && hasTarget) {
-            autoAim(tx, true);
-        } else {
-            manualAiming(horizontalInput);
+        // 2. Stick returned to center → clear override
+        if (manualOverride && Math.abs(horizontalInput) <= MANUAL_DEADZONE) {
+            manualOverride = false;
         }
+
+        // 3. If auto aim is OFF → go idle
+        if (!autoAimEnabled) {
+            state = State.IDLE;
+            turntableMotor.setPower(0);
+            return;
+        }
+
+        // 4. Auto aim behavior
+        double correctedTx = tx + txOffsetDeg;  // apply your limelight offset here
+        state = State.AUTO;
+        autoAim(correctedTx, hasTarget);
     }
+
+
 
 
     public void addTelemetry (Telemetry telemetry){

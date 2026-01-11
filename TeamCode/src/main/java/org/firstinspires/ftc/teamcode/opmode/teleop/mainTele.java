@@ -21,6 +21,15 @@ public class mainTele extends LinearOpMode {
     boolean XPressedLast = false;
     boolean YPressedLast = false;
 
+    boolean DPadLeftPressedLast = false;
+    boolean DPadRightPressedLast = false;
+    boolean DPadUpPressedLast = false;
+    boolean DPadDownPressedLast = false;
+
+    private String shotType = "";
+
+
+
 
     //@Override
     public void runOpMode() throws InterruptedException {
@@ -59,11 +68,24 @@ public class mainTele extends LinearOpMode {
                 robot.turret.enableAutoAim();
             }
 
+            if(gamepad2.dpad_left && !DPadLeftPressedLast) {
+                robot.vision.clearAllowedTags();
+                robot.vision.addAllowedTag(20);
+            }
+            if(gamepad2.dpad_right && !DPadRightPressedLast) {
+                robot.vision.clearAllowedTags();
+                robot.vision.addAllowedTag(24);
+            }
+
+
+
 
             // --- Turret Control ---
             robot.turret.manualAiming(-gamepad2.right_stick_x);
             robot.turret.autoAim(robot.vision.getTx(), robot.vision.hasTarget());
-            robot.turret.update(horizontal, robot.vision.getTx(), robot.vision.hasTarget());
+            robot.turret.setTxOffset(0);
+            robot.turret.update(-gamepad2.right_stick_x, robot.vision.getTx(), robot.vision.hasTarget());
+
 
             if (gamepad2.x && !XPressedLast) {
                 robot.turret.toggleAutoAim();
@@ -72,10 +94,16 @@ public class mainTele extends LinearOpMode {
 
             robot.shooter.manualAngling(gamepad2.left_stick_y);
 
-            // --- Load Shot ---
-            if (gamepad2.right_bumper && !BPressedLast) {
-                robot.shooter.eject();
+            // --- Auto Shot Type ---
+            if(robot.vision.getTagDistanceMeters() < 2.5 || !robot.vision.hasTarget()){
+                shotType = "short";
+            } else {
+                shotType = "long";
             }
+            if (gamepad2.b) {
+                robot.shooter.startShot(1, shotType);
+            }
+
             // --- Initiate a short shot ---
             if (gamepad2.y && !YPressedLast) {
                     robot.shooter.startShot(1, "short");
@@ -87,14 +115,6 @@ public class mainTele extends LinearOpMode {
             }
 
             // Manually control the intakes -----------------------------------------------
-            // --- block intake ---
-            if (!robot.shooter.isBusy()) {  // Only allow manual intake control if not shooting
-                if (gamepad2.b && !BPressedLast) {
-                    robot.shooter.unBlockIntake();
-                } else {
-                    robot.shooter.blockIntake();
-                }
-            }
             // --- Intake ---
             if (!robot.shooter.isBusy()) {
                 // Control the first intake

@@ -1,8 +1,10 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
 import static org.firstinspires.ftc.teamcode.constants.DriveConstants.DriveConstants.TICKS_PER_INCH;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -11,6 +13,8 @@ public class DriveSubsystem {
 
     private final DcMotor frontLeftMotor, frontRightMotor, backLeftMotor, backRightMotor;
     private double speedMultiplier = 1.0;
+    private static final double TICKS_PER_DEGREE = 7.75;
+
 
     double lastLfPower = 0;
     double lastLbPower = 0;
@@ -75,6 +79,10 @@ public class DriveSubsystem {
         frontRightMotor.setPower(0);
         backRightMotor.setPower(0);
     }
+    public boolean isBusy() {
+        return frontLeftMotor.isBusy() || backLeftMotor.isBusy() ||
+                frontRightMotor.isBusy() || backRightMotor.isBusy();
+    }
 
     public void addTelemetry(Telemetry telemetry) {
         telemetry.addLine("----- Motors -----");
@@ -107,20 +115,43 @@ public class DriveSubsystem {
         frontRightMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         backLeftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         backRightMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
     }
 
-    public void setTargetForwardInches(double inches, double power) {
-        int moveTicks = (int) Math.round(inches * TICKS_PER_INCH);
+    public void setTargetDrive(double forwardInches, double strafeInches, double rotateDegrees, double power) {
+        if (power > 0) {
+            frontLeftMotor.setDirection(DcMotor.Direction.REVERSE);
+            backLeftMotor.setDirection(DcMotor.Direction.REVERSE);
+            frontRightMotor.setDirection(DcMotor.Direction.REVERSE);
+            backRightMotor.setDirection(DcMotor.Direction.FORWARD);
+        } else {
+            frontLeftMotor.setDirection(DcMotor.Direction.FORWARD);
+            backLeftMotor.setDirection(DcMotor.Direction.FORWARD);
+            frontRightMotor.setDirection(DcMotor.Direction.FORWARD);
+            backRightMotor.setDirection(DcMotor.Direction.REVERSE);
+        }
 
-        frontLeftMotor.setTargetPosition(frontLeftMotor.getCurrentPosition() + moveTicks);
-        frontRightMotor.setTargetPosition(frontRightMotor.getCurrentPosition() + moveTicks);
-        backLeftMotor.setTargetPosition(backLeftMotor.getCurrentPosition() + moveTicks);
-        backRightMotor.setTargetPosition(backRightMotor.getCurrentPosition() + moveTicks);
 
-        frontLeftMotor.setPower(power);
-        frontRightMotor.setPower(power);
-        backLeftMotor.setPower(power);
-        backRightMotor.setPower(power);
+        resetEncoders();
+        int forwardTicks = (int) Math.round(forwardInches * TICKS_PER_INCH);
+        int strafeTicks  = (int) Math.round(strafeInches  * TICKS_PER_INCH);
+        int rotateTicks  = (int) Math.round(rotateDegrees * TICKS_PER_DEGREE);
+
+        // Mecanum kinematics
+        int fl = forwardTicks + strafeTicks + rotateTicks;
+        int fr = forwardTicks - strafeTicks - rotateTicks;
+        int bl = forwardTicks - strafeTicks + rotateTicks;
+        int br = forwardTicks + strafeTicks - rotateTicks;
+
+        frontLeftMotor.setTargetPosition(frontLeftMotor.getCurrentPosition() + fl);
+        frontRightMotor.setTargetPosition(frontRightMotor.getCurrentPosition() + fr);
+        backLeftMotor.setTargetPosition(backLeftMotor.getCurrentPosition() + bl);
+        backRightMotor.setTargetPosition(backRightMotor.getCurrentPosition() + br);
+
+        double p = Math.abs(power);  // must be > 0
+        frontLeftMotor.setPower(p);
+        frontRightMotor.setPower(p);
+        backLeftMotor.setPower(p);
+        backRightMotor.setPower(p);
+
     }
 }
