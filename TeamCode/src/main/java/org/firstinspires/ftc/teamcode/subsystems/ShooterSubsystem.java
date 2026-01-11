@@ -1,8 +1,5 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
-import static java.lang.Thread.sleep;
-
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -18,18 +15,19 @@ public class ShooterSubsystem {
     public enum State { IDLE, SPIN_UP, FEED, SPIN_DOWN, EJECT }
 
     // Setup for Angling Servos -----------------------------------------------------------
-    private final double angleMax = 1;
-    private final double angleMin = 0;
-    private double anglePos = 0;
-    // Setup for Angling Speed
-    private final double angSpeed = 0.8;
+    private static final double ANGLE_MIN = 0.35;
+    private static final double ANGLE_MAX = 1;
+    private static final double ANGLE_STEP = 0.02;
+    private double anglePos = 0.5; // start centered
+
+
 
 
     private final DcMotor intake;
-    private final Servo intakeArmServo;
+    private final Servo intakeBlockServo;
     private final DcMotorEx outtakeMotor;
 
-    private final CRServo  leftVerticalServo, rightVerticalServo;
+    private final Servo leftVerticalServo;
 
     // Tunables
     private final int shortShotVelocity = 1400; // spin power
@@ -58,22 +56,21 @@ public class ShooterSubsystem {
     public ShooterSubsystem(HardwareMap hardwareMap) {
         outtakeMotor = hardwareMap.get(DcMotorEx.class, "outtakeMotor");
         intake = hardwareMap.get(DcMotor.class, "intake");
-        intakeArmServo = hardwareMap.get(Servo.class, "intakeArmServo");
-        leftVerticalServo = hardwareMap.get(CRServo.class, "leftVerticalServo");
-        rightVerticalServo = hardwareMap.get(CRServo.class, "rightVerticalServo");
+        intakeBlockServo = hardwareMap.get(Servo.class, "intakeBlockServo");
+        leftVerticalServo = hardwareMap.get(Servo.class, "leftVerticalServo");
 
 
 
         // Encoder logic -------------------------------------------------
         outtakeMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
         outtakeMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
-        leftVerticalServo.setDirection(CRServo.Direction.REVERSE);
-        rightVerticalServo.setDirection(CRServo.Direction.REVERSE);
 
         // Set motor directions (adjust if movement is inverted) ----------
         outtakeMotor.setDirection(DcMotorEx.Direction.REVERSE);
         intake.setDirection(DcMotor.Direction.REVERSE);
-        intakeArmServo.setDirection(Servo.Direction.REVERSE);
+        intakeBlockServo.setDirection(Servo.Direction.REVERSE);
+        leftVerticalServo.setDirection(Servo.Direction.REVERSE);
+
 
 
         // Set motor behavior ----------------------------------------------
@@ -112,34 +109,35 @@ public class ShooterSubsystem {
 
             case SPIN_UP:
                 lastVelocity = outtakeMotor.getVelocity();
-                if (shotType == "short"){
+                if ("short".equals(shotType)) {
                     if (Math.abs(shortShotVelocity - outtakeMotor.getVelocity()) < velocityTolerance) {
-                    //if (timer.milliseconds() >= spinUpMs) {
+                        //if (timer.milliseconds() >= spinUpMs) {
                         state = State.FEED;
                         timer.reset();
+                        unBlockIntake();
                         intake.setPower(intakePower); // push ball into shooter
-                        intakeArmServo.setPosition(0);
                     }
                 } else {
                     if (Math.abs(longShotVelocity - outtakeMotor.getVelocity()) < velocityTolerance) {
-                    //if (timer.milliseconds() >= spinUpMs) {
+                        //if (timer.milliseconds() >= spinUpMs) {
                         state = State.FEED;
                         timer.reset();
+                        blockIntake();
                         intake.setPower(intakePower); // push ball into shooter
-                        intakeArmServo.setPosition(0);
+
                     }
                 }
-                
+
                 break;
 
             case EJECT:
                 lastVelocity=  outtakeMotor.getVelocity();
                 if (Math.abs(ejectVelocity - outtakeMotor.getVelocity()) < velocityTolerance) {
-                // if (timer.milliseconds() >= spinUpMs) {
+                    // if (timer.milliseconds() >= spinUpMs) {
                     state = State.FEED;
                     timer.reset();
                     intake.setPower(intakePower); // push ball into shooter
-                    intakeArmServo.setPosition(0);
+
                 }
                 break;
 
@@ -156,11 +154,10 @@ public class ShooterSubsystem {
                 if (numberOfShots > 1){
                     state = State.SPIN_UP;
                     if (shotType == "short") {
-                    outtakeMotor.setVelocity(shortShotVelocity);
+                        outtakeMotor.setVelocity(shortShotVelocity);
                     } else {
                         outtakeMotor.setVelocity(longShotVelocity);
                     }
-                    intakeArmServo.setPosition(1);
                     numberOfShots--;
                     //telemetry.addLine("Shots left:" + numberOfShots);
                 }
@@ -171,9 +168,9 @@ public class ShooterSubsystem {
                 break;
         }
     }
-    
+
     public void eject(int balls) {
-        if(busy) { 
+        if(busy) {
             //telemetry.addLine("Shooter is busy");
             return; // ignore if already running
         }
@@ -186,34 +183,69 @@ public class ShooterSubsystem {
         // launcher.setPower(targetPower);
         outtakeMotor.setVelocity(ejectVelocity);
     }
-
-    public void manualAngling( double vertical){
-        double anglePower = vertical * angSpeed;
-        leftVerticalServo.setPower(anglePower);
-        rightVerticalServo.setPower(-anglePower);
+    public void blockIntake() {
+        intakeBlockServo.setPosition(-0.5);
+    }
+    public void unBlockIntake() {
+        intakeBlockServo.setPosition(0.5);
     }
 
 
-    public void startIntake() {
-        intake.setPower(1);
+    // --- Manual Angling ---
+    public void manualAngling(double leftStickY) {
+
+        double input = -leftStickY;
+
+        // Deadzone to prevent jitter
+        if (Math.abs(input) < 0.08) {
+            return; // hold position
+        }
+
+        anglePos += input * ANGLE_STEP;
+
+        // Clamp to limits
+        anglePos = Math.max(ANGLE_MIN, Math.min(ANGLE_MAX, anglePos));
+
+        leftVerticalServo.setPosition(anglePos);
     }
 
+
+    public void angleUp() {
+        anglePos += ANGLE_STEP;
+        anglePos = Math.min(anglePos, ANGLE_MAX);
+        leftVerticalServo.setPosition(anglePos);
+    }
+
+    public void angleDown() {
+        anglePos -= ANGLE_STEP;
+        anglePos = Math.max(anglePos, ANGLE_MIN);
+        leftVerticalServo.setPosition(anglePos);
+    }
+
+    public void setAngle(double position) {
+        anglePos = Math.max(ANGLE_MIN, Math.min(ANGLE_MAX, position));
+        leftVerticalServo.setPosition(anglePos);
+    }
+
+    public double getAngle() {
+        return anglePos;
+    }
+
+
+
+
+    public void startIntake(double power) {
+        intake.setPower(power);
+    }
+    public void reverseIntake(double power) {
+        intake.setPower(-power);
+    }
     public void stopIntake() {
         intake.setPower(0);
     }
-    private double pos;
 
-    public void liftBall() throws InterruptedException {
-        intakeArmServo.setPosition(0.5);
-        pos = intakeArmServo.getPosition();
-        sleep(900);
-        intakeArmServo.setPosition(0.8);
-        pos = intakeArmServo.getPosition();
-        sleep(100);
-    }
-
-    public void startOuttake() {
-        outtakeMotor.setPower(1);
+    public void startOuttake(double power) {
+        outtakeMotor.setPower(power);
     }
 
     public void stopOuttake() {
@@ -223,7 +255,8 @@ public class ShooterSubsystem {
     public void addTelemetry(Telemetry telemetry) {
         telemetry.addLine("----- Shooter -----");
         telemetry.addData("Shooter Velocity = ", lastVelocity);
-        telemetry.addData("Servo Position = ", pos);
+        telemetry.addData("Vertical Aim Pos", anglePos);
+
     }
 
     public boolean isBusy() { return busy; }
@@ -231,4 +264,3 @@ public class ShooterSubsystem {
 
 
 }
-    

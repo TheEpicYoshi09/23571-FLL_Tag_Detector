@@ -27,7 +27,7 @@ public class DriveSubsystem {
         // Set motor directions (adjust if movement is inverted) ----------
         frontLeftMotor.setDirection(DcMotor.Direction.REVERSE);
         backLeftMotor.setDirection(DcMotor.Direction.REVERSE);
-        frontRightMotor.setDirection(DcMotor.Direction.FORWARD);
+        frontRightMotor.setDirection(DcMotor.Direction.REVERSE);
         backRightMotor.setDirection(DcMotor.Direction.FORWARD);
 
         // Set motor behavior ----------------------------------------------
@@ -84,7 +84,7 @@ public class DriveSubsystem {
         telemetry.addData("BR Power", lastRbPower);
     }
 
-    public void periodic() {
+    public void update() {
         // Add odometry later if needed
     }
 
