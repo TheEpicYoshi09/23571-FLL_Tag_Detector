@@ -133,12 +133,9 @@ public class DriveSubsystem {
         backLeftMotor.setTargetPosition(backLeftMotor.getCurrentPosition() + bl);
         backRightMotor.setTargetPosition(backRightMotor.getCurrentPosition() + br);
 
-        // Power must be positive in RUN_TO_POSITION
-
-        frontLeftMotor.setPower(fl);
-        frontRightMotor.setPower(fr);
-        backLeftMotor.setPower(bl);
-        backRightMotor.setPower(br);
+        frontLeftMotor.setPower(fl * power);
+        frontRightMotor.setPower(fr * power);
+        backLeftMotor.setPower(bl * power);
+        backRightMotor.setPower(br * power);
     }
-
 }

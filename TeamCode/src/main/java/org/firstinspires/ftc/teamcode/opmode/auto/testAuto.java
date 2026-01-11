@@ -6,7 +6,7 @@ import org.firstinspires.ftc.teamcode.hardware.Robot;
 
 @Autonomous(name="testAuto_fixed?")
 public class testAuto extends LinearOpMode {
-    private enum AutoStep { POSITION, AIM, SHOOT, DRIVE, ROTATE, DONE }
+    private enum AutoStep { POSITION, AIM, SHOOT, DRIVE, ROTATE, GRAB, DONE }
 
     @Override
     public void runOpMode() {
@@ -131,7 +131,7 @@ public class testAuto extends LinearOpMode {
                         // shooter stuck — bail out to next step to avoid stall
                         telemetry.addData("WARN", "Shooter timeout, continuing.");
                         robot.drive.resetEncoders();
-                        robot.drive.setTargetDrive(10, 0, 0, 0.8);
+                        robot.drive.setTargetDrive(17, 0, 0, 0.8);
                         robot.drive.setRunToPositionMode();
                         timer.reset();
                         autoStep = AutoStep.DRIVE;
@@ -146,14 +146,27 @@ public class testAuto extends LinearOpMode {
                         rotate = true;
                         robot.drive.setRunToPositionMode();
                         autoStep = AutoStep.ROTATE;
+                        timer.reset();
                     }
                     break;
 
                 case ROTATE:
+                    if(timer.seconds() > 1) {
+                        robot.shooter.startIntake(1);
+                        robot.shooter.startOuttake(-0.5);
+                        robot.drive.setTargetDrive(40, 0, 0, 0.1);
+                        robot.drive.setRunToPositionMode();
+                        autoStep = AutoStep.GRAB;
+                        timer.reset();
+                    }
+                    break;
+
+                case GRAB:
                     if (!robot.drive.isBusy()) {
                         autoStep = AutoStep.DONE;
                     }
                     break;
+
 
 
 
