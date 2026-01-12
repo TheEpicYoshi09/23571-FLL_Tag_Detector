@@ -27,9 +27,6 @@ public class CombinedClassTeleopTestMK2 extends LinearOpMode {
 
     // Shooter components
     public static boolean shooterAttached = true;
-    public static boolean shooterHinge1Attached = false;
-    public static boolean shooterHinge2Attached = false;
-
 
     // Magazine configuration
     public static boolean magazineAttached = true;
@@ -64,11 +61,6 @@ public class CombinedClassTeleopTestMK2 extends LinearOpMode {
     public static double shooterActiveRPM = 1400;
     public static double shooterIdleRPM = 0;
     public static double magazineActivePower = 0.5;
-    public static double hinge1UpPosition = 1.0;
-    public static double hinge2UpPosition = 1.0;
-    public static double hinge1DownPosition = 0.0;
-    public static double hinge2DownPosition = 0.0;
-
 
 
     // ========== CLASS INSTANCES ==========
@@ -100,9 +92,19 @@ public class CombinedClassTeleopTestMK2 extends LinearOpMode {
 //        telemetry.addData("StatusofMotor: ", hardwareMap.get(""));
         telemetry.update();
 
-
+        if (intake1Type != "none" || intake2Type != "none"){
+            IntakeAttached = true;}
+        else {IntakeAttached = false;}
+        if (magazine1Type != "none" || magazine2Type != "none" || magazine3Type != "none" || magazine4Type != "none"){
+            magazineAttached = true;
+        }
+        else {magazineAttached = false;}
+        if (shooterHinge1Type != "none" || shooterHinge2Type != "none") {
+            shooterHingeAttached = true;}
+        else {shooterHingeAttached = false;}
         // ========== INITIALIZE CLASSES ==========
         drive = new DriveControlClass(hardwareMap, telemetry, driveMotorsAttached, imuAttached, backMotorPidAttached);
+
 
         if (IntakeAttached) {
             intake = new IntakeClass(hardwareMap, telemetry, intake1Type, intake2Type);
