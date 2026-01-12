@@ -10,6 +10,8 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
  * ALL variables are controlled from here
  * Classes only handle HOW variables interact, not WHAT values they have
  * Added spindexer and flipper servos
+ *
+ * FIXED: Set shooterActiveRPM to 1400 (was 600)
  */
 @TeleOp(name = "Combined Class Teleop Test MK3 .java", group = "Main")
 @Config
@@ -64,7 +66,7 @@ public class CombinedClassTeleopTestMK3 extends LinearOpMode {
     public static double intakeOutPosition = 0;
 
     // ========== SHOOTER CONFIGURATION ==========
-    public static double shooterActiveRPM = 600;
+    public static double shooterActiveRPM = 1400;  // ✓ FIXED: Changed from 600 to 1400
     public static double shooterIdleRPM = 0;
     public static double magazineActivePower = 0.5;
 
@@ -338,7 +340,7 @@ public class CombinedClassTeleopTestMK3 extends LinearOpMode {
                 // Flipper control (D-pad Up/Down) - only if flipper attached
                 // Flipper is a positional servo
                 if (flipperAttached) {
-                    if (gamepad2.dpad_up && shooter.getShooterAtTarget(300)) {
+                    if (gamepad2.dpad_up && (shooter.getShooterCurrentRPM() > 550 && shooter.getShooterCurrentRPM() < 650)) {
                         // Set both - class will use the right one based on type
                         shooter.flipperTargetPosition = flipperActivePosition;
                         shooter.flipperTargetPower = flipperActivePower;

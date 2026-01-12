@@ -13,6 +13,8 @@ import org.firstinspires.ftc.teamcode.Rebuilt.MainPrograms.MotorPowerRegulator_N
  * Supports flexible magazine: up to 4, each can be Servo, CRServo, or DcMotor
  * Added spindexer and flipper servos
  * All variables are public and controlled from main teleop
+ *
+ * FIXED: Always calls loop() to keep RPM updated even when target is 0
  */
 public class ShooterClassMK3 {
 
@@ -100,7 +102,7 @@ public class ShooterClassMK3 {
             try {
                 shooterMotor = new MotorPowerRegulator_New(hardwareMap, telemetry, "s");
                 shooterMotor.setTicksPerRev(112.0);
-                shooterMotor.setMaxRpmUnderLoad(600);
+                shooterMotor.setMaxRpmUnderLoad(1400.0);
                 shooterMotor.setAllGains(0.0006785714285714286, 0.06, 0.0004, 0.0002, 0.00005);
                 shooterInitialized = true;
             } catch (Exception e) {
@@ -310,6 +312,7 @@ public class ShooterClassMK3 {
 
     /**
      * Main update - reads public variables and applies them
+     * FIXED: Always calls loop() to keep RPM updated, even when target is 0
      */
     public void update(boolean shooterEnabled, boolean hingeEnabled, boolean magazineEnabled,
                        boolean spindexerEnabled, boolean flipperEnabled) {
@@ -319,16 +322,19 @@ public class ShooterClassMK3 {
         this.spindexerEnabled = spindexerEnabled;
         this.flipperEnabled = flipperEnabled;
 
-        // Update shooter motor
+        // Update shooter motor - ALWAYS call loop() to keep RPM measurement updated
         if (shooterEnabled && shooterInitialized) {
             shooterMotor.setTargetRPM(shooterTargetRPM);
-            if (shooterTargetRPM > 0) {
-                shooterMotor.loop();
-            } else {
-                shooterMotor.stop();
+            shooterMotor.loop();  // Always call loop to update RPM
+
+            // If target is 0, force power to 0 after loop() runs
+            if (shooterTargetRPM <= 0) {
+                shooterMotor.getMotor().setPower(0);
             }
         } else if (shooterInitialized) {
-            shooterMotor.stop();
+            shooterMotor.setTargetRPM(0);
+            shooterMotor.loop();  // Keep updating RPM even when disabled
+            shooterMotor.getMotor().setPower(0);
         }
 
         // Update hinge
