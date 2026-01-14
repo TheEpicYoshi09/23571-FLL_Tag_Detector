@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.decode.TeleOp;
 
 
-
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -12,12 +11,11 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
-@TeleOp(name = "TeleOp1 w/servo ")// WORKS
-public class TeleOp1 extends LinearOpMode {
+@TeleOp(name = "TeleOp2")// WORKS
+public class TeleOp2 extends LinearOpMode {
     private IMU imu;
 
     public Servo servo;
-
     @Override
     public void runOpMode() throws InterruptedException {
 
@@ -45,7 +43,7 @@ public class TeleOp1 extends LinearOpMode {
 
         double flyPower = 0;
 
-        //servo.setPosition(0.25);
+        servo.setPosition(0.5);
 
         waitForStart();
 
@@ -113,31 +111,41 @@ public class TeleOp1 extends LinearOpMode {
 
                 loader.setPower(-1);
 
-            } else if (gamepad1.dpad_up) {
+            } else if(gamepad1.dpad_up){
                 loader.setPower(1);
                 intake.setPower(1);
-            } else {
+            }
+            else {
                 loader.setPower(0);
             }
-            if (gamepad1.x) { // far
+
+            if(gamepad1.x){ // far
                 servo.setPosition(0.4);// bottom
-            } else if (gamepad1.b) { // close
+            }
+            else if(gamepad1.b){ // close
                 servo.setPosition(0.1);
-            } else if (gamepad1.dpad_right) { // all the way to the top
+            }
+            else if(gamepad1.dpad_right){ // all the way to the top
                 servo.setPosition(0);
-            } else if (gamepad1.dpad_left) { // close
+            } else if(gamepad1.dpad_left){ // close
                 servo.setPosition(0.3);
             }
 
 
-            telemetry.addData("Front Left Powe0r", frontLeft.getPower());
+
+            telemetry.addData("Front Left Power", frontLeft.getPower());
             telemetry.addData("Front Right Power", frontRight.getPower());
             telemetry.addData("Back Left Power", backLeft.getPower());
             telemetry.addData("Back Right Power", backRight.getPower());
             telemetry.addData("intake Power", intake.getPower());
+            telemetry.addData("servo Power", servo.getPosition());
             telemetry.update();
         }
+
+
+
     }
+    //telemetry.update();
 }
 
 
