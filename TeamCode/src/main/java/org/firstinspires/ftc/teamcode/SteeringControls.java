@@ -57,7 +57,7 @@ public class SteeringControls extends OpMode
 
     ElapsedTime runtime = new ElapsedTime();
     double delayTime = 0;
-    final double PAUSE_TIME = 5;
+    final double PAUSE_TIME = 2;
     /*
     * Code to run ONCE when the driver hits INIT
     */
