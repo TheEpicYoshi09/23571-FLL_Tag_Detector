@@ -124,8 +124,21 @@ public class SteeringControls extends OpMode
                 robot.launcher.notLaunching();
             }//end of gamepad 2 left bumper
 
+            if(gamepad2.y)
+            {
+                robot.launcher.turnOffAgitatorIntake();
+            }
+            if(gamepad2.a)
+            {
+                robot.launcher.changeAgitatorDirection();
+                robot.launcher.setAgitatorSpeed(1);
+            }
 
         } //end of launch
+
+
+
+
 
     } //end of steering controls
   
