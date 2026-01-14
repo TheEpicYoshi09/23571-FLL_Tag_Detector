@@ -28,6 +28,7 @@ public class Odometry extends LinearOpMode {
 
     // Position tracking
     private double x = 0.0, y = 0.0, heading = 0.0; // inches and radians
+    private double lastHeading = 0.0;
     private int lastLeftPos = 0, lastRightPos = 0, lastPerpPos = 0;
 
     // Data storage
@@ -41,7 +42,7 @@ public class Odometry extends LinearOpMode {
         int leftTicks, rightTicks, perpTicks;
 
         OdometryData(long time, double x, double y, double heading,
-                     int left, int right, int perp) {
+                int left, int right, int perp) {
             this.timestamp = time;
             this.x = x;
             this.y = y;
@@ -75,17 +76,22 @@ public class Odometry extends LinearOpMode {
         resetEncoders();
 
         while (opModeIsActive()) {
+            // Read sensors once per loop for synchronization
+            int currentLeftPos = leftEncoder.getCurrentPosition();
+            int currentRightPos = rightEncoder.getCurrentPosition();
+            int currentPerpPos = perpEncoder.getCurrentPosition();
+            double currentHeading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+
             // Update odometry
-            updateOdometry();
+            updateOdometry(currentLeftPos, currentRightPos, currentPerpPos, currentHeading);
 
             // Store data point every loop
             long currentTime = System.currentTimeMillis() - startTime;
             dataPoints.add(new OdometryData(
                     currentTime, x, y, heading,
-                    leftEncoder.getCurrentPosition(),
-                    rightEncoder.getCurrentPosition(),
-                    perpEncoder.getCurrentPosition()
-            ));
+                    currentLeftPos,
+                    currentRightPos,
+                    currentPerpPos));
 
             // Display real-time data
             displayTelemetry();
@@ -114,9 +120,7 @@ public class Odometry extends LinearOpMode {
         IMU.Parameters imuParams = new IMU.Parameters(
                 new RevHubOrientationOnRobot(
                         RevHubOrientationOnRobot.LogoFacingDirection.UP,
-                        RevHubOrientationOnRobot.UsbFacingDirection.FORWARD
-                )
-        );
+                        RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
         imu.initialize(imuParams);
     }
 
@@ -132,14 +136,10 @@ public class Odometry extends LinearOpMode {
         x = 0.0;
         y = 0.0;
         heading = 0.0;
+        lastHeading = 0.0;
     }
 
-    private void updateOdometry() {
-        // Read current encoder positions
-        int currentLeftPos = leftEncoder.getCurrentPosition();
-        int currentRightPos = rightEncoder.getCurrentPosition();
-        int currentPerpPos = perpEncoder.getCurrentPosition();
-
+    private void updateOdometry(int currentLeftPos, int currentRightPos, int currentPerpPos, double currentHeading) {
         // Calculate deltas
         int deltaLeft = currentLeftPos - lastLeftPos;
         int deltaRight = currentRightPos - lastRightPos;
@@ -155,23 +155,31 @@ public class Odometry extends LinearOpMode {
         double rightDist = deltaRight / TICKS_PER_INCH;
         double perpDist = deltaPerp / TICKS_PER_INCH;
 
-        // Calculate change in heading (using encoders)
-        double deltaHeading = (rightDist - leftDist) / TRACK_WIDTH;
+        // Calculate change in heading (using IMU)
+        double deltaHeading = currentHeading - lastHeading;
 
-        // Or use IMU for heading (more accurate)
-        heading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
+        // Normalize deltaHeading to -PI to +PI
+        while (deltaHeading > Math.PI)
+            deltaHeading -= 2 * Math.PI;
+        while (deltaHeading <= -Math.PI)
+            deltaHeading += 2 * Math.PI;
 
         // Calculate local movement
         double localDeltaX = (leftDist + rightDist) / 2.0;
         double localDeltaY = perpDist - (FORWARD_OFFSET * deltaHeading);
 
+        // Calculate average heading for integration (First-order approximation)
+        double avgHeading = lastHeading + (deltaHeading / 2.0);
+
         // Convert to global coordinates
-        double deltaXGlobal = localDeltaX * Math.cos(heading) - localDeltaY * Math.sin(heading);
-        double deltaYGlobal = localDeltaX * Math.sin(heading) + localDeltaY * Math.cos(heading);
+        double deltaXGlobal = localDeltaX * Math.cos(avgHeading) - localDeltaY * Math.sin(avgHeading);
+        double deltaYGlobal = localDeltaX * Math.sin(avgHeading) + localDeltaY * Math.cos(avgHeading);
 
         // Update global position
         x += deltaXGlobal;
         y += deltaYGlobal;
+        heading = currentHeading;
+        lastHeading = currentHeading;
     }
 
     private void displayTelemetry() {
