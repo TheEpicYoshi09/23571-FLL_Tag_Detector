@@ -21,7 +21,7 @@ public class DecodeTeleOp extends LinearOpMode {
     // Limelight
     private NetworkTable limelight;
 
-    // PID constants (tune kP first)
+    // PID constants for alignment
     private static final double kP = 0.025;
     private static final double kI = 0.0;
     private static final double kD = 0.002;
@@ -95,7 +95,10 @@ public class DecodeTeleOp extends LinearOpMode {
         boolean align = gamepad1.a;
         double tv = limelight.getEntry("tv").getDouble(0);
 
+        double speedScale = 1.0; // Default full speed
+
         if (align && tv == 1) {
+            // PID turn for alignment
             double tx = limelight.getEntry("tx").getDouble(0);
 
             long now = System.currentTimeMillis();
@@ -114,8 +117,23 @@ public class DecodeTeleOp extends LinearOpMode {
                 turn = 0;
             }
 
+            // Distance scaling using Limelight pose
+            double[] botPose = limelight.getEntry("botpose_targetspace").getDoubleArray(new double[6]);
+            if (botPose.length == 6) {
+                double distance = botPose[2]; // meters
+                double minDistance = 0.3;
+                double maxDistance = 2.0;
+                double minSpeed = 0.2;
+                double maxSpeed = 1.0;
+
+                speedScale = Math.max(minSpeed, Math.min(maxSpeed, (distance - minDistance) / (maxDistance - minDistance)));
+                telemetry.addData("distance", distance);
+                telemetry.addData("speedScale", speedScale);
+            }
+
             telemetry.addLine("AprilTag ALIGN ACTIVE");
             telemetry.addData("tx", tx);
+
         } else {
             turn = gamepad1.right_stick_x;
             errorSum = 0;
@@ -123,22 +141,27 @@ public class DecodeTeleOp extends LinearOpMode {
             lastPidTime = System.currentTimeMillis();
         }
 
+        // Apply mecanum formulas
         double LBp = drive + turn - strafe;
         double RBp = drive - turn + strafe;
         double LFp = drive + turn + strafe;
         double RFp = drive - turn - strafe;
 
-        double avg = (Math.abs(LBp) + Math.abs(RBp) + Math.abs(LFp) + Math.abs(RFp)) / 4.0;
-        double scale = avg * avg;
+        // Normalize speeds
+        double maxMag = Math.max(Math.max(Math.abs(LBp), Math.abs(RBp)), Math.max(Math.abs(LFp), Math.abs(RFp)));
+        if (maxMag > 1.0) {
+            LBp /= maxMag;
+            RBp /= maxMag;
+            LFp /= maxMag;
+            RFp /= maxMag;
+        }
 
-        double speed = (gamepad1.left_stick_button || gamepad1.right_stick_button)
-                ? FAST_MODE_COEFF
-                : SLOW_MODE_COEFF;
+        double baseSpeed = (gamepad1.left_stick_button || gamepad1.right_stick_button) ? FAST_MODE_COEFF : SLOW_MODE_COEFF;
 
-        LB.setVelocity(LBp * scale * speed);
-        RB.setVelocity(RBp * scale * speed);
-        LF.setVelocity(LFp * scale * speed);
-        RF.setVelocity(RFp * scale * speed);
+        LB.setVelocity(LBp * speedScale * baseSpeed);
+        RB.setVelocity(RBp * speedScale * baseSpeed);
+        LF.setVelocity(LFp * speedScale * baseSpeed);
+        RF.setVelocity(RFp * speedScale * baseSpeed);
     }
 
     private void intake() {
