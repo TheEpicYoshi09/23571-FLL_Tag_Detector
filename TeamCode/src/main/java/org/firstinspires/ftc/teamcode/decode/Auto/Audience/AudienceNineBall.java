@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.decode.Auto.Audience;
 
 import static org.firstinspires.ftc.teamcode.decode.Subsystems.Common.robot;
 
+import com.acmerobotics.roadrunner.InstantAction;
 import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.pedropathing.follower.Follower;
@@ -47,7 +48,6 @@ public class AudienceNineBall extends AbstractAuto {
         shootPreload();
         cycle3();
         cycle6();
-        unloadRamp();
     }
 
     private void shootPreload() {
@@ -56,8 +56,8 @@ public class AudienceNineBall extends AbstractAuto {
                 new SequentialAction(
                         new ParallelAction(
                                 new Actions.CallbackAction(
-                                        RobotActions.startShooter(0.35),
-                                        path.shootPreload, 0.2, 0, f, "Preloadrev"
+                                        RobotActions.startShooter(5),
+                                        path.shootPreload, 0.1, 0, f, "Preloadrev"
                                 ),
                                 new FollowPathAction(f, path.shootPreload, true)
 
@@ -80,21 +80,25 @@ public class AudienceNineBall extends AbstractAuto {
                 new SequentialAction(
                         new ParallelAction(
                                 new Actions.CallbackAction(
-                                        RobotActions.intakeAction(1, 3),
-                                        path.intake3, 0.3, 0, f, "Intake3"
+                                        RobotActions.intakeAction(1, 5),
+                                        path.intake3, 0.1, 0, f, "Intake3"
                                 ),
-                                new ParallelAction(
-                                        new Actions.CallbackAction(
-                                                RobotActions.startShooter(0.35),
-                                                path.shoot3, 0.5, 0, f, "Shoot3"
-                                        ),
-                                        new FollowPathAction(f, path.shoot3)
+                                new FollowPathAction(f,path.intake3)
+                        ),
+                        new ParallelAction(
+                                new Actions.CallbackAction(
+                                        RobotActions.startShooter(5),
+                                        path.shoot3, 0.1, 0, f, "Shoot3"
                                 ),
-                                new ParallelAction(
-                                        RobotActions.intakeAction(1, 3),
-                                        RobotActions.loaderAction(1, 3)
-                                )
-                        )
+                                new FollowPathAction(f, path.shoot3)
+                        ),
+                        new ParallelAction(
+                                RobotActions.intakeAction(1, 3),
+                                RobotActions.loaderAction(1, 3)
+                        ),
+                        new FollowPathAction(f,path.leave)
+
+
                 )
         );
         robot.actionScheduler.runBlocking();
@@ -106,31 +110,25 @@ public class AudienceNineBall extends AbstractAuto {
                 new SequentialAction(
                         new ParallelAction(
                                 new Actions.CallbackAction(
-                                        RobotActions.intakeAction(1, 3),
-                                        path.intake6, 0.5, 0, f, "intake6"
+                                        RobotActions.intakeAction(1, 5),
+                                        path.intake6, 0.1, 0, f, "intake6"
                                 ),
                                 new FollowPathAction(f, path.intake6)
                         ),
                         new ParallelAction(
                                 new Actions.CallbackAction(
-                                        RobotActions.startShooter(0.35), path.shoot6, 0.5, 0, f, "Shoot6"
+                                        RobotActions.startShooter(5), path.shoot6, 0.5, 0, f, "Shoot6"
                                 ),
                                 new FollowPathAction(f, path.shoot6)
                         ),
                         new ParallelAction(
                                 RobotActions.intakeAction(1, 3),
                                 RobotActions.loaderAction(1, 3)
-                        )
+                        ),
+                        new FollowPathAction(f,path.unloadRamp)
                 )
         );
         robot.actionScheduler.runBlocking();
     }
-    private void unloadRamp() {
 
-        robot.actionScheduler.addAction(
-                new FollowPathAction(f, path.unloadRamp)
-        );
-
-        robot.actionScheduler.runBlocking();
-    }
 }

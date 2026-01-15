@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.decode.Auto.Audience;
 
 import static org.firstinspires.ftc.teamcode.decode.Subsystems.Common.robot;
 
+import com.acmerobotics.roadrunner.InstantAction;
 import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.pedropathing.follower.Follower;
@@ -44,7 +45,6 @@ public class AudienceThreeBall extends AbstractAuto {
     @Override
     protected void onRun() {
         shootPreload();
-        leave();
     }
 
     private void shootPreload() {
@@ -53,8 +53,8 @@ public class AudienceThreeBall extends AbstractAuto {
                 new SequentialAction(
                         new ParallelAction(
                                 new Actions.CallbackAction(
-                                        RobotActions.startShooter(0.35),
-                                        path.shootPreload, 0.2, 0, f, "Preloadrev"
+                                        RobotActions.startShooter(3),
+                                        path.shootPreload, 0.1, 0, f, "Preloadrev"
                                 ),
                                 new FollowPathAction(f, path.shootPreload, true)
 
@@ -62,17 +62,12 @@ public class AudienceThreeBall extends AbstractAuto {
                         new ParallelAction(
                                 RobotActions.intakeAction(1, 3),
                                 RobotActions.loaderAction(1, 3)
-                        )
-
+                        ),
+                        new FollowPathAction(f,path.leave)
                 )
 
         );
         robot.actionScheduler.runBlocking();
     }
-    private void leave() {
-        robot.actionScheduler.addAction(
-                new FollowPathAction(f,path.leave)
-        );
-        robot.actionScheduler.runBlocking();
-    }
+
 }
