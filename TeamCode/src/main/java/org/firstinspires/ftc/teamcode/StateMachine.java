@@ -235,6 +235,7 @@ public class StateMachine {
                     case 0:
                         autoTimer.resetTimer();
                         runFlywheel();
+                        flywheelController.setLauncherFeedforward(30);
                         followPath(DecodePaths.AUTO_PATHS.FAR_START_TO_SHOOT, true);
                         autoFarSubStep++;
                         break;
@@ -266,7 +267,8 @@ public class StateMachine {
                         }
                         break;
                     case 5:
-                        if ( completePathWithDelay(1.0) ) {
+                        if ( completePathWithDelay(2.0) ) {
+                            setSpindexPosition(2);
                             pathTimer.resetTimer();
                             autoFarSubStep++;
                         }
