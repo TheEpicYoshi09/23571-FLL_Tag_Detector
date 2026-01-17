@@ -241,7 +241,9 @@ public class RobotHardware {
     }
 
     public LLResult getLatestLimelightResult() {
+        myOpMode.telemetry.addLine("--- LIMELIGHT ---");
         myOpMode.telemetry.addData("RESULT", latestLimelightResult != null && latestLimelightResult.isValid());
+        myOpMode.telemetry.addLine("-------------------------");
         return latestLimelightResult;
     }
 

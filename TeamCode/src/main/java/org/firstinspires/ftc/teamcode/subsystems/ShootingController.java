@@ -100,6 +100,7 @@ public class ShootingController {
                 break;
             default:
                 shootState = ShootState.IDLE;
+                spindexerController.setPosition(0);
                 break;
         }
 

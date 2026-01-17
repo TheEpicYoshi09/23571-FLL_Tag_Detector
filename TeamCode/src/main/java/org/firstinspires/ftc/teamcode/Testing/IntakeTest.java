@@ -9,7 +9,7 @@ import org.firstinspires.ftc.teamcode.subsystems.ArtifactTracker;
 import org.firstinspires.ftc.teamcode.subsystems.IntakeController;
 import org.firstinspires.ftc.teamcode.subsystems.SpindexerController;
 
-@Disabled
+//@Disabled
 @TeleOp(name = "Intake Test", group = "Test")
 public class IntakeTest extends LinearOpMode {
 
@@ -18,8 +18,8 @@ public class IntakeTest extends LinearOpMode {
         RobotHardware robot = new RobotHardware(this);
         robot.init();
 
-        SpindexerController spindexerController = new SpindexerController(robot, telemetry);
         ArtifactTracker artifactTracker = new ArtifactTracker(robot, telemetry);
+        SpindexerController spindexerController = new SpindexerController(robot, artifactTracker, telemetry);
         IntakeController intakeController = new IntakeController(robot, artifactTracker, spindexerController, telemetry);
 
         waitForStart();

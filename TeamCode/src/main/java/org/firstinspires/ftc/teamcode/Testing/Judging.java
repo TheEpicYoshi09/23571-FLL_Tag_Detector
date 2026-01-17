@@ -28,8 +28,8 @@ public class Judging extends LinearOpMode {
         robot.init();
         turretTracker = new TurretTracker(robot, telemetry);
         flywheelController = new FlywheelController(robot, telemetry);
-        spindexerController = new SpindexerController(robot, telemetry);
         artifactTracker = new ArtifactTracker(robot, telemetry);
+        spindexerController = new SpindexerController(robot, artifactTracker, telemetry);
 
         telemetry.addLine("Judging OpMode Initialized");
         telemetry.update();

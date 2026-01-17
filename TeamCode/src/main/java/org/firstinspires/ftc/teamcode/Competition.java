@@ -31,6 +31,11 @@ public class Competition extends LinearOpMode {
     private boolean dpadLeftPreviouslyPressed = false;
     private boolean dpadRightPreviouslyPressed = false;
 
+    private boolean leftStickPreviouslyPressed = false;
+
+    private boolean rightStickPreviouslyPressed = false;
+    private boolean dpadUpGamepad2PreviouslyPressed = false;
+
     @Override
     public void runOpMode() {
 
@@ -51,9 +56,9 @@ public class Competition extends LinearOpMode {
 
         TurretTracker turretTracker = new TurretTracker(robot, telemetry);
         FlywheelController flywheelController = new FlywheelController(robot, telemetry);
-        SpindexerController spindexerController = new SpindexerController(robot, telemetry);
-        ShootingController shootingController = new ShootingController(robot, flywheelController, spindexerController, telemetry);
         ArtifactTracker artifactTracker = new ArtifactTracker(robot, telemetry);
+        SpindexerController spindexerController = new SpindexerController(robot, artifactTracker, telemetry);
+        ShootingController shootingController = new ShootingController(robot, flywheelController, spindexerController, telemetry);
 
         spindexerController.init();
 
@@ -83,12 +88,15 @@ public class Competition extends LinearOpMode {
             oldTime = newTime;
             Pose2D pos = robot.pinpoint.getPosition();
             String data = String.format(Locale.US, "{X: %.3f, Y: %.3f, H: %.3f}", pos.getX(DistanceUnit.INCH), pos.getY(DistanceUnit.INCH), pos.getHeading(AngleUnit.DEGREES));
+            telemetry.addLine("--- ROBOT DATA ---");
+
             telemetry.addData("Position", data);
             double VelX = robot.pinpoint.getVelX(DistanceUnit.MM);
             double VelY = robot.pinpoint.getVelY(DistanceUnit.MM);
             double headingVel = robot.pinpoint.getHeadingVelocity(UnnormalizedAngleUnit.DEGREES);
 
             telemetry.addData("Velocities (mm/s,deg/s)", "X: %.0f  Y: %.0f  H: %.1f", VelX, VelY, headingVel);
+            telemetry.addLine("---------------------------");
 
             //telemetry.addData("Status", robot.pinpoint.getDeviceStatus());
             //telemetry.addData("Pinpoint Frequency", robot.pinpoint.getFrequency()); //prints/gets the current refresh rate of the Pinpoint
@@ -173,6 +181,7 @@ public class Competition extends LinearOpMode {
             rightBumperPreviouslyPressed = rightBumperPressed;
 
             flywheelController.update();
+            spindexerController.update();
             shootingController.update();
 
             ///INTAKE
@@ -187,6 +196,12 @@ public class Competition extends LinearOpMode {
             } else {
                 robot.runIntake(RobotHardware.IntakeDirection.STOP);
             }
+
+            boolean gamepad2DpadUpPressed = gamepad2.dpad_up;
+            if (gamepad2DpadUpPressed && !dpadUpGamepad2PreviouslyPressed) {
+                spindexerController.toggleAuto();
+            }
+            dpadUpGamepad2PreviouslyPressed = gamepad2DpadUpPressed;
 
             /*
             // ----- Spindexer test control -----
@@ -210,6 +225,22 @@ public class Competition extends LinearOpMode {
 
              */
 
+            boolean leftStickDown = gamepad2.left_stick_button;
+            boolean rightStickDown = gamepad2.right_stick_button;
+
+            if (leftStickDown && !leftStickPreviouslyPressed) {
+                spindexerController.advanceSpindexer();
+            }
+
+            if (rightStickDown && !rightStickPreviouslyPressed) {
+                spindexerController.reverseSpindexer();
+            }
+
+            leftStickPreviouslyPressed = leftStickDown;
+            rightStickPreviouslyPressed = rightStickDown;
+
+
+
             if (shootingController.isIdle()) {
                 //Manual Lift Control
                 if (gamepad1.a) {
@@ -228,8 +259,10 @@ public class Competition extends LinearOpMode {
                 }
             }
 
+            telemetry.addLine("--- FLYWHEEL DATA ---");
             telemetry.addData("Flywheel Tolerance", "%.0f rpm", flywheelController.getRpmTolerance());
             telemetry.addData("Launcher F", "%.0f", FlywheelPidfConfig.launcherF);
+            telemetry.addLine("--------------------------------");
             robot.flushPanelsTelemetry(telemetry);
             telemetry.update();
         }

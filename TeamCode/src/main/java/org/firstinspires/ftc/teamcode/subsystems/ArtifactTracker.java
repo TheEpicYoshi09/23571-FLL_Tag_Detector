@@ -59,9 +59,11 @@ public class ArtifactTracker {
 
         maybeLogStatusChange();
 
+        telemetry.addLine("--- ARTIFACT TRACKER ---");
         telemetry.addData("Slot 1", formatSlotTelemetry(slot1));
         telemetry.addData("Slot 2", formatSlotTelemetry(slot2));
         telemetry.addData("Slot 3", formatSlotTelemetry(slot3));
+        telemetry.addLine("-------------------------------------");
     }
 
     private SlotReading evaluateSensor(ColorSensor colorSensor, DistanceSensor distanceSensor, rgbIndicator indicator, int slot) {

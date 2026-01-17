@@ -42,9 +42,9 @@ public class CompetitionSolo extends LinearOpMode {
 
         TurretTracker turretTracker = new TurretTracker(robot, telemetry);
         FlywheelController flywheelController = new FlywheelController(robot, telemetry);
-        SpindexerController spindexerController = new SpindexerController(robot, telemetry);
-        ShootingController shootingController = new ShootingController(robot, flywheelController, spindexerController, telemetry);
         ArtifactTracker artifactTracker = new ArtifactTracker(robot, telemetry);
+        SpindexerController spindexerController = new SpindexerController(robot, artifactTracker, telemetry);
+        ShootingController shootingController = new ShootingController(robot, flywheelController, spindexerController, telemetry);
 
         spindexerController.init();
 

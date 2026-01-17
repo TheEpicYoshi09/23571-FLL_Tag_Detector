@@ -81,12 +81,13 @@ public class LauncherMotorGroup {
         if (telemetryPanels == null || !Double.isFinite(lastLauncherScaledP) || !Double.isFinite(lastLauncherScaledF)) {
             return;
         }
-
-        telemetryPanels.debug("Launcher PIDF scaled (P,I,D,F)",
-                String.format("P=%.3f I=%.3f D=%.3f F=%.3f",
-                        lastLauncherScaledP, lastLauncherScaledI, lastLauncherScaledD, lastLauncherScaledF));
+        telemetryPanels.addLine("--- PIDF ---");
+//        telemetryPanels.debug("Launcher PIDF scaled (P,I,D,F)",
+//                String.format("P=%.3f I=%.3f D=%.3f F=%.3f",
+//                        lastLauncherScaledP, lastLauncherScaledI, lastLauncherScaledD, lastLauncherScaledF));
         telemetryPanels.debug("Launcher PIDF base (P,I,D,F)",
                 String.format("P=%.3f I=%.3f D=%.3f F=%.3f",
                         lastLauncherBaseP, lastLauncherBaseI, lastLauncherBaseD, lastLauncherBaseF));
+        telemetryPanels.addLine("----------------");
     }
 }

@@ -167,10 +167,10 @@ public class RPMTest extends LinearOpMode {
         robot.init();
 
         TurretTracker turretTracker = new TurretTracker(robot, telemetry);
-        SpindexerController spindexerController = new SpindexerController(robot, telemetry);
+        ArtifactTracker artifactTracker = new ArtifactTracker(robot, telemetry);
+        SpindexerController spindexerController = new SpindexerController(robot, artifactTracker, telemetry);
         flywheelController = new FlywheelController(robot, telemetry);
         ShootingController shootingController = new ShootingController(robot, flywheelController, spindexerController, telemetry);
-        ArtifactTracker artifactTracker = new ArtifactTracker(robot, telemetry);
 
         spindexerController.init();
 

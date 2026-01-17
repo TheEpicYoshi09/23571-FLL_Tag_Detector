@@ -263,8 +263,8 @@ public class StateMachine {
                         }
                         break;
                     case 5:
-                        if ( completePathWithDelay(2.0) ) {
-                            spindexerController.setPosition(2);
+                        if ( completePathWithDelay(1.0) ) {
+                            spindexerController.setPosition(1);
                             pathTimer.resetTimer();
                             autoFarSubStep++;
                         }
