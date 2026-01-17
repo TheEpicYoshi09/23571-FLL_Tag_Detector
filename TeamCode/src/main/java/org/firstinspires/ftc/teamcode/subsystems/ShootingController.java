@@ -147,7 +147,7 @@ public class ShootingController {
         double txPercent = result.getTx();
         if (!Double.isNaN(txPercent)) {
             telemetry.addData("*** TX PERCENT", Math.abs(txPercent));
-            return Math.abs(txPercent) <= 0.525; // USE TO BE <=, AND 0.075
+            return Math.abs(txPercent) <= 0.5; // USE TO BE <=, AND 0.075
         }
 
         List<LLResultTypes.FiducialResult> fiducials = result.getFiducialResults();

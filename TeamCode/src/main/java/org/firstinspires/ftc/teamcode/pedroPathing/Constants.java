@@ -51,7 +51,8 @@ public class Constants {
     }
 
     public static PinpointConstants localizerConstants = new PinpointConstants()
-            .forwardPodY(-3.375)
+          //  .forwardPodY(-3.375)
+            .forwardPodY(0)
             .strafePodX(5.5625)
             .distanceUnit(DistanceUnit.INCH)
             .hardwareMapName("pinpoint")
@@ -62,7 +63,7 @@ public class Constants {
     public static PathChain buildPath(Follower follower, Pose pose1, Pose pose2) {
         return follower.pathBuilder(pathConstraints)
                 .addPath(new BezierLine(pose1, pose2))
-                .setLinearHeadingInterpolation(pose1.getHeading(), pose2.getHeading())
+                .setConstantHeadingInterpolation(pose2.getHeading())
                 .build();
     }
 }
