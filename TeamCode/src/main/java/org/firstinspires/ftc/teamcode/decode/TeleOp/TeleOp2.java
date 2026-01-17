@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.decode.TeleOp;
 
 
-
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -14,17 +13,16 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
-@TeleOp(name = "TeleOp1 w/servo ")// WORKS
-public class TeleOp1 extends LinearOpMode {
+@TeleOp(name = "TeleOp2")// WORKS
+public class TeleOp2 extends LinearOpMode {
     private IMU imu;
-    public double servoPower;
 
+    //public Servo servo;
     public HoodServo servo = new HoodServo();
-
     @Override
     public void runOpMode() throws InterruptedException {
-
         servo.init(hardwareMap);
+        //servo = hardwareMap.servo.get("hoodServo");
         DcMotor frontLeft = hardwareMap.dcMotor.get("frontLeftMotor");
         DcMotor backLeft = hardwareMap.dcMotor.get("backLeftMotor");
         DcMotor frontRight = hardwareMap.dcMotor.get("frontRightMotor");
@@ -43,13 +41,13 @@ public class TeleOp1 extends LinearOpMode {
         IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
                 RevHubOrientationOnRobot.LogoFacingDirection.DOWN,
                 RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
-        // Without this, the REV Hub's orientation is assumed to be logo up / USB forward
+        // Without this, the REV Hub's orientation is a
+        // ssumed to be logo up / USB forward
         imu.initialize(parameters);
 
         double flyPower = 0;
 
-
-
+        servo.setHoodservo(0);
 
         waitForStart();
 
@@ -117,38 +115,38 @@ public class TeleOp1 extends LinearOpMode {
 
                 loader.setPower(-1);
 
-            } else if (gamepad1.dpad_up) {
+            } else if(gamepad1.dpad_up){
                 loader.setPower(1);
                 intake.setPower(1);
-            } else {
+            }
+            else {
                 loader.setPower(0);
             }
-            if (gamepad1.x) { // goes down
-                servoPower += 0.5;
-                servo.CRServo( servoPower, true); // Forward
+
+            if(gamepad1.x){
+                servo.setHoodservo(0.3);// close
             }
-            else if (gamepad1.b) {// goes up
-                servoPower -= 0.5;
-                servo.CRServo( servoPower, false); // Reverse
+            else if(gamepad1.b){ // far
+                servo.setHoodservo(0);
             }
-//            else if (gamepad1.dpad_down){
-//                servo.CRServo(1, false);
-//            }
-            else{
-                servo.CRStop();
+            else if(gamepad1.dpad_down){ // all the way to the top
+                servo.setHoodservo(0.5);
             }
 
-           // telemetry.addData("Servo Position", servo.getPower());
 
-
-            telemetry.addData("Front Left Powe0r", frontLeft.getPower());
+            telemetry.addData("Front Left Power", frontLeft.getPower());
             telemetry.addData("Front Right Power", frontRight.getPower());
-            telemetry.addData("Back Lft Power", backLeft.getPower());
+            telemetry.addData("Back Left Power", backLeft.getPower());
             telemetry.addData("Back Right Power", backRight.getPower());
             telemetry.addData("intake Power", intake.getPower());
+            telemetry.addData("servo Power", servo.getPosition());
             telemetry.update();
         }
+
+
+
     }
+    //telemetry.update();
 }
 
 
