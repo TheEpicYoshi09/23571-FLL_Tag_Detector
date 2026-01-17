@@ -44,6 +44,8 @@ public class zainTeleOp1 extends LinearOpMode {
 
         double flyPower = 0;
 
+        servo.setPosition(0.3);
+
         waitForStart();
 
         if (isStopRequested()) return;
@@ -132,17 +134,15 @@ public class zainTeleOp1 extends LinearOpMode {
 
             //servo.setDirection(Servo.Direction.REVERSE);
             if (gamepad1.x){
-                servo.setPosition(0.95);
-            }
-            else if (gamepad1.b){
-                servo.setPosition(0.70);
-            }
-            else if (gamepad1.dpad_down){
                 servo.setPosition(0.3);
             }
-            else if (gamepad1.dpad_right){
-                servo.setPosition(0.5);// far
+            else if (gamepad1.b){
+                servo.setPosition(0);
             }
+            else if (gamepad1.dpad_down){
+                servo.setPosition(0.5);
+            }
+
 
             telemetry.addData("Front Left Power", frontLeftPower);
             telemetry.addData("Front Right Power", frontRightPower);
