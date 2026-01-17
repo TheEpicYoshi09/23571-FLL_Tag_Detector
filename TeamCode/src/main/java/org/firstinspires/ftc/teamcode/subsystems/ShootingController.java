@@ -8,8 +8,6 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.Constants;
 import org.firstinspires.ftc.teamcode.RobotHardware;
 
-import org.firstinspires.ftc.teamcode.subsystems.FlywheelController;
-
 import java.util.List;
 
 public class ShootingController {
@@ -25,25 +23,23 @@ public class ShootingController {
 
     private final RobotHardware robot;
     private final FlywheelController flywheelController;
+    private final SpindexerController spindexerController;
     private final Telemetry telemetry;
-
-    private final double[] spindexerPositions = new double[]{Constants.spindexer1, Constants.spindexer2, Constants.spindexer3};
-    private int spindexerIndex = 0;
     private int shotsRemaining = 0;
     private final ElapsedTime shootTimer = new ElapsedTime();
     private ShootState shootState = ShootState.IDLE;
 
-    public ShootingController(RobotHardware robot, FlywheelController flywheelController, Telemetry telemetry) {
+    public ShootingController(RobotHardware robot, FlywheelController flywheelController, SpindexerController spindexerController, Telemetry telemetry) {
         this.robot = robot;
         this.flywheelController = flywheelController;
+        this.spindexerController = spindexerController;
         this.telemetry = telemetry;
     }
 
     public void startShootSequence() {
         shootTimer.reset();
         shootState = ShootState.WAIT_FOR_SPINUP;
-        shotsRemaining = spindexerPositions.length;
-        syncSpindexerIndex();
+        shotsRemaining = 3;
         robot.kicker.setPosition(Constants.kickerDown);
     }
 
@@ -81,7 +77,7 @@ public class ShootingController {
             case RETRACT:
                 if (shootTimer.milliseconds() >= Constants.SHOOT_RETRACT_DURATION_MS) {
                     if (shotsRemaining > 0) {
-                        advanceSpindexer();
+                        spindexerController.advanceSpindexer();
                         shootTimer.reset();
                         shootState = ShootState.ADVANCE;
                     } else {
@@ -104,6 +100,7 @@ public class ShootingController {
                 break;
             default:
                 shootState = ShootState.IDLE;
+                spindexerController.setPosition(0);
                 break;
         }
 
@@ -158,26 +155,5 @@ public class ShootingController {
         double txDegrees = fiducials.get(0).getTargetXDegrees();
         telemetry.addData("*** TX DEGREES", txDegrees);
         return Math.abs(txDegrees) <= 10.0;
-    }
-
-    private void syncSpindexerIndex() {
-        double current = robot.spindexerPos;
-        for (int i = 0; i < spindexerPositions.length; i++) {
-            if (spindexerPositions[i] == current) {
-                spindexerIndex = i;
-                return;
-            }
-        }
-        spindexerIndex = 0;
-    }
-
-    private void advanceSpindexer() {
-        spindexerIndex = (spindexerIndex + 1) % spindexerPositions.length;
-        robot.spindexerPos = spindexerPositions[spindexerIndex];
-        robot.spindexer.setPosition(robot.spindexerPos);
-    }
-
-    public int getSpindexerIndex() {
-        return spindexerIndex;
     }
 }

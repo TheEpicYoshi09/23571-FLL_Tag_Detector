@@ -7,6 +7,7 @@ import org.firstinspires.ftc.teamcode.Constants;
 import org.firstinspires.ftc.teamcode.RobotHardware;
 import org.firstinspires.ftc.teamcode.subsystems.ArtifactTracker;
 import org.firstinspires.ftc.teamcode.subsystems.FlywheelController;
+import org.firstinspires.ftc.teamcode.subsystems.SpindexerController;
 import org.firstinspires.ftc.teamcode.subsystems.TurretTracker;
 
 @TeleOp(name = "Judging", group = "Test")
@@ -15,6 +16,7 @@ public class Judging extends LinearOpMode {
     private final RobotHardware robot = new RobotHardware(this);
     private TurretTracker turretTracker;
     private FlywheelController flywheelController;
+    private SpindexerController spindexerController;
     private ArtifactTracker artifactTracker;
 
     @Override
@@ -27,6 +29,7 @@ public class Judging extends LinearOpMode {
         turretTracker = new TurretTracker(robot, telemetry);
         flywheelController = new FlywheelController(robot, telemetry);
         artifactTracker = new ArtifactTracker(robot, telemetry);
+        spindexerController = new SpindexerController(robot, artifactTracker, telemetry);
 
         telemetry.addLine("Judging OpMode Initialized");
         telemetry.update();
@@ -74,14 +77,11 @@ public class Judging extends LinearOpMode {
 
             // Spindexer positions on gamepad1 B/X/Y
             if (gamepad1.b) {
-                robot.spindexer.setPosition(Constants.spindexer1);
-                robot.spindexerPos = Constants.spindexer1;
+                spindexerController.setPosition(0);
             } else if (gamepad1.y) {
-                robot.spindexer.setPosition(Constants.spindexer2);
-                robot.spindexerPos = Constants.spindexer2;
+                spindexerController.setPosition(1);
             } else if (gamepad1.x) {
-                robot.spindexer.setPosition(Constants.spindexer3);
-                robot.spindexerPos = Constants.spindexer3;
+                spindexerController.setPosition(2);
             }
 
             // Telemetry for sensors and indicators

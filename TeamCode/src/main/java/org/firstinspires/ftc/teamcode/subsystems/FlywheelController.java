@@ -228,7 +228,9 @@ public class FlywheelController {
             return;
         }
 
+        panelsTelemetry.addLine("--- FLYWHEEL RPM ---");
         panelsTelemetry.debug("Flywheel RPM (target/current)", String.format("%.0f / %.0f", target, current));
+        panelsTelemetry.addLine("-------------------------------");
     }
 
     private void setFrontLedColor(double color) {

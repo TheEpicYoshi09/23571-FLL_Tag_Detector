@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.Constants;
 import org.firstinspires.ftc.teamcode.RobotHardware;
 
 /**
@@ -13,6 +12,7 @@ public class IntakeController {
 
     private final RobotHardware robot;
     private final ArtifactTracker artifactTracker;
+    private final SpindexerController spindexerController;
     private final Telemetry telemetry;
 
     private boolean spindexerFull = false;
@@ -25,16 +25,13 @@ public class IntakeController {
     private long sensorReadAllowedAtNanos = 0L;
     private long autoRotateAllowedAtNanos = 0L;
 
-    private final double[] spindexerPositions = new double[]{Constants.spindexer1, Constants.spindexer2};
-    private int spindexerIndex = 0;
-
     private static final long SENSOR_SETTLE_TIME_NANOS = 500_000_000L; // 0.5 seconds
 
-    public IntakeController(RobotHardware robot, ArtifactTracker artifactTracker, Telemetry telemetry) {
+    public IntakeController(RobotHardware robot, ArtifactTracker artifactTracker, SpindexerController spindexerController, Telemetry telemetry) {
         this.robot = robot;
         this.artifactTracker = artifactTracker;
+        this.spindexerController = spindexerController;
         this.telemetry = telemetry;
-        syncSpindexerIndex();
     }
 
     /**
@@ -68,12 +65,11 @@ public class IntakeController {
         }
 
         if (!allowSensorRead) {
-            telemetry.addData("Spindexer Facing", spindexerIndex + 1);
+            telemetry.addData("Spindexer Facing", spindexerController.getIndex() + 1);
             return;
         }
 
-        syncSpindexerIndex();
-        if (spindexerIndex == 0) {
+        if (spindexerController.getIndex() == 0) {
             boolean hiddenSlotVacant = slots[2] == ArtifactTracker.SlotStatus.VACANT;
             if (hiddenSlotVacant && slotsFilled(slots, 0, 1)) {
                 if (allowAutoRotation) {
@@ -95,7 +91,7 @@ public class IntakeController {
             }
         }
 
-        telemetry.addData("Spindexer Facing", spindexerIndex + 1);
+        telemetry.addData("Spindexer Facing", spindexerController.getIndex() + 1);
     }
 
     public boolean isSpindexerFull() {
@@ -116,20 +112,9 @@ public class IntakeController {
                 && slots[secondIndex] != ArtifactTracker.SlotStatus.VACANT;
     }
 
-    private void syncSpindexerIndex() {
-        double current = robot.spindexerPos;
-        if (current == Constants.spindexer2) {
-            spindexerIndex = 1;
-        } else {
-            spindexerIndex = 0;
-        }
-    }
-
     private void moveToPosition(int index) {
-        index = Math.max(0, Math.min(index, spindexerPositions.length - 1));
-        spindexerIndex = index;
-        robot.spindexerPos = spindexerPositions[index];
-        robot.spindexer.setPosition(robot.spindexerPos);
+        index = Math.max(0, Math.min(index, 3 - 1));
+        spindexerController.setPosition(index);
         long now = System.nanoTime();
         sensorReadAllowedAtNanos = now + SENSOR_SETTLE_TIME_NANOS;
         autoRotateAllowedAtNanos = now + SENSOR_SETTLE_TIME_NANOS;

@@ -13,8 +13,8 @@ import org.firstinspires.ftc.teamcode.subsystems.ArtifactTracker;
 import org.firstinspires.ftc.teamcode.subsystems.FlywheelController;
 import org.firstinspires.ftc.teamcode.subsystems.FlywheelPidfConfig;
 import org.firstinspires.ftc.teamcode.subsystems.ShootingController;
+import org.firstinspires.ftc.teamcode.subsystems.SpindexerController;
 import org.firstinspires.ftc.teamcode.subsystems.TurretTracker;
-//import org.firstinspires.ftc.teamcode.drivers.GoBildaPinpointDriver;
 
 import java.util.Locale;
 
@@ -31,7 +31,10 @@ public class Competition extends LinearOpMode {
     private boolean dpadLeftPreviouslyPressed = false;
     private boolean dpadRightPreviouslyPressed = false;
 
-    private final double[] spindexerPositions = new double[]{Constants.spindexer1, Constants.spindexer2, Constants.spindexer3};
+    private boolean leftStickPreviouslyPressed = false;
+
+    private boolean rightStickPreviouslyPressed = false;
+    private boolean dpadUpGamepad2PreviouslyPressed = false;
 
     @Override
     public void runOpMode() {
@@ -51,14 +54,13 @@ public class Competition extends LinearOpMode {
 
         robot.init();  //Hardware configuration in RobotHardware.java
 
-        int spindexerIndex = 0;
-        robot.spindexer.setPosition(spindexerPositions[spindexerIndex]);
-        robot.spindexerPos = spindexerPositions[spindexerIndex];
-
         TurretTracker turretTracker = new TurretTracker(robot, telemetry);
         FlywheelController flywheelController = new FlywheelController(robot, telemetry);
-        ShootingController shootingController = new ShootingController(robot, flywheelController, telemetry);
         ArtifactTracker artifactTracker = new ArtifactTracker(robot, telemetry);
+        SpindexerController spindexerController = new SpindexerController(robot, artifactTracker, telemetry);
+        ShootingController shootingController = new ShootingController(robot, flywheelController, spindexerController, telemetry);
+
+        spindexerController.init();
 
         waitForStart();
         resetRuntime();
@@ -86,12 +88,15 @@ public class Competition extends LinearOpMode {
             oldTime = newTime;
             Pose2D pos = robot.pinpoint.getPosition();
             String data = String.format(Locale.US, "{X: %.3f, Y: %.3f, H: %.3f}", pos.getX(DistanceUnit.INCH), pos.getY(DistanceUnit.INCH), pos.getHeading(AngleUnit.DEGREES));
+            telemetry.addLine("--- ROBOT DATA ---");
+
             telemetry.addData("Position", data);
             double VelX = robot.pinpoint.getVelX(DistanceUnit.MM);
             double VelY = robot.pinpoint.getVelY(DistanceUnit.MM);
             double headingVel = robot.pinpoint.getHeadingVelocity(UnnormalizedAngleUnit.DEGREES);
 
             telemetry.addData("Velocities (mm/s,deg/s)", "X: %.0f  Y: %.0f  H: %.1f", VelX, VelY, headingVel);
+            telemetry.addLine("---------------------------");
 
             //telemetry.addData("Status", robot.pinpoint.getDeviceStatus());
             //telemetry.addData("Pinpoint Frequency", robot.pinpoint.getFrequency()); //prints/gets the current refresh rate of the Pinpoint
@@ -176,6 +181,7 @@ public class Competition extends LinearOpMode {
             rightBumperPreviouslyPressed = rightBumperPressed;
 
             flywheelController.update();
+            spindexerController.update();
             shootingController.update();
 
             ///INTAKE
@@ -190,6 +196,12 @@ public class Competition extends LinearOpMode {
             } else {
                 robot.runIntake(RobotHardware.IntakeDirection.STOP);
             }
+
+            boolean gamepad2DpadUpPressed = gamepad2.dpad_up;
+            if (gamepad2DpadUpPressed && !dpadUpGamepad2PreviouslyPressed) {
+                spindexerController.toggleAuto();
+            }
+            dpadUpGamepad2PreviouslyPressed = gamepad2DpadUpPressed;
 
             /*
             // ----- Spindexer test control -----
@@ -213,6 +225,22 @@ public class Competition extends LinearOpMode {
 
              */
 
+            boolean leftStickDown = gamepad2.left_stick_button;
+            boolean rightStickDown = gamepad2.right_stick_button;
+
+            if (leftStickDown && !leftStickPreviouslyPressed) {
+                spindexerController.advanceSpindexer();
+            }
+
+            if (rightStickDown && !rightStickPreviouslyPressed) {
+                spindexerController.reverseSpindexer();
+            }
+
+            leftStickPreviouslyPressed = leftStickDown;
+            rightStickPreviouslyPressed = rightStickDown;
+
+
+
             if (shootingController.isIdle()) {
                 //Manual Lift Control
                 if (gamepad1.a) {
@@ -223,19 +251,18 @@ public class Competition extends LinearOpMode {
 
                 //Spindexer Manual Control
                 if (gamepad2.b) {
-                    robot.spindexer.setPosition(Constants.spindexer1);
-                    robot.spindexerPos = Constants.spindexer1;
+                    spindexerController.setPosition(0);
                 } else if (gamepad2.y) {
-                    robot.spindexer.setPosition(Constants.spindexer2);
-                    robot.spindexerPos = Constants.spindexer2;
+                    spindexerController.setPosition(1);
                 } else if (gamepad2.x) {
-                    robot.spindexer.setPosition(Constants.spindexer3);
-                    robot.spindexerPos = Constants.spindexer3;
+                    spindexerController.setPosition(2);
                 }
             }
 
+            telemetry.addLine("--- FLYWHEEL DATA ---");
             telemetry.addData("Flywheel Tolerance", "%.0f rpm", flywheelController.getRpmTolerance());
             telemetry.addData("Launcher F", "%.0f", FlywheelPidfConfig.launcherF);
+            telemetry.addLine("--------------------------------");
             robot.flushPanelsTelemetry(telemetry);
             telemetry.update();
         }

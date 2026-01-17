@@ -9,6 +9,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.DecodePaths;
 import org.firstinspires.ftc.teamcode.subsystems.FlywheelController;
 import org.firstinspires.ftc.teamcode.subsystems.FindGoal;
 import org.firstinspires.ftc.teamcode.subsystems.ShootingController;
+import org.firstinspires.ftc.teamcode.subsystems.SpindexerController;
 import org.firstinspires.ftc.teamcode.subsystems.TurretTracker;
 
 import java.util.Map;
@@ -31,6 +32,7 @@ public class StateMachine {
     private final ShootingController shootingController;
     private final FlywheelController flywheelController;
     private final TurretTracker turretTracker;
+    private final SpindexerController spindexerController;
     private final FindGoal findGoal;
     private final boolean runTrackTurret = false;
 
@@ -40,17 +42,17 @@ public class StateMachine {
     private int autoFarSubStep = 0;
     private boolean shootStarted = false;
 
-    private final double[] spindexerPositions = new double[]{org.firstinspires.ftc.teamcode.Constants.spindexer1, org.firstinspires.ftc.teamcode.Constants.spindexer2, org.firstinspires.ftc.teamcode.Constants.spindexer3};
-    private int spindexerIndex = 0;
-
     private Map<DecodePaths.AUTO_PATHS, PathChain> paths;
 
-    public StateMachine(RobotHardware hardware, Follower follower, ShootingController shootingController, FlywheelController flywheelController, TurretTracker turretTracker) {
+    public StateMachine(RobotHardware hardware, Follower follower, ShootingController shootingController,
+                        FlywheelController flywheelController, TurretTracker turretTracker,
+                        SpindexerController spindexerController) {
         this.robot = hardware;
         this.follower = follower;
         this.shootingController = shootingController;
         this.flywheelController = flywheelController;
         this.turretTracker = turretTracker;
+        this.spindexerController = spindexerController;
         this.findGoal = new FindGoal(hardware);
         setState(State.HOME, true);
     }
@@ -123,16 +125,10 @@ public class StateMachine {
         }
     }
 
-    private void setSpindexPosition(int position) {
-        spindexerIndex = position;
-        robot.spindexer.setPosition(spindexerPositions[spindexerIndex]);
-        robot.spindexerPos = spindexerPositions[spindexerIndex];
-    }
-
     private void breakOutAuto(DecodePaths.AUTO_PATHS breakPath) {
         if (autoTimer.getElapsedTimeSeconds() >= 28.75) {
             robot.runIntake(RobotHardware.IntakeDirection.STOP);
-            setSpindexPosition(0);
+            spindexerController.setPosition(0);
             stopFlywheel();
             followPath(breakPath);
         }
@@ -164,7 +160,7 @@ public class StateMachine {
     public void update() {
         switch (currentState) {
             case HOME:
-                setSpindexPosition(0);
+                spindexerController.setPosition(0);
                 break;
             case AUTO_HOME_NEAR:
                 setPose(DecodePaths.BLUE_NEAR_START, DecodePaths.RED_NEAR_START);
@@ -189,7 +185,7 @@ public class StateMachine {
                     case 3:
                         if ( completedPath() ) {
                             stopFlywheel();
-                            setSpindexPosition(0);
+                            spindexerController.setPosition(0);
                             followPath(DecodePaths.AUTO_PATHS.NEAR_SHOOT_AREA_TO_SPIKE1, true);
                             pathTimer.resetTimer();
                             autoNearSubStep++;
@@ -245,7 +241,7 @@ public class StateMachine {
                     case 2:
                         if ( completedPath() ) {
                             if ( shoot(DecodePaths.AUTO_PATHS.FAR_SHOOT_LEAVE) ) {
-                                setSpindexPosition(2);
+                                spindexerController.setPosition(2);
                                 robot.runIntake(RobotHardware.IntakeDirection.IN);
                                 followPath(DecodePaths.AUTO_PATHS.FAR_SHOOT_TO_SPIKE3_LINEUP, true);
                                 autoFarSubStep++;
@@ -261,14 +257,14 @@ public class StateMachine {
                         break;
                     case 4:
                         if ( completePathWithDelay(1.0) ) {
-                            setSpindexPosition(0);
+                            spindexerController.setPosition(0);
                             pathTimer.resetTimer();
                             autoFarSubStep++;
                         }
                         break;
                     case 5:
-                        if ( completePathWithDelay(2.0) ) {
-                            setSpindexPosition(2);
+                        if ( completePathWithDelay(1.0) ) {
+                            spindexerController.setPosition(1);
                             pathTimer.resetTimer();
                             autoFarSubStep++;
                         }
@@ -306,10 +302,12 @@ public class StateMachine {
                 }
                 break;
             case AUTO_LEAVE_NEAR:
-                followPath(DecodePaths.AUTO_PATHS.NEAR_SHOOT_TO_WALL, true);
+                followPath(DecodePaths.AUTO_PATHS.NEAR_SHOOT_TO_WALL, false);
+                setState(State.STOP);
                 break;
             case AUTO_LEAVE_FAR:
                 followPath(DecodePaths.AUTO_PATHS.FAR_SHOOT_LEAVE, false);
+                setState(State.STOP);
                 break;
             default:
                 break;
