@@ -13,8 +13,8 @@ import org.firstinspires.ftc.teamcode.subsystems.ArtifactTracker;
 import org.firstinspires.ftc.teamcode.subsystems.FlywheelController;
 import org.firstinspires.ftc.teamcode.subsystems.FlywheelPidfConfig;
 import org.firstinspires.ftc.teamcode.subsystems.ShootingController;
+import org.firstinspires.ftc.teamcode.subsystems.SpindexerController;
 import org.firstinspires.ftc.teamcode.subsystems.TurretTracker;
-//import org.firstinspires.ftc.teamcode.drivers.GoBildaPinpointDriver;
 
 import java.util.Locale;
 
@@ -30,8 +30,6 @@ public class Competition extends LinearOpMode {
     private boolean dpadDownPreviouslyPressed = false;
     private boolean dpadLeftPreviouslyPressed = false;
     private boolean dpadRightPreviouslyPressed = false;
-
-    private final double[] spindexerPositions = new double[]{Constants.spindexer1, Constants.spindexer2, Constants.spindexer3};
 
     @Override
     public void runOpMode() {
@@ -51,14 +49,13 @@ public class Competition extends LinearOpMode {
 
         robot.init();  //Hardware configuration in RobotHardware.java
 
-        int spindexerIndex = 0;
-        robot.spindexer.setPosition(spindexerPositions[spindexerIndex]);
-        robot.spindexerPos = spindexerPositions[spindexerIndex];
-
         TurretTracker turretTracker = new TurretTracker(robot, telemetry);
         FlywheelController flywheelController = new FlywheelController(robot, telemetry);
-        ShootingController shootingController = new ShootingController(robot, flywheelController, telemetry);
+        SpindexerController spindexerController = new SpindexerController(robot, telemetry);
+        ShootingController shootingController = new ShootingController(robot, flywheelController, spindexerController, telemetry);
         ArtifactTracker artifactTracker = new ArtifactTracker(robot, telemetry);
+
+        spindexerController.init();
 
         waitForStart();
         resetRuntime();
@@ -223,14 +220,11 @@ public class Competition extends LinearOpMode {
 
                 //Spindexer Manual Control
                 if (gamepad2.b) {
-                    robot.spindexer.setPosition(Constants.spindexer1);
-                    robot.spindexerPos = Constants.spindexer1;
+                    spindexerController.setPosition(0);
                 } else if (gamepad2.y) {
-                    robot.spindexer.setPosition(Constants.spindexer2);
-                    robot.spindexerPos = Constants.spindexer2;
+                    spindexerController.setPosition(1);
                 } else if (gamepad2.x) {
-                    robot.spindexer.setPosition(Constants.spindexer3);
-                    robot.spindexerPos = Constants.spindexer3;
+                    spindexerController.setPosition(2);
                 }
             }
 

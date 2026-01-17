@@ -13,6 +13,7 @@ import org.firstinspires.ftc.teamcode.StateMachine;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.subsystems.FlywheelController;
 import org.firstinspires.ftc.teamcode.subsystems.ShootingController;
+import org.firstinspires.ftc.teamcode.subsystems.SpindexerController;
 import org.firstinspires.ftc.teamcode.subsystems.TurretTracker;
 
 @Autonomous(name = "Auto Near", group = "Auto V1")
@@ -31,12 +32,14 @@ public class Near extends LinearOpMode {
         hardware.init();
 
         FlywheelController flywheelController = new FlywheelController(hardware, telemetry);
-        ShootingController shootingController = new ShootingController(hardware, flywheelController, telemetry);
+        SpindexerController spindexerController = new SpindexerController(hardware, telemetry);
+        ShootingController shootingController = new ShootingController(hardware, flywheelController, spindexerController, telemetry);
         TurretTracker turretTracker = new TurretTracker(hardware, telemetry);
         Follower follower = Constants.createFollower(hardwareMap);
-        StateMachine stateMachine = new StateMachine(hardware, follower, shootingController, flywheelController, turretTracker);
+        StateMachine stateMachine = new StateMachine(hardware, follower, shootingController, flywheelController, turretTracker, spindexerController);
         Drawer drawer = new Drawer(panelsField, follower);
 
+        spindexerController.init();
         stateMachine.init();
 
         stateMachine.setState(StateMachine.State.AUTO_HOME_NEAR, true);
@@ -49,7 +52,13 @@ public class Near extends LinearOpMode {
         while (opModeIsActive()) {
             stateMachine.update();
             follower.update();
+            spindexerController.update();
             drawer.draw();
+
+            if (stateMachine.getState() == StateMachine.State.STOP) {
+                stop();
+                break;
+            }
 
             panelsTelemetry.debug("State", stateMachine.getState());
             panelsTelemetry.debug("Pose X", follower.getPose().getX());

@@ -72,7 +72,6 @@ public class RobotHardware {
     private double targetRPM = 0;
     private boolean flywheelOn = false;
     private int turretTargetPosition = 0;
-    public double spindexerPos = Constants.spindexerStart;
 
     // Example: GoBilda 5202/5203/5204 encoder = 28 ticks/rev
     private static final double TICKS_PER_REV = 28.0;
@@ -382,17 +381,6 @@ public class RobotHardware {
         rightFront.setPower(rightFrontPower);
         leftBack.setPower(leftBackPower);
         rightBack.setPower(rightBackPower);
-    }
-
-    public void adjustSpindexer(double delta) {
-        spindexerPos += delta;
-
-        // Clamp between valid servo range
-        spindexerPos = Math.max(0.0, Math.min(1.0, spindexerPos));
-
-        spindexer.setPosition(spindexerPos);
-
-        myOpMode.telemetry.addData("Spindexer Pos", spindexerPos);
     }
 
     public double getTargetRPM() {

@@ -1,19 +1,16 @@
 package org.firstinspires.ftc.teamcode.Testing;
 
 import com.qualcomm.hardware.limelightvision.LLResult;
-import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
-import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit;
 import org.firstinspires.ftc.teamcode.Constants;
 import org.firstinspires.ftc.teamcode.RobotHardware;
@@ -23,10 +20,10 @@ import org.firstinspires.ftc.teamcode.subsystems.FlywheelController;
 import org.firstinspires.ftc.teamcode.subsystems.FlywheelPidfConfig;
 import org.firstinspires.ftc.teamcode.subsystems.LauncherMotorGroup;
 import org.firstinspires.ftc.teamcode.subsystems.ShootingController;
+import org.firstinspires.ftc.teamcode.subsystems.SpindexerController;
 import org.firstinspires.ftc.teamcode.subsystems.TurretTracker;
 //import org.firstinspires.ftc.teamcode.drivers.GoBildaPinpointDriver;
 
-import java.util.List;
 import java.util.Locale;
 
 // <3.5 ft - 2,200 rpm
@@ -53,8 +50,6 @@ public class RPMTest extends LinearOpMode {
     private boolean dpadDownPreviouslyPressed2 = false;
     private boolean dpadLeftPreviouslyPressed2 = false;
     private boolean dpadRightPreviouslyPressed2 = false;
-
-    private final double[] spindexerPositions = new double[]{Constants.spindexer1, Constants.spindexer2, Constants.spindexer3};
 
     private double targetRpm = 0.0;
     private double spinupSetpointRpm = 0.0;
@@ -171,14 +166,13 @@ public class RPMTest extends LinearOpMode {
 
         robot.init();
 
-        int spindexerIndex = 0;
-        robot.spindexer.setPosition(spindexerPositions[spindexerIndex]);
-        robot.spindexerPos = spindexerPositions[spindexerIndex];
-
         TurretTracker turretTracker = new TurretTracker(robot, telemetry);
+        SpindexerController spindexerController = new SpindexerController(robot, telemetry);
         flywheelController = new FlywheelController(robot, telemetry);
-        ShootingController shootingController = new ShootingController(robot, flywheelController, telemetry);
+        ShootingController shootingController = new ShootingController(robot, flywheelController, spindexerController, telemetry);
         ArtifactTracker artifactTracker = new ArtifactTracker(robot, telemetry);
+
+        spindexerController.init();
 
         waitForStart();
         resetRuntime();
@@ -304,14 +298,11 @@ public class RPMTest extends LinearOpMode {
 
                 //Spindexer Manual Control
                 if (gamepad1.b) {
-                    robot.spindexer.setPosition(Constants.spindexer1);
-                    robot.spindexerPos = Constants.spindexer1;
+                    spindexerController.setPosition(0);
                 } else if (gamepad1.y) {
-                    robot.spindexer.setPosition(Constants.spindexer2);
-                    robot.spindexerPos = Constants.spindexer2;
+                    spindexerController.setPosition(1);
                 } else if (gamepad1.x) {
-                    robot.spindexer.setPosition(Constants.spindexer3);
-                    robot.spindexerPos = Constants.spindexer3;
+                    spindexerController.setPosition(2);
                 }
             }
 
