@@ -69,10 +69,12 @@ public class OnlyLeaveFar extends LinearOpMode {
 
             panelsTelemetry.update(telemetry);
 
+            telemetry.addLine("--- AUTO ---");
             telemetry.addData("STATE", stateMachine.getState());
             telemetry.addData("X POS", follower.getPose().getX());
             telemetry.addData("Y POS", follower.getPose().getY());
             telemetry.addData("HEADING", follower.getPose().getHeading());
+            telemetry.addLine("-----------------");
             telemetry.update();
         }
     }

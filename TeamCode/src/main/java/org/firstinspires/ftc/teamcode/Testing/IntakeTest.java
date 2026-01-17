@@ -6,10 +6,9 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.RobotHardware;
 import org.firstinspires.ftc.teamcode.subsystems.ArtifactTracker;
-import org.firstinspires.ftc.teamcode.subsystems.IntakeController;
 import org.firstinspires.ftc.teamcode.subsystems.SpindexerController;
 
-//@Disabled
+@Disabled
 @TeleOp(name = "Intake Test", group = "Test")
 public class IntakeTest extends LinearOpMode {
 
@@ -20,14 +19,15 @@ public class IntakeTest extends LinearOpMode {
 
         ArtifactTracker artifactTracker = new ArtifactTracker(robot, telemetry);
         SpindexerController spindexerController = new SpindexerController(robot, artifactTracker, telemetry);
-        IntakeController intakeController = new IntakeController(robot, artifactTracker, spindexerController, telemetry);
+
+        spindexerController.toggleAuto();
 
         waitForStart();
 
         while (opModeIsActive()) {
-            intakeController.update();
+            spindexerController.update();
 
-            if (gamepad1.right_bumper && !intakeController.isSpindexerFull()) {
+            if (gamepad1.right_bumper && !spindexerController.isSpindexerFull()) {
                 robot.runIntake(RobotHardware.IntakeDirection.IN);
             } else if (gamepad1.left_bumper) {
                 robot.runIntake(RobotHardware.IntakeDirection.OUT);

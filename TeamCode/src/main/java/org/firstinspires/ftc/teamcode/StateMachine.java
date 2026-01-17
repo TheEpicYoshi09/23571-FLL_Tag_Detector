@@ -34,7 +34,6 @@ public class StateMachine {
     private final TurretTracker turretTracker;
     private final SpindexerController spindexerController;
     private final FindGoal findGoal;
-    private final boolean runTrackTurret = false;
 
     private Timer pathTimer = new Timer();
     private Timer autoTimer = new Timer();
@@ -109,7 +108,6 @@ public class StateMachine {
         return false;
     }
     private boolean shoot(DecodePaths.AUTO_PATHS breakPath) { return shoot(breakPath, false); }
-    private boolean shoot() { return shoot(null, false); }
     private void runFlywheel() {
         if (flywheelController != null) {
             if (!flywheelController.isEnabled()) {
@@ -149,13 +147,9 @@ public class StateMachine {
         follower.setPose(pose);
     }
 
-    private boolean completedPath() {
-        return !follower.isBusy();
-    }
+    private boolean completedPath() { return !follower.isBusy(); }
 
-    private boolean completePathWithDelay(double seconds) {
-        return completedPath() && pathTimer.getElapsedTimeSeconds() >= seconds;
-    }
+    private boolean completePathWithDelay(double seconds) { return completedPath() && pathTimer.getElapsedTimeSeconds() >= seconds; }
 
     public void update() {
         switch (currentState) {
@@ -171,6 +165,7 @@ public class StateMachine {
             case AUTO_NEAR:
                 switch (autoNearSubStep) {
                     case 0:
+                        flywheelController.setLauncherFeedforward(28.5);
                         autoTimer.resetTimer();
                         runFlywheel();
                         followPath(DecodePaths.AUTO_PATHS.NEAR_PATH_TO_SHOOT_AREA, true);
@@ -215,7 +210,7 @@ public class StateMachine {
                         break;
                     case 7:
                         if ( completedPath() ) {
-                            if ( shoot(null, true) ) {
+                            if ( shoot(DecodePaths.AUTO_PATHS.NEAR_SHOOT_TO_WALL, true) ) {
                                 stopFlywheel();
                                 setState(State.STOP);
                                 autoNearSubStep++;
@@ -229,9 +224,9 @@ public class StateMachine {
             case AUTO_FAR:
                 switch (autoFarSubStep) {
                     case 0:
+                        flywheelController.setLauncherFeedforward(30);
                         autoTimer.resetTimer();
                         runFlywheel();
-                        flywheelController.setLauncherFeedforward(30);
                         followPath(DecodePaths.AUTO_PATHS.FAR_START_TO_SHOOT, true);
                         autoFarSubStep++;
                         break;

@@ -21,9 +21,6 @@ import java.util.Locale;
 //@Disabled
 @TeleOp(name = "Competition Main", group = "TeleOp")
 public class Competition extends LinearOpMode {
-
-    //GoBildaPinpointDriver odo; // Declare OpMode member for the Odometry Computer
-
     RobotHardware robot = new RobotHardware(this);
 
     private boolean dpadUpPreviouslyPressed = false;
@@ -41,12 +38,7 @@ public class Competition extends LinearOpMode {
 
         ///Variable Setup
         //Odometry
-        double oldTime = 0;
-
-        //Mecanum Drive
-        //double x;
-        //double y;
-        //double rotation;
+        //double oldTime = 0;
 
         boolean backButtonPreviouslyPressed = false;
         boolean rightBumperPreviouslyPressed = false;
@@ -74,18 +66,18 @@ public class Competition extends LinearOpMode {
             LLResult result = robot.getLatestLimelightResult();
             if (result != null) {
                 if (result.isValid()) {
-                    Pose3D botpose = result.getBotpose();
+                    Pose3D botPose = result.getBotpose();
                     telemetry.addData("tx/ty", "tx: %.2f ty: %.2f", result.getTx(), result.getTy());
-                    telemetry.addData("Botpose", botpose.toString());
+                    telemetry.addData("Bot Pose", botPose.toString());
                 }
             }
 
             //Odometry
             robot.pinpoint.update(); //Update odometry
-            double newTime = getRuntime();
-            double loopTime = newTime - oldTime;
-            double frequency = 1 / loopTime;
-            oldTime = newTime;
+            //double newTime = getRuntime();
+            //double loopTime = newTime - oldTime;
+            //double frequency = 1 / loopTime;
+            //oldTime = newTime;
             Pose2D pos = robot.pinpoint.getPosition();
             String data = String.format(Locale.US, "{X: %.3f, Y: %.3f, H: %.3f}", pos.getX(DistanceUnit.INCH), pos.getY(DistanceUnit.INCH), pos.getHeading(AngleUnit.DEGREES));
             telemetry.addLine("--- ROBOT DATA ---");
@@ -98,24 +90,6 @@ public class Competition extends LinearOpMode {
             telemetry.addData("Velocities (mm/s,deg/s)", "X: %.0f  Y: %.0f  H: %.1f", VelX, VelY, headingVel);
             telemetry.addLine("---------------------------");
 
-            //telemetry.addData("Status", robot.pinpoint.getDeviceStatus());
-            //telemetry.addData("Pinpoint Frequency", robot.pinpoint.getFrequency()); //prints/gets the current refresh rate of the Pinpoint
-            //telemetry.addData("REV Hub Frequency: ", frequency); //prints the control system refresh rate
-
-            ///MECANUM DRIVE
-
-        /*
-            // Get joystick inputs
-            y = -gamepad1.left_stick_y * 0.90; // Forward/backward - multiply by 0.90 to scale speed down
-            x = gamepad1.left_stick_x * 0.90;  // Strafe - multiply by 0.90 to scale speed down
-            if (gamepad1.right_stick_button) {
-                rotation = gamepad1.right_stick_x * 0.50; //Slow rotation mode when button pressed in
-            } else {
-                rotation = gamepad1.right_stick_x * 0.75; // Rotation - multiply by 0.75 to scale speed down
-            }
-
-            robot.mecanumDrive(x, y, rotation);
-         */
             robot.updateHeadingOffsetFromAllianceButton();
             double botHeading = robot.pinpoint.getHeading(AngleUnit.RADIANS);
             double adjustedHeading = robot.applyHeadingOffset(botHeading);
@@ -198,32 +172,12 @@ public class Competition extends LinearOpMode {
             }
 
             boolean gamepad2DpadUpPressed = gamepad2.dpad_up;
+
             if (gamepad2DpadUpPressed && !dpadUpGamepad2PreviouslyPressed) {
                 spindexerController.toggleAuto();
             }
+
             dpadUpGamepad2PreviouslyPressed = gamepad2DpadUpPressed;
-
-            /*
-            // ----- Spindexer test control -----
-
-            boolean dpadLeft2  = gamepad2.dpad_left;
-            boolean dpadRight2 = gamepad2.dpad_right;
-
-            // Edge trigger LEFT (-0.05)
-            if (dpadLeft2 && !dpadLeft2PreviouslyPressed) {
-                robot.adjustSpindexer(-0.01);
-            }
-
-            // Edge trigger RIGHT (+0.05)
-            if (dpadRight2 && !dpadRight2PreviouslyPressed) {
-                robot.adjustSpindexer(0.01);
-            }
-
-            // update previous
-            dpadLeft2PreviouslyPressed  = dpadLeft2;
-            dpadRight2PreviouslyPressed = dpadRight2;
-
-             */
 
             boolean leftStickDown = gamepad2.left_stick_button;
             boolean rightStickDown = gamepad2.right_stick_button;
@@ -249,7 +203,7 @@ public class Competition extends LinearOpMode {
                     robot.kicker.setPosition(Constants.kickerDown);
                 }
 
-                //Spindexer Manual Control
+                // Spindexer Manual Control
                 if (gamepad2.b) {
                     spindexerController.setPosition(0);
                 } else if (gamepad2.y) {

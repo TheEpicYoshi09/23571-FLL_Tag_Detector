@@ -35,14 +35,12 @@ public class DecodePaths {
     public static final Pose BLUE_NEAR_SHOOT = new Pose(45, 98, Math.toRadians(-90));
     public static final Pose BLUE_NEAR_GOTO_ARTIFACTS = new Pose(24.1, 98, Math.toRadians(-90));
     public static final Pose BLUE_NEAR_PICKUP_ARTIFACTS = new Pose(24.1, 90, Math.toRadians(-90));
-    public static final Pose BLUE_NEAR_GO_INSIDE_ZONE = new Pose(60, 132.5, Math.toRadians(-90));
 
     ///  RED CLOSE
     public static final Pose RED_NEAR_START = new Pose(121,119.8,Math.toRadians(-90));
     public static final Pose RED_NEAR_SHOOT = new Pose(98.5, 98, Math.toRadians(-90));
     public static final Pose RED_NEAR_GOTO_ARTIFACTS = new Pose(119.8, 98, Math.toRadians(-90));
     public static final Pose RED_NEAR_PICKUP_ARTIFACTS = new Pose(119.8, 90, Math.toRadians(-90));
-    public static final Pose RED_NEAR_GO_INSIDE_ZONE = new Pose(84, 132.5, Math.toRadians(-90));
 
     /// BLUE CLOSE LEAVE ONLY
     public static final Pose BLUE_NEAR_FROM_SHOOT_TO_WALL = new Pose(59, 133.6, Math.toRadians(-90));
@@ -91,8 +89,8 @@ public class DecodePaths {
                 RED_NEAR_GOTO_ARTIFACTS, RED_NEAR_PICKUP_ARTIFACTS));
 
         paths.put(AUTO_PATHS.NEAR_GOTO_SHOOT_SPIKE1, buildPath(robot, follower,
-                BLUE_NEAR_PICKUP_ARTIFACTS, BLUE_NEAR_GO_INSIDE_ZONE,
-                RED_NEAR_PICKUP_ARTIFACTS, RED_NEAR_GO_INSIDE_ZONE));
+                BLUE_NEAR_PICKUP_ARTIFACTS, BLUE_NEAR_SHOOT,
+                RED_NEAR_PICKUP_ARTIFACTS, RED_NEAR_SHOOT));
 
         /// FAR
         paths.put(AUTO_PATHS.FAR_START_TO_SHOOT, buildPath(robot, follower,
@@ -121,8 +119,8 @@ public class DecodePaths {
 
         /// NEAR LEAVE
         paths.put(AUTO_PATHS.NEAR_SHOOT_TO_WALL, buildPath(robot, follower,
-                BLUE_NEAR_START, BLUE_NEAR_FROM_SHOOT_TO_WALL,
-                RED_NEAR_START, RED_NEAR_FROM_SHOOT_TO_WALL));
+                BLUE_NEAR_SHOOT, BLUE_NEAR_FROM_SHOOT_TO_WALL,
+                RED_NEAR_SHOOT, RED_NEAR_FROM_SHOOT_TO_WALL));
 
         return paths;
     }

@@ -26,9 +26,9 @@ public class Drawer {
     }
 
     private void drawRobot(Pose pose) {
-//        field.setStyle(STYLE);
-//        field.moveCursor(pose.getX(), pose.getY());
-//        field.rect(17.5, 17.5);
+        field.setStyle(STYLE);
+        field.moveCursor(pose.getX() - 17.5/2, pose.getY() - 17.5/2);
+        field.rect(17.5, 17.5);
     }
 
     private void drawHeading(Pose pose) {
