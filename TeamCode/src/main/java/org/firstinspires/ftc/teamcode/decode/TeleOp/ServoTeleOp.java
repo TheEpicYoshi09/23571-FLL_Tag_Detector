@@ -33,7 +33,7 @@ public class ServoTeleOp extends OpMode{
                 servo.CRStop(); // Stop
             }
 
-            telemetry.addData("Servo Position", servo.getPower());
+            //telemetry.addData("Servo Position", servo.getPower());
 
         }
 }

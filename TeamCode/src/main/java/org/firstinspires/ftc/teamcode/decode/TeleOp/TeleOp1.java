@@ -49,7 +49,7 @@ public class TeleOp1 extends LinearOpMode {
         double flyPower = 0;
 
 
-        servo.CRServo(1, false);
+
 
         waitForStart();
 
@@ -124,18 +124,21 @@ public class TeleOp1 extends LinearOpMode {
                 loader.setPower(0);
             }
             if (gamepad1.x) { // goes down
-                servoPower = servoPower + 0.5;
+                servoPower += 0.5;
                 servo.CRServo( servoPower, true); // Forward
             }
             else if (gamepad1.b) {// goes up
-                servoPower = servoPower - 0.5;
+                servoPower -= 0.5;
                 servo.CRServo( servoPower, false); // Reverse
             }
+//            else if (gamepad1.dpad_down){
+//                servo.CRServo(1, false);
+//            }
             else{
                 servo.CRStop();
             }
 
-            telemetry.addData("Servo Position", servo.getPower());
+           // telemetry.addData("Servo Position", servo.getPower());
 
 
             telemetry.addData("Front Left Powe0r", frontLeft.getPower());

@@ -4,6 +4,8 @@ package org.firstinspires.ftc.teamcode.decode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.teamcode.decode.Subsystems.HoodServo;
+
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
@@ -15,11 +17,12 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 public class TeleOp2 extends LinearOpMode {
     private IMU imu;
 
-    public Servo servo;
+    //public Servo servo;
+    public HoodServo servo = new HoodServo();
     @Override
     public void runOpMode() throws InterruptedException {
-
-        servo = hardwareMap.servo.get("hoodServo");
+        servo.init(hardwareMap);
+        //servo = hardwareMap.servo.get("hoodServo");
         DcMotor frontLeft = hardwareMap.dcMotor.get("frontLeftMotor");
         DcMotor backLeft = hardwareMap.dcMotor.get("backLeftMotor");
         DcMotor frontRight = hardwareMap.dcMotor.get("frontRightMotor");
@@ -38,12 +41,13 @@ public class TeleOp2 extends LinearOpMode {
         IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
                 RevHubOrientationOnRobot.LogoFacingDirection.DOWN,
                 RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
-        // Without this, the REV Hub's orientation is assumed to be logo up / USB forward
+        // Without this, the REV Hub's orientation is a
+        // ssumed to be logo up / USB forward
         imu.initialize(parameters);
 
         double flyPower = 0;
 
-        servo.setPosition(0.5);
+        servo.setHoodservo(0);
 
         waitForStart();
 
@@ -119,18 +123,15 @@ public class TeleOp2 extends LinearOpMode {
                 loader.setPower(0);
             }
 
-            if(gamepad1.x){ // far
-                servo.setPosition(0.4);// bottom
+            if(gamepad1.x){
+                servo.setHoodservo(0.3);// close
             }
-            else if(gamepad1.b){ // close
-                servo.setPosition(0.1);
+            else if(gamepad1.b){ // far
+                servo.setHoodservo(0);
             }
-            else if(gamepad1.dpad_right){ // all the way to the top
-                servo.setPosition(0);
-            } else if(gamepad1.dpad_left){ // close
-                servo.setPosition(0.3);
+            else if(gamepad1.dpad_down){ // all the way to the top
+                servo.setHoodservo(0.5);
             }
-
 
 
             telemetry.addData("Front Left Power", frontLeft.getPower());
