@@ -47,7 +47,7 @@ public class Paths {
     // Intake 6
     public static Pose P_I6_CP        = new Pose(73.435, 65.4);
     public static Pose P_I6_END       = new Pose(96.563, 65.4);
-    public static Pose P_I6_WALL      = new Pose(130, 65.4);
+    public static Pose P_I6_WALL      = new Pose(130, 65);
 
     // Ramp
     public static Pose P_RAMP_CP      = new Pose(92.680, 75.123);
@@ -123,6 +123,45 @@ public class Paths {
     // BUILD ALL PATHS
     // =============================
 
+    public void goal3Build() {
+        shootPreload = f.pathBuilder()
+                .addPath(new BezierLine(P_START, P_SHOOT))
+                .setLinearHeadingInterpolation(H_0,H_38)
+                .build();
+
+        leave = f.pathBuilder()
+                .addPath(new BezierLine(P_SHOOT, P_LEAVE_END))
+                .setConstantHeadingInterpolation(H_38)
+                .build();
+    }
+
+    public void goal6Build () {
+        shootPreload = f.pathBuilder()
+                .addPath(new BezierLine(P_START, P_SHOOT))
+                .setLinearHeadingInterpolation(H_0,H_38)
+                .build();
+
+        // ---------- Intake + Shoot 3 ----------
+        intake3 = f.pathBuilder()
+                .addPath(new BezierCurve(P_SHOOT, P_I3_CP, P_I3_END))
+                .setLinearHeadingInterpolation(H_38,H_0)
+                .addPath(new BezierLine(P_I3_END, P_I3_WALL))
+                .setConstantHeadingInterpolation(H_0)
+                .addPath(new BezierLine(P_I3_WALL, P_I3_END))
+                .setTangentHeadingInterpolation()
+                .setReversed()
+                .build();
+
+        shoot3 = f.pathBuilder()
+                .addPath(new BezierCurve(P_I3_END, P_I3_CP, P_SHOOT))
+                .setLinearHeadingInterpolation(H_0,H_38)
+                .build();
+
+        leave = f.pathBuilder()
+                .addPath(new BezierLine(P_SHOOT, P_LEAVE_END))
+                .setConstantHeadingInterpolation(H_38)
+                .build();
+    }
     public void goal21Build() {
 
         // ---------- Preload ----------

@@ -65,7 +65,8 @@ private void shootPreload() {
                     new ParallelAction(
                             RobotActions.intakeAction(1,1),
                             RobotActions.loaderAction(1,1)
-                    )
+                    ),
+                    new InstantAction(()-> robot.shooter.stop())
 
             )
 
@@ -80,7 +81,7 @@ private void cycle3() {
             new SequentialAction(
                     new ParallelAction(
                                 new Actions.CallbackAction(
-                                        RobotActions.intakeAction(1,2),
+                                        RobotActions.intakeAction(1,3),
                                         path.intake3,0.1,0,f,"Intake3"
                                 ),
                                 new FollowPathAction(f,path.intake3)
@@ -88,14 +89,15 @@ private void cycle3() {
                             new ParallelAction(
                                     new Actions.CallbackAction(
                                             RobotActions.startShooter(1),
-                                            path.shoot3,0.3,0,f,"Shoot3"
+                                            path.shoot3,0.5,0,f,"Shoot3"
                                     ),
                                     new FollowPathAction(f,path.shoot3)
                             ),
                             new ParallelAction(
-                                    RobotActions.intakeAction(1,0.7),
-                                    RobotActions.loaderAction(1,0.7)
-                            )
+                                    RobotActions.intakeAction(1,1),
+                                    RobotActions.loaderAction(1,1)
+                            ),
+                    new InstantAction(()-> robot.shooter.stop())
             )
 
     );
@@ -120,9 +122,10 @@ private void cycle6() {
                             new FollowPathAction(f,path.shoot6)
                     ),
                     new ParallelAction(
-                            RobotActions.intakeAction(1,0.7),
-                            RobotActions.loaderAction(1,0.7)
-                    )
+                            RobotActions.intakeAction(1,1),
+                            RobotActions.loaderAction(1,1)
+                    ),
+                    new InstantAction(()-> robot.shooter.stop())
             )
     );
     robot.actionScheduler.runBlocking();
@@ -149,14 +152,15 @@ private void cycle9() {
                     ),
                             new ParallelAction(
                                     new Actions.CallbackAction(
-                                            RobotActions.startShooter(1),path.shoot9,0.5,0,f,"Shoot9"
+                                            RobotActions.startShooter(1),path.shoot9,0.7,0,f,"Shoot9"
                                     ),
                                     new FollowPathAction(f,path.shoot9)
                             ),
                             new ParallelAction(
-                                    RobotActions.intakeAction(1,0.7),
-                                    RobotActions.loaderAction(1,0.7)
-                            )
+                                    RobotActions.intakeAction(1,1),
+                                    RobotActions.loaderAction(1,1)
+                            ),
+                    new InstantAction(()-> robot.shooter.stop())
 
             )
     );
@@ -182,9 +186,10 @@ private void extraOne() {
                                     new FollowPathAction(f,path.shootExtra1)
                             ),
                             new ParallelAction(
-                                    RobotActions.intakeAction(1,0.7),
-                                    RobotActions.loaderAction(1,0.7)
-                            )
+                                    RobotActions.intakeAction(1,1),
+                                    RobotActions.loaderAction(1,1)
+                            ),
+                    new InstantAction(()-> robot.shooter.stop())
 
             )
     );
