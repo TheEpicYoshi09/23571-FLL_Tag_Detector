@@ -63,8 +63,8 @@ private void shootPreload() {
 
                     ),
                     new ParallelAction(
-                            RobotActions.intakeAction(1,0.7),
-                            RobotActions.loaderAction(1,0.7)
+                            RobotActions.intakeAction(1,1),
+                            RobotActions.loaderAction(1,1)
                     )
 
             )
@@ -81,14 +81,14 @@ private void cycle3() {
                     new ParallelAction(
                                 new Actions.CallbackAction(
                                         RobotActions.intakeAction(1,2),
-                                        path.intake3,0.3,0,f,"Intake3"
+                                        path.intake3,0.1,0,f,"Intake3"
                                 ),
                                 new FollowPathAction(f,path.intake3)
                              ),
                             new ParallelAction(
                                     new Actions.CallbackAction(
                                             RobotActions.startShooter(1),
-                                            path.shoot3,0.5,0,f,"Shoot3"
+                                            path.shoot3,0.3,0,f,"Shoot3"
                                     ),
                                     new FollowPathAction(f,path.shoot3)
                             ),
@@ -109,7 +109,7 @@ private void cycle6() {
                     new ParallelAction(
                             new Actions.CallbackAction(
                                     RobotActions.intakeAction(1,2),
-                                    path.intake6,0.5,0,f,"intake6"
+                                    path.intake6,0.1,0,f,"intake6"
                             ),
                             new FollowPathAction(f,path.intake6)
                     ),
@@ -142,7 +142,7 @@ private void cycle9() {
             new SequentialAction(
                     new ParallelAction(
                             new Actions.CallbackAction(
-                                    RobotActions.intakeAction(1,2),path.intake9,0.3,0,f,"Intake9"
+                                    RobotActions.intakeAction(1,2),path.intake9,0.1,0,f,"Intake9"
                             ),
                             new FollowPathAction(f,path.intake9)
 
@@ -171,7 +171,7 @@ private void extraOne() {
             new SequentialAction(
                     new ParallelAction(
                             new Actions.CallbackAction(
-                                    RobotActions.intakeAction(1,2),path.intakeExtra1,0.3,0,f,"IntakeExtra1"
+                                    RobotActions.intakeAction(1,2),path.intakeExtra1,0.1,0,f,"IntakeExtra1"
                             ),
                             new FollowPathAction(f,path.intakeExtra1)
                     ),
@@ -197,7 +197,7 @@ private void extraTwo() {
             new SequentialAction(
                     new ParallelAction(
                             new Actions.CallbackAction(
-                                    RobotActions.intakeAction(1,2),path.intakeExtra2,0.3,0,f,"IntakeExtra2"
+                                    RobotActions.intakeAction(1,2),path.intakeExtra2,0.1,0,f,"IntakeExtra2"
                             ),
                             new FollowPathAction(f,path.intakeExtra2)
                     ),
@@ -224,7 +224,7 @@ private void extraThree() {
             new SequentialAction(
                     new ParallelAction(
                             new Actions.CallbackAction(
-                                    RobotActions.intakeAction(1,2),path.intakeExtra3,0.3,0,f,"IntakeExtra3"
+                                    RobotActions.intakeAction(1,2),path.intakeExtra3,0.1,0,f,"IntakeExtra3"
                             ),
                             new FollowPathAction(f,path.intakeExtra3)
                     ),

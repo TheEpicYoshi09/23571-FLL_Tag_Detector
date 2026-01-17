@@ -17,9 +17,6 @@ public class Intake {
         intakeMotor.setPower(power);
     }
 
-    public void unloadArtifacts() {
-        intakeMotor.setPower(-1);
-    }
 
     public void stop() {
         intakeMotor.setPower(0);
