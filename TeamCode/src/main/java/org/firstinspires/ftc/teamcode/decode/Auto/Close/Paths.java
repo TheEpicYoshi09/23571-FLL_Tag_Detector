@@ -42,7 +42,7 @@ public class Paths {
     // Intake 3
     public static Pose P_I3_CP        = new Pose(79.512, 84);
     public static Pose P_I3_END       = new Pose(95.550, 84);
-    public static Pose P_I3_WALL      = new Pose(118.5 ,84);
+    public static Pose P_I3_WALL      = new Pose(118.5 ,84.7);
 
     // Intake 6
     public static Pose P_I6_CP        = new Pose(73.435, 63);
@@ -51,13 +51,13 @@ public class Paths {
 
     // Ramp
     public static Pose P_RAMP_CP      = new Pose(92.680, 75.123);
-    public static Pose P_RAMP_END     = new Pose(130, 70.227);
+    public static Pose P_RAMP_END     = new Pose(128.5, 75);
 
     // Intake 9
-    public static Pose P_I9_CP        = new Pose(97, 37.2);
-    public static Pose P_I9_END       = new Pose(99.264, 37.2);
-    public static Pose P_I9_WALL      = new Pose(125, 37.2);
-    public static Pose P_I9_RETURN    = new Pose(99.433, 37.2);
+    public static Pose P_I9_CP        = new Pose(90, 38);
+    public static Pose P_I9_END       = new Pose(99.264, 38);
+    public static Pose P_I9_WALL      = new Pose(127, 40);
+    public static Pose P_I9_RETURN    = new Pose(99.433, 38);
 
     // Extra balls
     public static Pose P_EX_CP1       = new Pose(93.862, 66.851);

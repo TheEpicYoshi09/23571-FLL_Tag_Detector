@@ -57,7 +57,7 @@ private void shootPreload() {
                     new ParallelAction(
                             new Actions.CallbackAction(
                                     RobotActions.startShooter(1),
-                                    path.shootPreload,0.4,0,f,"Preloadrev"
+                                    path.shootPreload,0.5,0,f,"Preloadrev"
                             ),
                             new FollowPathAction(f,path.shootPreload,true)
 
@@ -152,7 +152,7 @@ private void cycle9() {
                     ),
                             new ParallelAction(
                                     new Actions.CallbackAction(
-                                            RobotActions.startShooter(1),path.shoot9,0.7,0,f,"Shoot9"
+                                            RobotActions.startShooter(1),path.shoot9,0.6,0,f,"Shoot9"
                                     ),
                                     new FollowPathAction(f,path.shoot9)
                             ),
