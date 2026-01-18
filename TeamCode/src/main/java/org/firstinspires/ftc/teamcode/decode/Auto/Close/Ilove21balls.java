@@ -57,7 +57,7 @@ private void shootPreload() {
                     new ParallelAction(
                             new Actions.CallbackAction(
                                     RobotActions.startShooter(1),
-                                    path.shootPreload,0.2,0,f,"Preloadrev"
+                                    path.shootPreload,0.4,0,f,"Preloadrev"
                             ),
                             new FollowPathAction(f,path.shootPreload,true)
 
@@ -130,14 +130,14 @@ private void cycle6() {
     );
     robot.actionScheduler.runBlocking();
 }
-private void unloadRamp() {
+    private void unloadRamp() {
 
-    robot.actionScheduler.addAction(
-            new FollowPathAction(f, path.unloadRamp)
-    );
+        robot.actionScheduler.addAction(
+                new FollowPathAction(f, path.unloadRamp)
+        );
 
-    robot.actionScheduler.runBlocking();
-}
+        robot.actionScheduler.runBlocking();
+    }
 
 private void cycle9() {
 
@@ -167,7 +167,6 @@ private void cycle9() {
 
     robot.actionScheduler.runBlocking();
 }
-
 
 private void extraOne() {
 
