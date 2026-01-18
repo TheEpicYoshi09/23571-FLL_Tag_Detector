@@ -152,7 +152,7 @@ private void cycle9() {
                     ),
                             new ParallelAction(
                                     new Actions.CallbackAction(
-                                            RobotActions.startShooter(1),path.shoot9,0.6,0,f,"Shoot9"
+                                            RobotActions.startShooter(1),path.shoot9,0.8,0,f,"Shoot9"
                                     ),
                                     new FollowPathAction(f,path.shoot9)
                             ),

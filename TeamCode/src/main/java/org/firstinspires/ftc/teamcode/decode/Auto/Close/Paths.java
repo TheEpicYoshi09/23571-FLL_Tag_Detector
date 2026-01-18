@@ -56,7 +56,7 @@ public class Paths {
     // Intake 9
     public static Pose P_I9_CP        = new Pose(90, 38);
     public static Pose P_I9_END       = new Pose(99.264, 38);
-    public static Pose P_I9_WALL      = new Pose(127, 40);
+    public static Pose P_I9_WALL      = new Pose(127, 42);
     public static Pose P_I9_RETURN    = new Pose(99.433, 38);
 
     // Extra balls
