@@ -1,26 +1,30 @@
-//helo
+//Fixed Syntax Errors
+//imported LimeLight Camera Libraries
+// Fixed PIDF Import
+
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardPIDFCoefficients;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
-import edu.wpi.first.networktables.NetworkTable;
-import edu.wpi.first.networktables.NetworkTableInstance;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
 @TeleOp(name = "Decode TeleOp")
 public class DecodeTeleOp extends LinearOpMode {
 
     // Drive motors
     private DcMotorEx LB, LF, RB, RF;
-    ware.
+    
     // Mechanisms
     private DcMotorEx LS, RS, IN, TR;
 
     // Limelight
-    private NetworkTable limelight;
+    private Limelight3A limelight;
 
     // Alignment PID
     private static final double kP = 0.025;
@@ -50,6 +54,8 @@ public class DecodeTeleOp extends LinearOpMode {
         initHardware();
         waitForStart();
 
+        limelight.start();
+
         while (opModeIsActive()) {
             drive();
             intake();
@@ -57,6 +63,8 @@ public class DecodeTeleOp extends LinearOpMode {
             shoot();
             telemetryLoop();
         }
+        
+        limelight.stop();
     }
 
     private void initHardware() {
@@ -84,9 +92,9 @@ public class DecodeTeleOp extends LinearOpMode {
         LS.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, shooterPID);
         RS.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, shooterPID);
 
-        limelight = NetworkTableInstance.getDefault().getTable("limelight");
-        limelight.getEntry("ledMode").setNumber(3);
-        limelight.getEntry("pipeline").setNumber(0);
+        limelight = hardwareMap.get(Limelight3A.class, "limelight");
+        limelight.setPollRateHz(100);
+        limelight.pipelineSwitch(0);
     }
 
     private void drive() {
@@ -95,10 +103,11 @@ public class DecodeTeleOp extends LinearOpMode {
         double turn;
 
         boolean align = gamepad1.a;
-        double tv = limelight.getEntry("tv").getDouble(0);
+        LLResult result = limelight.getLatestResult();
+        boolean hasTarget = result != null && result.isValid();
 
-        if (align && tv == 1) {
-            double tx = limelight.getEntry("tx").getDouble(0);
+        if (align && hasTarget) {
+            double tx = result.getTx();
 
             long now = System.currentTimeMillis();
             double dt = (now - lastPidTime) / 1000.0;
@@ -158,15 +167,15 @@ public class DecodeTeleOp extends LinearOpMode {
     }
 
     private void shoot() {
-        double tv = limelight.getEntry("tv").getDouble(0);
+        LLResult result = limelight.getLatestResult();
+        boolean hasTarget = result != null && result.isValid();
         double targetRPM = 0;
 
-        if (gamepad2.right_bumper && tv == 1) {
-            double[] pose = limelight.getEntry("botpose_targetspace")
-                    .getDoubleArray(new double[6]);
+        if (gamepad2.right_bumper && hasTarget) {
+            Pose3D pose = result.getBotpose_TargetSpace();
 
-            if (pose.length == 6) {
-                double distance = pose[2];
+            if (pose != null) {
+                double distance = pose.getPosition().z;
 
                 // Linear interpolation
                 double t = (distance - MIN_SHOOT_DISTANCE) /
