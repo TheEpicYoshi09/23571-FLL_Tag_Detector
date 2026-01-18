@@ -261,7 +261,7 @@ public class FlywheelController {
         if (isAtSpeed() ) {
             setFrontLedColor(LEDColors.GREEN);
         } else if (currentRpm > maxRpm ) {
-            setFrontLedColor(LEDColors.RED);
+            setFrontLedColor(LEDColors.AZURE);
         } else if (currentRpm >= minimumRpm * 0.75) {
             setFrontLedColor(LEDColors.ORANGE);
         } else if (currentRpm >= minimumRpm * 0.5) {

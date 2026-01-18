@@ -63,7 +63,7 @@ public class Constants {
     // Tuned against field samples (purple B:G ≈ 1.2–1.6, green G:B ≈ 1.2 and G:R ≈ 2.4)
     // to keep registering balls even when the sensor happens to look into a hole
     // instead of solid plastic.
-    public static final double COLOR_SENSOR_DETECTION_DISTANCE_MM = 55.0;
+    public static final double COLOR_SENSOR_DETECTION_DISTANCE_MM = 100.0;
 
     ///AUTONOMOUS SETPOINTS
 

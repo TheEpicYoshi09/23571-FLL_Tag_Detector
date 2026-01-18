@@ -27,6 +27,7 @@ public class Competition extends LinearOpMode {
     private boolean dpadDownPreviouslyPressed = false;
     private boolean dpadLeftPreviouslyPressed = false;
     private boolean dpadRightPreviouslyPressed = false;
+    private boolean gamepad1LeftStickPreviouslyPressed = false;
 
     private boolean leftStickPreviouslyPressed = false;
 
@@ -87,6 +88,7 @@ public class Competition extends LinearOpMode {
             double VelY = robot.pinpoint.getVelY(DistanceUnit.MM);
             double headingVel = robot.pinpoint.getHeadingVelocity(UnnormalizedAngleUnit.DEGREES);
 
+            telemetry.addData("Wheel Power Dampening", robot.getPowerDampener());
             telemetry.addData("Velocities (mm/s,deg/s)", "X: %.0f  Y: %.0f  H: %.1f", VelX, VelY, headingVel);
             telemetry.addLine("---------------------------");
 
@@ -126,6 +128,8 @@ public class Competition extends LinearOpMode {
             boolean dpadLeft = gamepad1.dpad_left;
             boolean dpadRight = gamepad1.dpad_right;
 
+            boolean gamepad1LeftStickDown = gamepad1.left_stick_button;
+
             if (dpadUp && !dpadUpPreviouslyPressed) {
                 flywheelController.adjustRpmTolerance(10.0);
             }
@@ -141,6 +145,12 @@ public class Competition extends LinearOpMode {
             if (dpadLeft && !dpadLeftPreviouslyPressed) {
                 flywheelController.adjustLauncherFeedforward(-1.0);
             }
+
+            if (gamepad1LeftStickDown && !gamepad1LeftStickPreviouslyPressed) {
+                robot.setPowerDampener(0.5);
+            }
+
+            gamepad1LeftStickPreviouslyPressed = gamepad1LeftStickDown;
 
             dpadUpPreviouslyPressed = dpadUp;
             dpadDownPreviouslyPressed = dpadDown;

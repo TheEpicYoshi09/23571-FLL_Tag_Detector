@@ -48,51 +48,26 @@ public class SpindexerController {
     public void autoUpdate() {
         telemetry.addLine("AUTO SPINDEXER ENABLED!");
 
-        boolean allowSensorRead = System.nanoTime() >= 0L; // sensorReadAllowedAtNanos
-        boolean allowAutoRotation = System.nanoTime() >= 0L; // autoRotateAllowedAtNanos
-        ArtifactTracker.SlotStatus[] slots = cachedSlots;
-
-        if (allowSensorRead) {
-            ArtifactTracker.SlotStatus[] latest = artifactTracker.getSlotStatuses();
-            System.arraycopy(latest, 0, cachedSlots, 0, cachedSlots.length);
-            //slots = cachedSlots;
+        // help me
+        int nextIndex = getIndex() + 1;
+        int lastSlot = 0;
+        if (nextIndex > 2) {
+            nextIndex = 0;
+            lastSlot = 1;
+        } else if (nextIndex == 2) {
+            nextIndex = 1;
+            lastSlot = 2;
         } else {
-            telemetry.addLine("Spindexer settling; holding position");
+            nextIndex = 2;
         }
 
-        spindexerFull = allSlotsFilled(slots);
-        if (spindexerFull) {
-            if (allowAutoRotation) {
-                setPosition(0);
-                telemetry.addData("SPINDEXER POSITION", spindexerPos);
-                telemetry.addData("SPINDEXER INDEX", spindexerIndex);
-                telemetry.addLine("SPINDEXER FULL!");
-                telemetry.addLine("-------------------------");
-            }
-            return;
-        }
+        telemetry.addData("CHECKING INDEX", nextIndex);
 
-        if (!allowSensorRead) {
-            telemetry.addData("SPINDEXER POSITION", spindexerPos);
-            telemetry.addData("SPINDEXER INDEX", spindexerIndex);
-            telemetry.addLine("-------------------------");
-            return;
-        }
-
-        if (getIndex() == 0) {
-            boolean hiddenSlotVacant = slots[2] == ArtifactTracker.SlotStatus.VACANT;
-            if (hiddenSlotVacant && slotsFilled(slots, 0, 1)) {
-                if (allowAutoRotation) {
-                    setPosition(1);
-                }
-            }
-        } else {
-            boolean hiddenSlotVacant = slots[0] == ArtifactTracker.SlotStatus.VACANT;
-            if (hiddenSlotVacant && slotsFilled(slots, 1, 2)) {
-                if (allowAutoRotation) {
-                    setPosition(0);
-                }
-            }
+        if (artifactTracker.getSlotStatus(getIndex()) != ArtifactTracker.SlotStatus.VACANT
+                && artifactTracker.getSlotStatus(nextIndex) != ArtifactTracker.SlotStatus.VACANT
+            && artifactTracker.getSlotStatus(lastSlot) == ArtifactTracker.SlotStatus.VACANT)
+        {
+            setPosition(nextIndex);
         }
     }
 

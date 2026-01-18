@@ -35,9 +35,6 @@ public class RobotHardware {
     public DcMotor rightBack;
     public DcMotorEx intake;
     public LauncherMotorGroup launcherGroup;
-
-    public DcMotorEx launcher;
-    public DcMotorEx launcher2;
     public DcMotorEx turret;
     public Servo spindexer;
     public Servo kicker;
@@ -50,6 +47,8 @@ public class RobotHardware {
     public DistanceSensor distance2;
     public ColorSensor color3;
     public DistanceSensor distance3;
+
+    private double powerDampener = 1;
     //private AnalogInput turretPos;
 
     private TelemetryManager panelsTelemetry;
@@ -379,10 +378,22 @@ public class RobotHardware {
      */
     public void setDrivePower(double leftFrontPower, double rightFrontPower, double leftBackPower, double rightBackPower) {
         // Output the values to the motor drives.
-        leftFront.setPower(leftFrontPower);
-        rightFront.setPower(rightFrontPower);
-        leftBack.setPower(leftBackPower);
-        rightBack.setPower(rightBackPower);
+        leftFront.setPower(leftFrontPower * powerDampener);
+        rightFront.setPower(rightFrontPower * powerDampener);
+        leftBack.setPower(leftBackPower * powerDampener);
+        rightBack.setPower(rightBackPower * powerDampener);
+    }
+
+    public void setPowerDampener(double delta) {
+        if (powerDampener == delta) {
+            powerDampener = 1;
+        } else {
+            powerDampener = delta;
+        }
+    }
+
+    public double getPowerDampener() {
+        return powerDampener;
     }
 
     public double getTargetRPM() {

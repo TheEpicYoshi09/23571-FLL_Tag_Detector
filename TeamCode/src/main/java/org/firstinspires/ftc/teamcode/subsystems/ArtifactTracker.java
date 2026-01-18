@@ -73,38 +73,27 @@ public class ArtifactTracker {
             return  SlotReading.missing();
         }
 
-        final int SAMPLES = 3;
-        double distanceSum = 0;
+        double distance = 0;
 
-        double redSum = 0;
-        double greenSum = 0;
-        double blueSum = 0;
+        double red = 0;
+        double green = 0;
+        double blue = 0;
 
-        int validSamples = 0;
+        boolean validSample = false;
 
-        for (int i = 0; i < SAMPLES; i++) {
-            double dist = distanceSensor.getDistance(DistanceUnit.MM);
-            if (!Double.isNaN(dist)) {
-                distanceSum += dist;
-                redSum += colorSensor.red();
-                greenSum += colorSensor.green();
-                blueSum += colorSensor.blue();
-                validSamples++;
-            }
-
-            // wait 5 milliseconds
-            try { Thread.sleep(5); } catch (InterruptedException ignored) {}
+        double dist = distanceSensor.getDistance(DistanceUnit.MM);
+        if (!Double.isNaN(dist)) {
+            distance = dist;
+            red = colorSensor.red();
+            green = colorSensor.green();
+            blue = colorSensor.blue();
+            validSample = true;
         }
 
-        if (validSamples == 0) {
+        if (!validSample) {
             if (indicator != null) indicator.setColor(LEDColors.OFF);
             return new SlotReading(SlotStatus.VACANT, 0, 0, 0, Double.NaN);
         }
-
-        double distance = distanceSum / validSamples;
-        double red = redSum / validSamples;
-        double green = greenSum / validSamples;
-        double blue = blueSum / validSamples;
 
         double total = red + green + blue;
         SlotStatus status = SlotStatus.VACANT;
@@ -114,8 +103,8 @@ public class ArtifactTracker {
             double greenRatio = green / total;
             double blueRatio = blue / total;
 
-            // minimum brightness level for if it detects low light?
-            if (total >= 50) {
+            // minimum brightness level for if it detects low light
+            if (total >= 40) {
                 if (blueRatio > greenRatio && greenRatio > redRatio && blue >= Constants.COLOR_SENSOR_PURPLE_RATIO * Math.max(green, red)) {
                     status = SlotStatus.PURPLE;
                 } else if (greenRatio > blueRatio && greenRatio > redRatio && green >= Constants.COLOR_SENSOR_GREEN_BLUE_RATIO * blue && green >= Constants.COLOR_SENSOR_GREEN_RED_RATIO * red) {
