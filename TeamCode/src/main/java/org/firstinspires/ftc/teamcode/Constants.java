@@ -29,28 +29,23 @@ public class Constants {
     public static final double LAUNCHER_D = 0.0;     // Slightly more damping for step changes  //original 0.6
 
     ///  SPINDEXER SETPOINTS
-    public static final double spindexerStart = 0.76;
-    public static final double spindexer1 = 0.76;
-    public static final double spindexer2 = 0.39;
-    public static final double spindexer3 = 0.015;
-
-    /// TURRET HOOD POSITIONS
-    public static final double hoodMinimum = 0.0;
-    public static final double hoodMaximum = 1.0;
+    public static final double SPINDEXER_1 = 0.76;
+    public static final double SPINDEXER_2 = 0.39;
+    public static final double SPINDEXER_3 = 0.015;
 
     ///  TURRET POSITIONS
-    public static final int turretHome = 0;
-    public static final int turret_MIN = -1025;  //counter-clockwise from above starting facing opposite intake
-    public static final int turret_MAX = 975;  //clockwise from above starting facing opposite intake
-    public static final int turret_OBELISK_LEFT_LIMIT = -600;
-    public static final int turret_OBELISK_RIGHT_LIMIT = 600;
-    public static final double turret_FAR_AIM_DISTANCE_FEET = 8.0;
-    public static final double turret_FAR_AIM_ADJUST_BLUE = -0.10; // aim left when distance exceeds threshold
-    public static final double turret_FAR_AIM_ADJUST_RED = 0.10; // aim right when distance exceeds threshold
+    public static final int TURRET_HOME = 0;
+    public static final int TURRET_MIN = -1025;  //counter-clockwise from above starting facing opposite intake
+    public static final int TURRET_MAX = 975;  //clockwise from above starting facing opposite intake
+    public static final int TURRET_OBELISK_LEFT_LIMIT = -600;
+    public static final int TURRET_OBELISK_RIGHT_LIMIT = 600;
+    public static final double TURRET_FAR_AIM_DISTANCE_FEET = 8.0;
+    public static final double TURRET_FAR_AIM_ADJUST_BLUE = -0.10; // aim left when distance exceeds threshold
+    public static final double TURRET_FAR_AIM_ADJUST_RED = 0.10; // aim right when distance exceeds threshold
 
     ///  KICKER POSITIONS
-    public static final double kickerDown = 0.0;
-    public static final double kickerUp = 1.0;
+    public static final double KICKER_DOWN = 0.0;
+    public static final double KICKER_UP = 1.0;
 
     /// SHOOTER TIMING (milliseconds)
     public static final long SHOOT_FIRE_DURATION_MS = 300;

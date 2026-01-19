@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import android.annotation.SuppressLint;
+
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.util.RobotLog;
@@ -130,45 +132,6 @@ public class ArtifactTracker {
         return new SlotReading(status, red, green, blue, distance);
     }
 
-//    private SlotReading evaluateSensor(ColorSensor colorSensor, DistanceSensor distanceSensor, rgbIndicator indicator, int slot) {
-//        if (colorSensor == null || distanceSensor == null) {
-//            if (indicator != null) {
-//                indicator.setColor(LEDColors.OFF);
-//            }
-//            return SlotReading.missing();
-//        }
-//
-//        double distance = distanceSensor.getDistance(DistanceUnit.MM);
-//        double red = colorSensor.red();
-//        double green = colorSensor.green();
-//        double blue = colorSensor.blue();
-//
-//        SlotStatus status = SlotStatus.VACANT;
-//        if (!Double.isNaN(distance) && distance <= Constants.COLOR_SENSOR_DETECTION_DISTANCE_MM) {
-//            if (blue >= Constants.COLOR_SENSOR_PURPLE_RATIO * green && blue >= Constants.COLOR_SENSOR_PURPLE_RATIO * red) {
-//                status = SlotStatus.PURPLE;
-//            } else if (green >= Constants.COLOR_SENSOR_GREEN_BLUE_RATIO * blue
-//                    && green >= Constants.COLOR_SENSOR_GREEN_RED_RATIO * red) {
-//                status = SlotStatus.GREEN;
-//            }
-//        }
-//
-//        if (indicator != null) {
-//            switch (status) {
-//                case PURPLE:
-//                    indicator.setColor(LEDColors.VIOLET);
-//                    break;
-//                case GREEN:
-//                    indicator.setColor(LEDColors.GREEN);
-//                    break;
-//                default:
-//                    indicator.setColor(LEDColors.OFF);
-//            }
-//        }
-//
-//        return new SlotReading(status, red, green, blue, distance);
-//    }
-
     private String formatSlotTelemetry(SlotReading reading) {
         return String.format("%s | R: %s G: %s B: %s | D: %smm",
                 reading.status,
@@ -208,6 +171,7 @@ public class ArtifactTracker {
         final String blueText;
         final String distanceText;
 
+        @SuppressLint("DefaultLocale")
         SlotReading(SlotStatus status, double red, double green, double blue, double distanceMm) {
             this.status = status;
             this.red = red;
@@ -224,6 +188,7 @@ public class ArtifactTracker {
             return new SlotReading(SlotStatus.VACANT, Double.NaN, Double.NaN, Double.NaN, Double.NaN);
         }
 
+        @SuppressLint("DefaultLocale")
         private static String formatChannel(double value) {
             return Double.isNaN(value) ? "--" : String.format("%.0f", value);
         }

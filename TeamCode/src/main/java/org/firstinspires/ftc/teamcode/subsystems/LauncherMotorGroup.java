@@ -19,8 +19,6 @@ public class LauncherMotorGroup {
     private double lastLauncherBaseD = Double.NaN;
     private double lastLauncherBaseF = Double.NaN;
     private double lastLauncherScaledP = Double.NaN;
-    private double lastLauncherScaledI = Double.NaN;
-    private double lastLauncherScaledD = Double.NaN;
     private double lastLauncherScaledF = Double.NaN;
 
     public LauncherMotorGroup(Telemetry telemetry, TelemetryManager telemetryPanels, DcMotorEx launcher1, DcMotorEx launcher2) {
@@ -56,8 +54,6 @@ public class LauncherMotorGroup {
         lastLauncherBaseD = FlywheelPidfConfig.launcherD;
         lastLauncherBaseF = FlywheelPidfConfig.launcherF;
         lastLauncherScaledP = pidf.p;
-        lastLauncherScaledI = pidf.i;
-        lastLauncherScaledD = pidf.d;
         lastLauncherScaledF = pidf.f;
 
         publishLauncherPIDFTelemetry();
@@ -82,9 +78,6 @@ public class LauncherMotorGroup {
             return;
         }
         telemetryPanels.addLine("--- PIDF ---");
-//        telemetryPanels.debug("Launcher PIDF scaled (P,I,D,F)",
-//                String.format("P=%.3f I=%.3f D=%.3f F=%.3f",
-//                        lastLauncherScaledP, lastLauncherScaledI, lastLauncherScaledD, lastLauncherScaledF));
         telemetryPanels.debug("Launcher PIDF base (P,I,D,F)",
                 String.format("P=%.3f I=%.3f D=%.3f F=%.3f",
                         lastLauncherBaseP, lastLauncherBaseI, lastLauncherBaseD, lastLauncherBaseF));

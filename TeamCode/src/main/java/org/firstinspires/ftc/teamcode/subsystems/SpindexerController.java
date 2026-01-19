@@ -9,14 +9,14 @@ public class SpindexerController {
     private final ArtifactTracker artifactTracker;
     private final Telemetry telemetry;
 
-    private final double[] spindexerPositions = new double[]{Constants.spindexer1, Constants.spindexer2, Constants.spindexer3};
+    private final double[] spindexerPositions = new double[]{Constants.SPINDEXER_1, Constants.SPINDEXER_2, Constants.SPINDEXER_3};
     private int spindexerIndex = 0;
-    private double spindexerPos = Constants.spindexerStart;
+    private double spindexerPos = Constants.SPINDEXER_1;
     private boolean autoSpinEnabled = false;
 
-    public SpindexerController(RobotHardware robot, ArtifactTracker artifactTracker, Telemetry telemetry) {
+    public SpindexerController(RobotHardware robot, Telemetry telemetry) {
         this.robot = robot;
-        this.artifactTracker = artifactTracker;
+        this.artifactTracker = new ArtifactTracker(robot, telemetry);
         this.telemetry = telemetry;
     }
 
@@ -25,6 +25,8 @@ public class SpindexerController {
     }
 
     public void update() {
+        artifactTracker.update();
+
         telemetry.addLine("--- SPINDEXER ---");
 
         if (autoSpinEnabled) autoUpdate();
@@ -37,38 +39,40 @@ public class SpindexerController {
     public void autoUpdate() {
         telemetry.addLine("AUTO SPINDEXER ENABLED!");
 
+        if (isSpindexerFull()) {
+            telemetry.addLine("SPINDEXER IS FULL!");
+            return;
+        }
+
         int currentIndex = getIndex();
         int lastIndex = getPreviousIndex(currentIndex);
         int nextIndex = getNextIndex(currentIndex);
 
-        ArtifactTracker.SlotStatus lastSlotState = getSlotState(lastIndex);
-        ArtifactTracker.SlotStatus currentSlotState = getCurrentSlotState();
-        ArtifactTracker.SlotStatus nextSlotState = getSlotState(nextIndex);
+        boolean lastSlotEmpty = getSlotState(lastIndex) == ArtifactTracker.SlotStatus.VACANT;
+        boolean currentSlotFull = getCurrentSlotState() != ArtifactTracker.SlotStatus.VACANT;
+        boolean nextSlotFull = getSlotState(nextIndex) != ArtifactTracker.SlotStatus.VACANT;
 
         telemetry.addData("CHECKING INDEX", nextIndex);
 
-        if (currentSlotState != ArtifactTracker.SlotStatus.VACANT
-                && nextSlotState != ArtifactTracker.SlotStatus.VACANT
-                && lastSlotState == ArtifactTracker.SlotStatus.VACANT
-        ) {
+        if (currentSlotFull && nextSlotFull && lastSlotEmpty) {
             setPosition(nextIndex);
         }
     }
 
     public int getPreviousIndex(int index) {
         int previousIndex = index - 1;
-        if (previousIndex < 0) {
-            previousIndex = 2;
-        }
+        if (previousIndex < 0) previousIndex = 2;
         return previousIndex;
     }
 
     public int getNextIndex(int index) {
         int nextIndex = index + 1;
-        if (nextIndex > 2) {
-            nextIndex = 0;
-        }
+        if (nextIndex > 2) nextIndex = 0;
         return nextIndex;
+    }
+
+    public ArtifactTracker getArtifactTracker() {
+        return artifactTracker;
     }
 
     public ArtifactTracker.SlotStatus getSlotState(int index) {
@@ -81,6 +85,14 @@ public class SpindexerController {
 
     public void toggleAuto() {
         autoSpinEnabled = !autoSpinEnabled;
+    }
+
+    public void disableAuto() {
+        autoSpinEnabled = false;
+    }
+
+    public void enableAuto() {
+        autoSpinEnabled = true;
     }
 
     public boolean isEnabled() {

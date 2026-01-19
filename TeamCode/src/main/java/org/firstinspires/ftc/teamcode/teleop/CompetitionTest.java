@@ -11,7 +11,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit;
 import org.firstinspires.ftc.teamcode.Constants;
 import org.firstinspires.ftc.teamcode.RobotHardware;
-import org.firstinspires.ftc.teamcode.subsystems.ArtifactTracker;
 import org.firstinspires.ftc.teamcode.subsystems.FlywheelController;
 import org.firstinspires.ftc.teamcode.subsystems.FlywheelPidfConfig;
 import org.firstinspires.ftc.teamcode.subsystems.ShootingController;
@@ -31,8 +30,7 @@ public class CompetitionTest extends LinearOpMode {
 
         TurretTracker turretTracker = new TurretTracker(robot, telemetry);
         FlywheelController flywheelController = new FlywheelController(robot, telemetry);
-        ArtifactTracker artifactTracker = new ArtifactTracker(robot, telemetry);
-        SpindexerController spindexerController = new SpindexerController(robot, artifactTracker, telemetry);
+        SpindexerController spindexerController = new SpindexerController(robot, telemetry);
         ShootingController shootingController = new ShootingController(robot, flywheelController, spindexerController, telemetry);
 
         spindexerController.init();
@@ -43,7 +41,6 @@ public class CompetitionTest extends LinearOpMode {
         while (opModeIsActive()) {
 
             robot.refreshLimelightResult();
-            artifactTracker.update();
 
             //Limelight Data
             LLResult result = robot.getLatestLimelightResult();
@@ -153,9 +150,9 @@ public class CompetitionTest extends LinearOpMode {
             if (shootingController.isIdle()) {
                 // Kicker Manual
                 if (gamepad1.a) {
-                    robot.kicker.setPosition(Constants.kickerUp);
+                    robot.kicker.setPosition(Constants.KICKER_UP);
                 } else {
-                    robot.kicker.setPosition(Constants.kickerDown);
+                    robot.kicker.setPosition(Constants.KICKER_DOWN);
                 }
 
                 // Spindexer Manual

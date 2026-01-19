@@ -49,7 +49,6 @@ public class RobotHardware {
     public DistanceSensor distance3;
 
     private double powerDampener = 1;
-    //private AnalogInput turretPos;
 
     private TelemetryManager panelsTelemetry;
 
@@ -182,13 +181,10 @@ public class RobotHardware {
         // Define and initialize ALL installed servos.
 
         spindexer = myOpMode.hardwareMap.get(Servo.class, "spindexer");
-        spindexer.setPosition(Constants.spindexerStart);
+        spindexer.setPosition(Constants.SPINDEXER_1);
 
         kicker = myOpMode.hardwareMap.get(Servo.class, "kicker");
-        kicker.setPosition(Constants.kickerDown);
-
-        Servo hood = myOpMode.hardwareMap.get(Servo.class, "hood");
-        hood.setPosition(Constants.hoodMinimum);
+        kicker.setPosition(Constants.KICKER_DOWN);
 
         //Turret LED
         headlight = myOpMode.hardwareMap.get(Servo.class, "headlight");
@@ -311,37 +307,6 @@ public class RobotHardware {
         return headingRadians + headingOffsetRadians;
     }
 
-    /**
-     * Calculates the left/right motor powers required to achieve the requested
-     * robot motions: Drive (Axial motion) and Turn (Yaw motion).
-     * Then sends these power levels to the motors.
-     *
-     * @param x     x-axis power
-     * @param y     y-axis power
-     * @param rotation Rotation
-     */
-    public void mecanumDrive(double x, double y, double rotation) {
-        // Combine drive and turn for blended motion.
-        double leftFrontPower = y + x + rotation;
-        double rightFrontPower = y - x - rotation;
-        double leftBackPower = y - x + rotation;
-        double rightBackPower = y + x - rotation;
-
-        // Normalize power values to keep them between -1 and 1
-        double maxPower = Math.max(1.0, Math.abs(leftFrontPower));
-        maxPower = Math.max(maxPower, Math.abs(rightFrontPower));
-        maxPower = Math.max(maxPower, Math.abs(leftBackPower));
-        maxPower = Math.max(maxPower, Math.abs(rightBackPower));
-
-        leftFrontPower /= maxPower;
-        rightFrontPower /= maxPower;
-        leftBackPower /= maxPower;
-        rightBackPower /= maxPower;
-
-        // Use existing function to drive the wheels.
-        setDrivePower(leftFrontPower, rightFrontPower, leftBackPower, rightBackPower);
-    }
-
     public void FieldCentricDrive(double x, double y, double rx, double botHeading){
         double rotX = x * Math.cos(-botHeading) - y * Math.sin(-botHeading);
         double rotY = x * Math.sin(-botHeading) + y * Math.cos(-botHeading);
@@ -358,14 +323,6 @@ public class RobotHardware {
         double rightBackPower = (rotY + rotX - rx) / denominator;
 
         setDrivePower(leftFrontPower, rightFrontPower, leftBackPower, rightBackPower);
-    }
-
-    /**
-     * Backwards-compatible wrapper for older code that referenced
-     * {@code FieldCentricdrive} with a lowercase "d".
-     */
-    public void FieldCentricdrive(double x, double y, double rx, double botHeading){
-        FieldCentricDrive(x, y, rx, botHeading);
     }
 
     /**
@@ -462,7 +419,7 @@ public class RobotHardware {
         turretTargetPosition += deltaTicks;
 
         // Clamp safe range
-        turretTargetPosition = Math.max(Constants.turret_MIN, Math.min(Constants.turret_MAX, turretTargetPosition));
+        turretTargetPosition = Math.max(Constants.TURRET_MIN, Math.min(Constants.TURRET_MAX, turretTargetPosition));
 
         turret.setTargetPosition(turretTargetPosition);
         turret.setMode(DcMotor.RunMode.RUN_TO_POSITION);

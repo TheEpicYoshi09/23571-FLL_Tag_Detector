@@ -15,14 +15,12 @@ import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit
 import org.firstinspires.ftc.teamcode.Constants;
 import org.firstinspires.ftc.teamcode.RobotHardware;
 import org.firstinspires.ftc.teamcode.drivers.rgbIndicator;
-import org.firstinspires.ftc.teamcode.subsystems.ArtifactTracker;
 import org.firstinspires.ftc.teamcode.subsystems.FlywheelController;
 import org.firstinspires.ftc.teamcode.subsystems.FlywheelPidfConfig;
 import org.firstinspires.ftc.teamcode.subsystems.LauncherMotorGroup;
 import org.firstinspires.ftc.teamcode.subsystems.ShootingController;
 import org.firstinspires.ftc.teamcode.subsystems.SpindexerController;
 import org.firstinspires.ftc.teamcode.subsystems.TurretTracker;
-//import org.firstinspires.ftc.teamcode.drivers.GoBildaPinpointDriver;
 
 import java.util.Locale;
 
@@ -36,10 +34,6 @@ public class RPMTest extends LinearOpMode {
     private static final double TICKS_PER_REV = 28.0;
 
     RobotHardware robot = new RobotHardware(this);
-
-    private static final double MID_ZONE_DISTANCE_FT = 3.5;
-    private static final double FAR_ZONE_DISTANCE_FT = 6.0;
-    private static final double FAR_FAR_ZONE_DISTANCE_FT = 8.0;
 
     private boolean dpadUpPreviouslyPressed = false;
     private boolean dpadDownPreviouslyPressed = false;
@@ -158,17 +152,13 @@ public class RPMTest extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        double oldTime = 0;
-
         boolean backButtonPreviouslyPressed = false;
-        boolean rightBumperPreviouslyPressed = false;
 
 
         robot.init();
 
         TurretTracker turretTracker = new TurretTracker(robot, telemetry);
-        ArtifactTracker artifactTracker = new ArtifactTracker(robot, telemetry);
-        SpindexerController spindexerController = new SpindexerController(robot, artifactTracker, telemetry);
+        SpindexerController spindexerController = new SpindexerController(robot, telemetry);
         flywheelController = new FlywheelController(robot, telemetry);
         ShootingController shootingController = new ShootingController(robot, flywheelController, spindexerController, telemetry);
 
@@ -180,7 +170,6 @@ public class RPMTest extends LinearOpMode {
         while (opModeIsActive()) {
 
             robot.refreshLimelightResult();
-            artifactTracker.update();
 
             //Limelight Data
             LLResult result = robot.getLatestLimelightResult();
@@ -194,10 +183,6 @@ public class RPMTest extends LinearOpMode {
 
             //Odometry
             robot.pinpoint.update(); //Update odometry
-            double newTime = getRuntime();
-            double loopTime = newTime - oldTime;
-            double frequency = 1 / loopTime;
-            oldTime = newTime;
             Pose2D pos = robot.pinpoint.getPosition();
             String data = String.format(Locale.US, "{X: %.3f, Y: %.3f, H: %.3f}", pos.getX(DistanceUnit.INCH), pos.getY(DistanceUnit.INCH), pos.getHeading(AngleUnit.DEGREES));
             telemetry.addData("Position", data);
@@ -291,9 +276,9 @@ public class RPMTest extends LinearOpMode {
             if (shootingController.isIdle()) {
                 //Manual Lift Control
                 if (gamepad1.left_trigger >= 0.5) {
-                    robot.kicker.setPosition(Constants.kickerUp);
+                    robot.kicker.setPosition(Constants.KICKER_UP);
                 } else {
-                    robot.kicker.setPosition(Constants.kickerDown);
+                    robot.kicker.setPosition(Constants.KICKER_DOWN);
                 }
 
                 //Spindexer Manual Control

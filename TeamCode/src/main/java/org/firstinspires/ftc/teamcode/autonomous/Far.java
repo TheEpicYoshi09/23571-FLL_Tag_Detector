@@ -11,7 +11,6 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import org.firstinspires.ftc.teamcode.RobotHardware;
 import org.firstinspires.ftc.teamcode.StateMachine;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
-import org.firstinspires.ftc.teamcode.subsystems.ArtifactTracker;
 import org.firstinspires.ftc.teamcode.subsystems.FlywheelController;
 import org.firstinspires.ftc.teamcode.subsystems.ShootingController;
 import org.firstinspires.ftc.teamcode.subsystems.SpindexerController;
@@ -32,8 +31,7 @@ public class Far extends LinearOpMode {
         hardware.init();
 
         FlywheelController flywheelController = new FlywheelController(hardware, telemetry);
-        ArtifactTracker artifactTracker = new ArtifactTracker(hardware, telemetry);
-        SpindexerController spindexerController = new SpindexerController(hardware, artifactTracker, telemetry);
+        SpindexerController spindexerController = new SpindexerController(hardware, telemetry);
         ShootingController shootingController = new ShootingController(hardware, flywheelController, spindexerController, telemetry);
         TurretTracker turretTracker = new TurretTracker(hardware, telemetry);
         Follower follower = Constants.createFollower(hardwareMap);

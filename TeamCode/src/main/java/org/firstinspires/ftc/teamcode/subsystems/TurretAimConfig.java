@@ -9,8 +9,8 @@ import org.firstinspires.ftc.teamcode.Constants;
  */
 @Configurable
 public class TurretAimConfig {
-    public static double turretFarAimAdjustBlue = Constants.turret_FAR_AIM_ADJUST_BLUE;
-    public static double turretFarAimAdjustRed = Constants.turret_FAR_AIM_ADJUST_RED;
+    public static double turretFarAimAdjustBlue = Constants.TURRET_FAR_AIM_ADJUST_BLUE;
+    public static double turretFarAimAdjustRed = Constants.TURRET_FAR_AIM_ADJUST_RED;
 
     private TurretAimConfig() {
         // Utility holder; no instances required.

@@ -5,7 +5,6 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.RobotHardware;
-import org.firstinspires.ftc.teamcode.subsystems.ArtifactTracker;
 import org.firstinspires.ftc.teamcode.subsystems.SpindexerController;
 
 @Disabled
@@ -17,8 +16,7 @@ public class IntakeTest extends LinearOpMode {
         RobotHardware robot = new RobotHardware(this);
         robot.init();
 
-        ArtifactTracker artifactTracker = new ArtifactTracker(robot, telemetry);
-        SpindexerController spindexerController = new SpindexerController(robot, artifactTracker, telemetry);
+        SpindexerController spindexerController = new SpindexerController(robot, telemetry);
 
         spindexerController.toggleAuto();
 

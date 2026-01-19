@@ -38,7 +38,7 @@ public class ShootingController {
     public void startShootSequence() {
         shootTimer.reset();
         shootState = ShootState.WAIT_FOR_SPINUP;
-        robot.kicker.setPosition(Constants.kickerDown);
+        robot.kicker.setPosition(Constants.KICKER_DOWN);
     }
 
     public void update() {
@@ -47,7 +47,7 @@ public class ShootingController {
         }
 
         if (!flywheelController.isEnabled() || flywheelController.getTargetRpm() <= 0) {
-            robot.kicker.setPosition(Constants.kickerDown);
+            robot.kicker.setPosition(Constants.KICKER_DOWN);
             shootState = ShootState.IDLE;
             return;
         }
@@ -55,7 +55,7 @@ public class ShootingController {
         switch (shootState) {
             case WAIT_FOR_SPINUP:
                 if (flywheelController.isAtSpeed() && isAimedAtTarget() && shootTimer.milliseconds() >= 200) {
-                    robot.kicker.setPosition(Constants.kickerUp);
+                    robot.kicker.setPosition(Constants.KICKER_UP);
                     shootTimer.reset();
                     shootState = ShootState.FIRE;
                 }
@@ -70,7 +70,7 @@ public class ShootingController {
                 break;
             case FIRE:
                 if (shootTimer.milliseconds() >= Constants.SHOOT_FIRE_DURATION_MS) {
-                    robot.kicker.setPosition(Constants.kickerDown);
+                    robot.kicker.setPosition(Constants.KICKER_DOWN);
                     shootTimer.reset();
                     shootState = ShootState.RETRACT;
                 }
@@ -88,7 +88,7 @@ public class ShootingController {
                 break;
             case FINISH:
                 if (shootTimer.milliseconds() >= 300) {
-                    robot.kicker.setPosition(Constants.kickerDown);
+                    robot.kicker.setPosition(Constants.KICKER_DOWN);
                     shootState = ShootState.IDLE;
                 }
                 break;
