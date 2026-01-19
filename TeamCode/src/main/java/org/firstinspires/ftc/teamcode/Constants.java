@@ -53,7 +53,7 @@ public class Constants {
     public static final double kickerUp = 1.0;
 
     /// SHOOTER TIMING (milliseconds)
-    public static final long SHOOT_FIRE_DURATION_MS = 325;
+    public static final long SHOOT_FIRE_DURATION_MS = 300;
     public static final long SHOOT_RETRACT_DURATION_MS = 300;
 
     /// COLOR SENSOR

@@ -74,7 +74,7 @@ public class StateMachine {
         paths = DecodePaths.buildPaths(robot, follower);
     }
 
-    private boolean shoot(DecodePaths.AUTO_PATHS breakPath, boolean runIntakeOnLastShot) {
+    private boolean shoot(DecodePaths.AUTO_PATHS breakPath) {
         if (breakPath != null) {
             breakOutAuto(breakPath);
         }
@@ -100,14 +100,13 @@ public class StateMachine {
             shootStarted = true;
         }
 
-        boolean finishedShooting = shootStarted && shootingController.updateAndIsComplete(runIntakeOnLastShot);
+        boolean finishedShooting = shootStarted && shootingController.updateAndIsComplete();
         if (finishedShooting) {
             shootStarted = false;
             return true;
         }
         return false;
     }
-    private boolean shoot(DecodePaths.AUTO_PATHS breakPath) { return shoot(breakPath, false); }
     private void runFlywheel() {
         if (flywheelController != null) {
             if (!flywheelController.isEnabled()) {
@@ -210,7 +209,7 @@ public class StateMachine {
                         break;
                     case 7:
                         if ( completedPath() ) {
-                            if ( shoot(DecodePaths.AUTO_PATHS.NEAR_SHOOT_TO_WALL, true) ) {
+                            if ( shoot(DecodePaths.AUTO_PATHS.NEAR_SHOOT_TO_WALL) ) {
                                 stopFlywheel();
                                 setState(State.STOP);
                                 autoNearSubStep++;
@@ -280,7 +279,7 @@ public class StateMachine {
                         break;
                     case 8:
                         if ( completedPath() ) {
-                            if ( shoot(DecodePaths.AUTO_PATHS.FAR_SHOOT_LEAVE, true) ) {
+                            if ( shoot(DecodePaths.AUTO_PATHS.FAR_SHOOT_LEAVE) ) {
                                 followPath(DecodePaths.AUTO_PATHS.FAR_SHOOT_LEAVE, true);
                                 stopFlywheel();
                                 autoFarSubStep++;
