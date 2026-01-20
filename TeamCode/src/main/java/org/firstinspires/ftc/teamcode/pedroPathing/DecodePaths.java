@@ -69,7 +69,7 @@ public class DecodePaths {
     public static PathChain buildPath(RobotHardware robot, Follower follower, Pose blueFrom, Pose blueTo, Pose redFrom, Pose redTo) {
         Pose from = robot.allianceColorBlue ? blueFrom : redFrom;
         Pose to = robot.allianceColorBlue ? blueTo : redTo;
-        return Constants.buildPath(follower, from, to);
+        return PedroConstants.buildPath(follower, from, to);
     }
 
     public static Map<AUTO_PATHS, PathChain> buildPaths(RobotHardware robot, Follower follower) {

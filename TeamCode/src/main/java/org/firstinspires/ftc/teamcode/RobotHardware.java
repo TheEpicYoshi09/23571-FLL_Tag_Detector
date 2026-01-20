@@ -19,6 +19,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.drivers.rgbIndicator;
 import org.firstinspires.ftc.teamcode.drivers.rgbIndicator.LEDColors;
+import org.firstinspires.ftc.teamcode.pedroPathing.PedroConstants;
 import org.firstinspires.ftc.teamcode.subsystems.FlywheelPidfConfig;
 import org.firstinspires.ftc.teamcode.subsystems.LauncherMotorGroup;
 import org.firstinspires.ftc.teamcode.subsystems.TurretAimConfig;
@@ -26,7 +27,7 @@ import org.firstinspires.ftc.teamcode.subsystems.TurretAimConfig;
 public class RobotHardware {
 
     /* Declare OpMode members. */
-    private LinearOpMode myOpMode;   // gain access to methods in the calling OpMode.
+    private final LinearOpMode myOpMode;   // gain access to methods in the calling OpMode.
 
     // Define Motor and Servo objects  (Make them private so they can't be accessed externally)
     public DcMotor leftFront;
@@ -67,17 +68,14 @@ public class RobotHardware {
     public rgbIndicator rearRGB3;
     private DigitalChannel allianceButton;
     private double headingOffsetRadians = 0.0;
-    private double targetRPM = 0;
-    private boolean flywheelOn = false;
-    private int turretTargetPosition = 0;
 
     // Example: GoBilda 5202/5203/5204 encoder = 28 ticks/rev
     private static final double TICKS_PER_REV = 28.0;
     private LLResult latestLimelightResult;
 
     // Define a constructor that allows the OpMode to pass a reference to itself.
-    public RobotHardware(LinearOpMode opmode) {
-        myOpMode = opmode;
+    public RobotHardware(LinearOpMode opMode) {
+        myOpMode = opMode;
     }
 
     public TelemetryManager getPanelsTelemetry() {
@@ -129,8 +127,8 @@ public class RobotHardware {
         // Apply the Pedro Pathing tuner odometry offsets (recorded in inches) to the Pinpoint localizer.
         // The Pinpoint firmware stores offsets in millimeters, but its driver converts when given a DistanceUnit
         // so we can supply inch measurements directly. Forward pod is the Y offset, strafe pod is the X offset.
-        double forwardPodOffsetInches = -3.375;   // Pedro Pathing forward pod Y offset
-        double strafePodOffsetInches = 5.5625;    // Pedro Pathing strafe pod X offset
+        double forwardPodOffsetInches = PedroConstants.FORWARD_POD_Y;
+        double strafePodOffsetInches = PedroConstants.STRAFE_POD_X;
         pinpoint.setOffsets(forwardPodOffsetInches, strafePodOffsetInches, DistanceUnit.INCH);
         pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
         pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.REVERSED);
@@ -236,9 +234,6 @@ public class RobotHardware {
     }
 
     public LLResult getLatestLimelightResult() {
-        myOpMode.telemetry.addLine("--- LIMELIGHT ---");
-        myOpMode.telemetry.addData("RESULT", latestLimelightResult != null && latestLimelightResult.isValid());
-        myOpMode.telemetry.addLine("-------------------------");
         return latestLimelightResult;
     }
 
@@ -353,77 +348,10 @@ public class RobotHardware {
         return powerDampener;
     }
 
-    public double getTargetRPM() {
-        return targetRPM;
-    }
-
-    public boolean isFlywheelOn() {
-        return flywheelOn;
-    }
-
-    public void toggleFlywheel(double rpm) {
-        if (flywheelOn && Math.abs(targetRPM - rpm) < 10) {
-            stopFlywheel();
-        } else {
-            setTargetRPM(rpm);
-        }
-    }
-
-    public void stopFlywheel() {
-        launcherGroup.group.setVelocity(0);
-        targetRPM = 0;
-        flywheelOn = false;
-    }
-
-    public void setTargetRPM(double rpm) {
-        launcherGroup.applyLauncherPIDFTuning();
-
-        targetRPM = rpm;
-        flywheelOn = rpm > 0;
-
-        if (flywheelOn) {
-            double ticksPerSecond = rpmToTicksPerSecond(rpm);
-            launcherGroup.group.setVelocity(ticksPerSecond);
-        } else {
-            launcherGroup.group.setVelocity(0);
-        }
-    }
-
-    public void adjustRPM(double delta) {
-        if (flywheelOn) {
-            setTargetRPM(Math.max(0, targetRPM + delta));
-        }
-    }
-
     private double rpmToTicksPerSecond(double rpm) {
         // Convert desired flywheel RPM to the motor-side encoder rate using the gear reduction.
         double motorRpm = rpm * Constants.LAUNCHER_GEAR_REDUCTION;
         return (motorRpm * TICKS_PER_REV) / 60.0;
-    }
-
-    public double getCurrentRPM() {
-        // Convert motor-side encoder velocity back to flywheel RPM.
-        return (launcherGroup.group.getVelocity() * 60.0) / (TICKS_PER_REV * Constants.LAUNCHER_GEAR_REDUCTION);
-    }
-
-
-    public int getTurretTarget() {
-        return turretTargetPosition;
-    }
-
-    public int getTurretPosition() {
-        return turret.getCurrentPosition();
-    }
-
-    public void adjustTurret(int deltaTicks) {
-        turretTargetPosition += deltaTicks;
-
-        // Clamp safe range
-        turretTargetPosition = Math.max(Constants.TURRET_MIN, Math.min(Constants.TURRET_MAX, turretTargetPosition));
-
-        turret.setTargetPosition(turretTargetPosition);
-        turret.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        turret.setPower(0.40);
     }
 
     public void runIntake(IntakeDirection Direction) {

@@ -35,8 +35,8 @@ public class StateMachine {
     private final SpindexerController spindexerController;
     private final FindGoal findGoal;
 
-    private Timer pathTimer = new Timer();
-    private Timer autoTimer = new Timer();
+    private final Timer pathTimer = new Timer();
+    private final Timer autoTimer = new Timer();
     private int autoNearSubStep = 0;
     private int autoFarSubStep = 0;
     private boolean shootStarted = false;

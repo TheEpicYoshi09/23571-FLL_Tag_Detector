@@ -21,7 +21,7 @@ import java.util.Locale;
 @TeleOp(name = "Competition Main (SOLO MODE)", group = "TeleOp")
 public class CompetitionSolo extends LinearOpMode {
 
-    RobotHardware robot = new RobotHardware(this);
+    final RobotHardware robot = new RobotHardware(this);
 
     private boolean dpadUpPreviouslyPressed = false;
     private boolean dpadDownPreviouslyPressed = false;

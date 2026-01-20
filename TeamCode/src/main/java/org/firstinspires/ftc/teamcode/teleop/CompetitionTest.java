@@ -22,7 +22,7 @@ import java.util.Locale;
 //@Disabled
 @TeleOp(name = "Competition (TEST)", group = "TeleOp")
 public class CompetitionTest extends LinearOpMode {
-    RobotHardware robot = new RobotHardware(this);
+    final RobotHardware robot = new RobotHardware(this);
 
     @Override
     public void runOpMode() {

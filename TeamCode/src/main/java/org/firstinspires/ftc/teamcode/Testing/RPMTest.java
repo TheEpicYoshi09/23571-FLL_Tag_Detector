@@ -33,7 +33,7 @@ import java.util.Locale;
 public class RPMTest extends LinearOpMode {
     private static final double TICKS_PER_REV = 28.0;
 
-    RobotHardware robot = new RobotHardware(this);
+    final RobotHardware robot = new RobotHardware(this);
 
     private boolean dpadUpPreviouslyPressed = false;
     private boolean dpadDownPreviouslyPressed = false;

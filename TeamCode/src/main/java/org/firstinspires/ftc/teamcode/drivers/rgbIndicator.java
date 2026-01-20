@@ -9,9 +9,9 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
 public class rgbIndicator {
-    private Servo rgbLight;
+    private final Servo rgbLight;
 
-    public class LEDColors {
+    public static class LEDColors {
         // Predefined color values based on PWM positions per GoBilda Product Insight #4
         public static final double OFF = 0.0;
         public static final double RED = 0.279;

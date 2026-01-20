@@ -117,4 +117,8 @@ public class TurretTracker {
         telemetry.addData("Turret", "id=%d dist=%s aim=%.3f power=%.3f",
                 fid.getFiducialId(), distanceText, aimOffset, power);
     }
+
+    public int getTurretPosition() {
+        return robot.turret.getCurrentPosition();
+    }
 }

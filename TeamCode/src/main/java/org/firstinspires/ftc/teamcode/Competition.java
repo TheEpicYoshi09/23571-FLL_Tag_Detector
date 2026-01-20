@@ -20,7 +20,7 @@ import java.util.Locale;
 //@Disabled
 @TeleOp(name = "Competition Main", group = "TeleOp")
 public class Competition extends LinearOpMode {
-    RobotHardware robot = new RobotHardware(this);
+    final RobotHardware robot = new RobotHardware(this);
 
     private boolean dpadUpPreviouslyPressed = false;
     private boolean dpadDownPreviouslyPressed = false;
@@ -72,10 +72,6 @@ public class Competition extends LinearOpMode {
 
             //Odometry
             robot.pinpoint.update(); //Update odometry
-            //double newTime = getRuntime();
-            //double loopTime = newTime - oldTime;
-            //double frequency = 1 / loopTime;
-            //oldTime = newTime;
             Pose2D pos = robot.pinpoint.getPosition();
             String data = String.format(Locale.US, "{X: %.3f, Y: %.3f, H: %.3f}", pos.getX(DistanceUnit.INCH), pos.getY(DistanceUnit.INCH), pos.getHeading(AngleUnit.DEGREES));
             telemetry.addLine("--- ROBOT DATA ---");

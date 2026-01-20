@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import android.annotation.SuppressLint;
+
 import com.bylazar.telemetry.TelemetryManager;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
@@ -219,6 +221,7 @@ public class FlywheelController {
         return (rpm * TICKS_PER_REV) / 60.0;
     }
 
+    @SuppressLint("DefaultLocale")
     public void publishPanelsFlywheelTelemetry(double target, double current) {
         if (panelsTelemetry == null) {
             panelsTelemetry = robot.getPanelsTelemetry();

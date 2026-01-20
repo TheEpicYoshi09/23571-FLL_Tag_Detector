@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import android.annotation.SuppressLint;
+
 import com.bylazar.telemetry.TelemetryManager;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -73,6 +75,7 @@ public class LauncherMotorGroup {
         publishLauncherPIDFTelemetry();
     }
 
+    @SuppressLint("DefaultLocale")
     private void publishLauncherPIDFTelemetry() {
         if (telemetryPanels == null || !Double.isFinite(lastLauncherScaledP) || !Double.isFinite(lastLauncherScaledF)) {
             return;
