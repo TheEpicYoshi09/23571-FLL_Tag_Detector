@@ -93,7 +93,7 @@ public class BasicBot_Launcher
     {
         if(state == 2)
         {
-            state = 3;
+            state = 1;
             setMotors();
         }
     }
@@ -108,17 +108,14 @@ public class BasicBot_Launcher
         }
         else if(state == 1)
         {
+            setAgitatorSpeed(0);
+            setShooterIntakeSpeed(0);
             setFlywheelSpeed(0.75);
         }
         else if(state == 2)
         {
             setAgitatorSpeed(1);
             setShooterIntakeSpeed(0.5);
-        }
-        else if(state == 3)
-        {
-            setAgitatorSpeed(0);
-            setShooterIntakeSpeed(0);
         }
     }
 
