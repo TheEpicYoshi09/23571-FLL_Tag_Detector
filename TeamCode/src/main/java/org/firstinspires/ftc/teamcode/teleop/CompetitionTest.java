@@ -101,11 +101,13 @@ public class CompetitionTest extends LinearOpMode {
             /// GAMEPAD 2
 
             /// Gamepad 2 Intake
-            boolean intakeIn = gamepad2.right_bumper; //Check if button pressed
-            boolean intakeOut = gamepad2.left_bumper; //Check if button pressed
+            boolean intakeIn = gamepad2.right_bumper; //Check if button is currently held
+            boolean intakeOut = gamepad2.left_bumper; //Check if button is currently held
 
             if (intakeIn){
-                robot.runIntake(RobotHardware.IntakeDirection.IN);
+                if (!spindexerController.isEnabled() || !spindexerController.isSpindexerFull()) {
+                    robot.runIntake(RobotHardware.IntakeDirection.IN);
+                }
             } else if (intakeOut) {
                 robot.runIntake(RobotHardware.IntakeDirection.OUT);
             } else {
