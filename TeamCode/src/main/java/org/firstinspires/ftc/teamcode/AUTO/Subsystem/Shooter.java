@@ -1,10 +1,5 @@
-package org.firstinspires.ftc.teamcode;
-
-import androidx.annotation.NonNull;
-
+package org.firstinspires.ftc.teamcode.AUTO.Subsystem;
 import com.acmerobotics.dashboard.config.Config;
-import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
-import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -19,42 +14,12 @@ import java.util.List;
 @Config
 public class Shooter {
 
-    public Action spinUpAction() {
-        return new SpinUpAction();
-    }
-
-    public Action fireAction() {
-        return new FireAction();
-    }
-
-    private class SpinUpAction implements Action {
-        @Override
-        public boolean run(@NonNull TelemetryPacket packet) {
-            spinUp();
-            update();
-            return !isReady();
-        }
-    }
-
-    private class FireAction implements Action {
-        private boolean fired = false;
-
-        @Override
-        public boolean run(@NonNull TelemetryPacket packet) {
-            if (!fired) {
-                fire();
-                fired = true;
-            }
-            update();
-            return !consumeShotEvent();
-        }
-    }
     public enum State {
         IDLE,
         SPINNING_UP,
         READY,
         FIRING
-    } //different states of the shooter
+    }
 
 
     public static double VELOCITY_ALPHA = 0.7;
@@ -139,9 +104,9 @@ public class Shooter {
         shooter.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 
         loopTimer.reset();
-    } //typical, blah blah blah
+    }
 
-//WHERE THINGS START GETTING COOL:
+
     public void setManualBackfeed(boolean enabled) {
         manualBackfeed = enabled;
     }

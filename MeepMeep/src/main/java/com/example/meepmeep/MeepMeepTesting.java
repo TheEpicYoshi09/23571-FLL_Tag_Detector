@@ -43,17 +43,17 @@ public class MeepMeepTesting {
         /* FOR BLUE SIDE PPG:
         myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(61, -15, Math.toRadians(180)))
                 //TURN ON SHOOTER
-                .lineToX(-20)
-                .turn(Math.toRadians(50))
+                .lineToX(-35)
+                .turn(Math.toRadians(40))
                 //MOVE BALLS UP
                 .waitSeconds(2)//SHOOT BALLS
-                .strafeToConstantHeading(new Vector2d(-10,-15))
+                .strafeToConstantHeading(new Vector2d(-3,-15))
                 //.lineToX(-10)
-                .turn(Math.toRadians(40))
-                .lineToY(-50)
+                .turn(Math.toRadians(-130))
+                .lineToY(-45)
                 .waitSeconds(0.2)//INTAKE BALLS
-                .setTangent(40)
-                .splineTo(new Vector2d(-20, -15), Math.PI / 2)
+                .setTangent(150)
+                .splineTo(new Vector2d(-35, -15), Math.PI / 2)
                 //MOVE BALLS UP
                 .waitSeconds(2)//SHOOT BALLS
                 .strafeToLinearHeading(new Vector2d(5,-15), Math.toRadians(150))
