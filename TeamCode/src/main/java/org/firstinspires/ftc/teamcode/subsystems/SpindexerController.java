@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import com.pedropathing.util.Timer;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.Constants;
 import org.firstinspires.ftc.teamcode.RobotHardware;
@@ -13,6 +14,7 @@ public class SpindexerController {
     private int spindexerIndex = 0;
     private double spindexerPos = Constants.SPINDEXER_1;
     private boolean autoSpinEnabled = false;
+    private final Timer autoTimer = new Timer();
 
     public SpindexerController(RobotHardware robot, Telemetry telemetry) {
         this.robot = robot;
@@ -39,6 +41,11 @@ public class SpindexerController {
     public void autoUpdate() {
         telemetry.addLine("AUTO SPINDEXER ENABLED!");
 
+        if (autoTimer.getElapsedTimeSeconds() < 0.35)  {
+            telemetry.addLine("AUTO ISNT ENAGAGED!");
+            return;
+        }
+
         if (isSpindexerFull()) {
             telemetry.addLine("SPINDEXER IS FULL!");
             return;
@@ -56,6 +63,7 @@ public class SpindexerController {
 
         if (currentSlotFull && nextSlotFull && lastSlotEmpty) {
             setPosition(nextIndex);
+            autoTimer.resetTimer();
         }
     }
 
@@ -112,9 +120,7 @@ public class SpindexerController {
     }
 
     public void setPosition(int index) {
-        int newIndex = Math.floorMod(index, 3);
-        if (spindexerIndex == newIndex) return;
-        spindexerIndex = newIndex;
+        spindexerIndex = Math.floorMod(index, 3);
         robot.spindexer.setPosition(spindexerPositions[spindexerIndex]);
         spindexerPos = spindexerPositions[spindexerIndex];
     }

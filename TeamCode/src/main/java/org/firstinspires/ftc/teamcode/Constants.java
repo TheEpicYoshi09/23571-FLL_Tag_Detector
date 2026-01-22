@@ -49,7 +49,7 @@ public class Constants {
 
     /// SHOOTER TIMING (milliseconds)
     public static final long SHOOT_FIRE_DURATION_MS = 300;
-    public static final long SHOOT_RETRACT_DURATION_MS = 300;
+    public static final long SHOOT_RETRACT_DURATION_MS = 550;
 
     /// COLOR SENSOR
     public static final double COLOR_SENSOR_PURPLE_RATIO = 1.05; // Blue must exceed red and green by this factor try 1.20
