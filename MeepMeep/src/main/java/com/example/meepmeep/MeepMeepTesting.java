@@ -118,12 +118,23 @@ public class MeepMeepTesting {
   */
     /*
     MOVING BALLS UP WHILE SHOOTING:
-                //shoot topLauncher.moveUp(0.8, 2),
-                        bottomLauncher.moveUp(0.8,1),
-                //shoot topLauncher.moveUp(0.8, 2),
-                        intake.takein(),
-                        bottomLauncher.moveUp(0.8,2),
-                //shoot topLauncher.moveUp(0.8,2),
+new SequentialAction(
+                 new com.acmerobotics.roadrunner.ParallelAction(
+                    drive.actionBuilder(initialPose)
+                      .lineToX(-35)
+                .turn(Math.toRadians(40))
+                 new ShooterActions.SpinUpUntilReady(shooter)),
+                         new ShooterActions.FireOnceTimed(shooter),
+                         new ShooterActions.SpinUpUntilReady(shooter),
+                 new ShooterActions.FireOnceTimed(shooter),
+                         new IntakeActions.pushUp(intake),
+                         new ShooterActions.SpinUpUntilReady(shooter),
+                 new ShooterActions.FireOnceTimed(shooter),
+                         new ShooterActions.Stop(shooter)),
+      .strafeToConstantHeading(new Vector2d(-3,-15))
+                .turn(Math.toRadians(-130))
+                .lineToY(-45)
+
      */
 
 }

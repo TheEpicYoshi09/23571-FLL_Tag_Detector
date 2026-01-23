@@ -99,7 +99,7 @@ public class BlueAuto1 extends LinearOpMode {
                 double pos = intake.getCurrentPosition();
                 packet.put("IntakePos", pos);
 
-                if (pos < 3000.0) {
+                if (time < 3) {
                     return true;
                 } else {
                     intake.setPower(0);
