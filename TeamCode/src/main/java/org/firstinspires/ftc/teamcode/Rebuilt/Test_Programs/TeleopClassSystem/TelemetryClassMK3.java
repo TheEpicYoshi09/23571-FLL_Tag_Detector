@@ -9,10 +9,11 @@ import com.qualcomm.robotcore.hardware.VoltageSensor;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 /**
- * TelemetryClass - Handles telemetry display
+ * TelemetryClassMK3 - Handles telemetry display
  * References to other classes are public
+ * Updated to support ShooterClassMK3 with spindexer and flipper
  */
-public class TelemetryClassMK2 {
+public class TelemetryClassMK3 {
 
     // Public variables
     public Telemetry telemetry;
@@ -22,15 +23,15 @@ public class TelemetryClassMK2 {
     // References to other classes - Public - Set from main teleop
     public DriveControlClass drive;
     public IntakeClass intake;
-    public ShooterClassMK2 shooter;
+    public ShooterClassMK3 shooter;
     public OdometryClass odometry;
 
     // Status - Public
     public boolean enabled = false;
     public boolean dashboardEnabled = false;
-    public boolean initialized = false;
+    public boolean initialized;
 
-    public TelemetryClassMK2(Telemetry telemetry, HardwareMap hardwareMap, ShooterClassMK2 shooter) {
+    public TelemetryClassMK3(Telemetry telemetry, HardwareMap hardwareMap, ShooterClassMK3 shooter) {
         this.telemetry = telemetry;
         this.hardwareMap = hardwareMap;
 
@@ -118,7 +119,17 @@ public class TelemetryClassMK2 {
             }
 
             if (shooter.getMagazine1Initialized()) {
-                telemetry.addData("Magazine Power", "%.2f", shooter.magazineTargetPower);
+                telemetry.addData("Magazine 1 Power", "%.2f", shooter.magazineTargetPower);
+            }
+
+            if (shooter.getSpindexerInitialized()) {
+                telemetry.addData("Spindexer Target Pos", "%.2f", shooter.spindexerTargetPosition);
+                telemetry.addData("Spindexer Target Pwr", "%.2f", shooter.spindexerTargetPower);
+            }
+
+            if (shooter.getFlipperInitialized()) {
+                telemetry.addData("Flipper Target Pos", "%.2f", shooter.flipperTargetPosition);
+                telemetry.addData("Flipper Target Pwr", "%.2f", shooter.flipperTargetPower);
             }
             telemetry.addLine();
         }
@@ -178,6 +189,16 @@ public class TelemetryClassMK2 {
 
             if (shooter.getMagazineInitialized()) {
                 packet.put("Magazine Power", shooter.magazineTargetPower);
+            }
+
+            if (shooter.getSpindexerInitialized()) {
+                packet.put("Spindexer Target Position", shooter.spindexerTargetPosition);
+                packet.put("Spindexer Target Power", shooter.spindexerTargetPower);
+            }
+
+            if (shooter.getFlipperInitialized()) {
+                packet.put("Flipper Target Position", shooter.flipperTargetPosition);
+                packet.put("Flipper Target Power", shooter.flipperTargetPower);
             }
         }
 

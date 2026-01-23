@@ -11,6 +11,8 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.Rebuilt.MainPrograms.MotorPowerRegulator_New;
 
+//TODO: This works so I would just leave it for now. We can make changes later.
+
 /**
  * DriveControlClass - Handles drive motor logic
  * All variables are public and controlled from main teleop
@@ -41,7 +43,7 @@ public class DriveControlClass {
     public double DRIVE_TICKS_PER_REV = 537.7;
 
     // Component initialization status - Public
-    public boolean initialized = false;
+    public boolean initialized;
     public boolean driveMotorsInitialized = false;
     public boolean imuInitialized = false;
     public boolean backPidInitialized = false;
@@ -141,7 +143,7 @@ public class DriveControlClass {
             applyWheelBrake();
         } else if (useFieldCentric) {
             // Get heading from IMU or odometry based on flag
-            double heading = 0;
+            double heading;
             if (useImuForFieldCentric && imuInitialized) {
                 heading = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
             } else {
