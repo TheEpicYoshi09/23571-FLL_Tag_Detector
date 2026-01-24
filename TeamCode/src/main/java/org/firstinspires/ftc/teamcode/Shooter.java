@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import java.util.Random;
 
 //Shooter class
 public class Shooter {
@@ -65,6 +66,17 @@ public class Shooter {
     public void shooter70() {
         this.shooterPower = 0.7;
         setMotorPower(this.shooterPower);
+    }
+
+    public void shooter(float power) {
+        this.shooterPower = power;
+        setMotorPower(this.shooterPower);
+    }
+
+    public void randomShooter() {
+        Random rand = new Random();
+        int n = rand.nextInt(100) + 1;
+        shooter(n);
     }
 
     public void reverseMotor() {

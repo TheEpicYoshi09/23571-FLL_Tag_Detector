@@ -54,7 +54,8 @@ public class MecanumTeleOp_3231 extends LinearOpMode {
                 // Preset Values 50, 70, 100
                 shooter.shooter50();
             } else if (wasBPressed) {
-                shooter.shooter70();
+                //shooter.shooter70();
+                shooter.randomShooter();
             } else if (wasYPressed) {
                 shooter.shooter100();
             } else if (gamepad2.dpad_left || gamepad2.dpad_right) {
