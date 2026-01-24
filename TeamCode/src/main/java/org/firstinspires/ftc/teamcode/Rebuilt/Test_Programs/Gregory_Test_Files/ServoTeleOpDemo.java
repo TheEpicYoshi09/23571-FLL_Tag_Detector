@@ -35,7 +35,7 @@ public class ServoTeleOpDemo extends OpMode {
     public void init() {
         // Initialize servos
         claw = new ServoClass("claw", ServoClass.ServoType.STANDARD_SERVO);
-        wrist = new ServoClass("wrist", ServoClass.ServoType.STANDARD_SERVO);
+        wrist = new ServoClass("wrist", ServoClass.ServoType.CONTINUOUS_SERVO);
         intake = new ServoClass("i", ServoClass.ServoType.CONTINUOUS_SERVO);
 
         // Initialize hardware
