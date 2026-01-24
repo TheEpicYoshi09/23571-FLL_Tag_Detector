@@ -21,7 +21,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
  *   RIGHT_BUMPER - Intake forward (power 1.0)
  *   LEFT_TRIGGER - Intake slow reverse (power -0.5)
  *   RIGHT_TRIGGER - Intake slow forward (power 0.5)
- *   BACK - Stop intake
+ *   (Release all buttons to stop intake)
  */
 @TeleOp(name = "Servo Demo - TeleOp", group = "Demo")
 public class ServoTeleOpDemo extends OpMode {
@@ -36,7 +36,7 @@ public class ServoTeleOpDemo extends OpMode {
         // Initialize servos
         claw = new ServoClass("claw", ServoClass.ServoType.STANDARD_SERVO);
         wrist = new ServoClass("wrist", ServoClass.ServoType.STANDARD_SERVO);
-        intake = new ServoClass("intake", ServoClass.ServoType.CONTINUOUS_SERVO);
+        intake = new ServoClass("i", ServoClass.ServoType.CONTINUOUS_SERVO);
 
         // Initialize hardware
         claw.init(hardwareMap);
@@ -54,8 +54,12 @@ public class ServoTeleOpDemo extends OpMode {
         telemetry.update();
     }
 
+//    private int loopCount = 0;
+
     @Override
     public void loop() {
+//        loopCount++;
+
         // Claw controls (A, B, X, Y buttons)
         if (gamepad1.a) {
             claw.goToPosition(1.0);  // Close
@@ -77,6 +81,7 @@ public class ServoTeleOpDemo extends OpMode {
         }
 
         // Intake controls (Bumpers and Triggers)
+        // Priority order: bumpers > triggers > stop
         if (gamepad1.left_bumper) {
             intake.goToPosition(-1.0);  // Full reverse
         } else if (gamepad1.right_bumper) {
@@ -85,13 +90,14 @@ public class ServoTeleOpDemo extends OpMode {
             intake.goToPosition(-0.5);  // Slow reverse
         } else if (gamepad1.right_trigger > 0.1) {
             intake.goToPosition(0.5);   // Slow forward
-        } else if (gamepad1.back) {
-            intake.stop();              // Stop
+        } else {
+            intake.stop();              // Stop when no buttons pressed
         }
 
         // Telemetry
         telemetry.addData("Status", "Running");
-        telemetry.addData("", "");
+//        telemetry.addData("Loop Count", loopCount);
+//        telemetry.addData("", "");
         telemetry.addData("Claw Position", "%.2f", claw.getCurrentPosition());
         telemetry.addData("Wrist Position", "%.2f", wrist.getCurrentPosition());
         telemetry.addData("", "");
@@ -99,7 +105,8 @@ public class ServoTeleOpDemo extends OpMode {
         telemetry.addData(" A/B/X/Y", "Claw positions");
         telemetry.addData(" DPAD", "Wrist positions");
         telemetry.addData(" Bumpers/Triggers", "Intake power");
-        telemetry.addData(" BACK", "Stop intake");
+        telemetry.addData(" (Release all)", "Stop intake");
+        telemetry.addData("Intake", intake.getCurrentPosition());
         telemetry.update();
     }
 }
