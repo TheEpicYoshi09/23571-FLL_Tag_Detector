@@ -86,7 +86,7 @@ public class CompetitionTest extends LinearOpMode {
                 flywheelController.adjustRpmTolerance(-10.0);
             }
 
-            if (gamepad1.dpadRightWasPressed()) {
+            if (gamepad1.dpadLeftWasPressed()) {
                 flywheelController.adjustLauncherFeedforward(1.0);
             }
 

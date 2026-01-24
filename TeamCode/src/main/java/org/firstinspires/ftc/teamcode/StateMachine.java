@@ -164,7 +164,7 @@ public class StateMachine {
             case AUTO_NEAR:
                 switch (autoNearSubStep) {
                     case 0:
-                        flywheelController.setLauncherFeedforward(28.5);
+                        flywheelController.setLauncherFeedforward(30);
                         autoTimer.resetTimer();
                         runFlywheel();
                         followPath(DecodePaths.AUTO_PATHS.NEAR_PATH_TO_SHOOT_AREA, true);

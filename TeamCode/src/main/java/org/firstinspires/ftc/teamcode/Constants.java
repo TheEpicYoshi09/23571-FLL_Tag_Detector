@@ -60,6 +60,9 @@ public class Constants {
     // instead of solid plastic.
     public static final double COLOR_SENSOR_DETECTION_DISTANCE_MM = 100.0;
 
+    /// SPINDEXER TIMING (milliseconds)
+    public static final long SPINDEXER_ROTATION_TIME = 550;
+
     ///AUTONOMOUS SETPOINTS
 
 }

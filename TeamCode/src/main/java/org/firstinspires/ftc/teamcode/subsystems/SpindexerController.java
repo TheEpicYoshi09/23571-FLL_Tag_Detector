@@ -5,20 +5,26 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.Constants;
 import org.firstinspires.ftc.teamcode.RobotHardware;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 public class SpindexerController {
     private final RobotHardware robot;
     private final ArtifactTracker artifactTracker;
     private final Telemetry telemetry;
+    private final ScheduledExecutorService scheduledExecutorService;
 
     private final double[] spindexerPositions = new double[]{Constants.SPINDEXER_1, Constants.SPINDEXER_2, Constants.SPINDEXER_3};
     private int spindexerIndex = 0;
     private double spindexerPos = Constants.SPINDEXER_1;
     private boolean autoSpinEnabled = false;
-    private final Timer autoTimer = new Timer();
+    private boolean finishedMoving = true;
 
     public SpindexerController(RobotHardware robot, Telemetry telemetry) {
         this.robot = robot;
         this.artifactTracker = new ArtifactTracker(robot, telemetry);
+        this.scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
         this.telemetry = telemetry;
     }
 
@@ -35,14 +41,15 @@ public class SpindexerController {
 
         telemetry.addData("SPINDEXER POSITION", spindexerPos);
         telemetry.addData("SPINDEXER INDEX", spindexerIndex);
+
         telemetry.addLine("-------------------------");
     }
 
     public void autoUpdate() {
         telemetry.addLine("AUTO SPINDEXER ENABLED!");
 
-        if (autoTimer.getElapsedTimeSeconds() < 0.35)  {
-            telemetry.addLine("AUTO ISNT ENAGAGED!");
+        if (!isFinished()) {
+            telemetry.addLine("SPIDEXER ISNT FINISHED MOVING!");
             return;
         }
 
@@ -51,20 +58,24 @@ public class SpindexerController {
             return;
         }
 
-        int currentIndex = getIndex();
-        int lastIndex = getPreviousIndex(currentIndex);
-        int nextIndex = getNextIndex(currentIndex);
+        int currentIndex = 0;
+        int nextIndex = 1;
+        int lastIndex = 2;
 
         boolean lastSlotEmpty = getSlotState(lastIndex) == ArtifactTracker.SlotStatus.VACANT;
-        boolean currentSlotFull = getCurrentSlotState() != ArtifactTracker.SlotStatus.VACANT;
+        boolean currentSlotFull = getSlotState(currentIndex) != ArtifactTracker.SlotStatus.VACANT;
         boolean nextSlotFull = getSlotState(nextIndex) != ArtifactTracker.SlotStatus.VACANT;
 
-        telemetry.addData("CHECKING INDEX", nextIndex);
-
         if (currentSlotFull && nextSlotFull && lastSlotEmpty) {
-            setPosition(nextIndex);
-            autoTimer.resetTimer();
+            setPosition(getNearestIndex(getIndex()));
         }
+    }
+
+    public int getNearestIndex(int index) {
+        if (index == 1) {
+            return 2;
+        }
+        return 1;
     }
 
     public int getPreviousIndex(int index) {
@@ -120,9 +131,28 @@ public class SpindexerController {
     }
 
     public void setPosition(int index) {
+        if (index == getIndex()) {
+            finishedMoving = true;
+            return;
+        }
+
+        finishedMoving = false;
+
+        boolean wasAutoSpindexerEnabled = autoSpinEnabled;
+        if (wasAutoSpindexerEnabled) autoSpinEnabled = false;
+
         spindexerIndex = Math.floorMod(index, 3);
         robot.spindexer.setPosition(spindexerPositions[spindexerIndex]);
         spindexerPos = spindexerPositions[spindexerIndex];
+
+        scheduledExecutorService.schedule(() -> {
+            finishedMoving = true;
+            if (wasAutoSpindexerEnabled) autoSpinEnabled = true;
+        }, Constants.SPINDEXER_ROTATION_TIME, TimeUnit.MILLISECONDS);
+    }
+
+    public boolean isFinished() {
+        return finishedMoving;
     }
 
     public double getPosition() {

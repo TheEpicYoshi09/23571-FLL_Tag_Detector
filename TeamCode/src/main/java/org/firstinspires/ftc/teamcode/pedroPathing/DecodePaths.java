@@ -32,7 +32,7 @@ public class DecodePaths {
 
     /// BLUE CLOSE
     public static final Pose BLUE_NEAR_START = new Pose(23,119.8,Math.toRadians(-90));
-    public static final Pose BLUE_NEAR_SHOOT = new Pose(45, 98, Math.toRadians(-90));
+    public static final Pose BLUE_NEAR_SHOOT = new Pose(52, 90.5, Math.toRadians(-90));
     public static final Pose BLUE_NEAR_GOTO_ARTIFACTS = new Pose(24.1, 98, Math.toRadians(-90));
     public static final Pose BLUE_NEAR_PICKUP_ARTIFACTS = new Pose(24.1, 90, Math.toRadians(-90));
 
