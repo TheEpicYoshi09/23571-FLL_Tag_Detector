@@ -44,7 +44,7 @@ public class zainTeleOp1 extends LinearOpMode {
 
         double flyPower = 0;
 
-        servo.setPosition(0.3);
+        servo.setPosition(0);
 
         waitForStart();
 
@@ -137,11 +137,15 @@ public class zainTeleOp1 extends LinearOpMode {
                 servo.setPosition(0.3);
             }
             else if (gamepad1.b){
-                servo.setPosition(0);
+                servo.setPosition(0.75);
             }
             else if (gamepad1.dpad_down){
                 servo.setPosition(0.5);
             }
+            else if (gamepad1.dpad_right){
+                servo.setPosition(0.8);
+            }
+
 
 
             telemetry.addData("Front Left Power", frontLeftPower);
@@ -149,7 +153,7 @@ public class zainTeleOp1 extends LinearOpMode {
             telemetry.addData("Back Left Power", backLeftPower);
             telemetry.addData("Back Right Power", backRightPower);
             telemetry.addData("shooter Power", flyWheelMotor.getPower());
-            telemetry.addData("shooter Power", servo.getPosition());
+            telemetry.addData("shooter position", servo.getPosition());
 
             telemetry.update();
         }
