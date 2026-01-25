@@ -71,7 +71,7 @@ public class IntakeActions {
         private long startTimeMs;
 
         // how long to run the intake (milliseconds)
-        private static final long PUSH_UP_TIME_MS = 1000;
+        private static final long PUSH_UP_TIME_MS = 1500;
 
         public pushUp(Intake intake) {
             this.intake = intake;

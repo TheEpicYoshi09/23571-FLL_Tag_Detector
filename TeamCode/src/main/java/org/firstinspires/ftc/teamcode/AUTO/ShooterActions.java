@@ -95,7 +95,8 @@ public class ShooterActions {
     // Hard stop
     public static class Stop implements Action {
         private final Shooter shooter;
-        private boolean done = false;
+        private final ElapsedTime timer = new ElapsedTime();
+        private boolean started = false;
 
         public Stop(Shooter shooter) {
             this.shooter = shooter;
@@ -103,13 +104,25 @@ public class ShooterActions {
 
         @Override
         public boolean run(@NonNull TelemetryPacket packet) {
-            if (!done) {
-                shooter.abort();
-                shooter.update();
-                done = true;
+            if (!started) {
+                started = true;
+                timer.reset();
             }
-            return false;
+
+            shooter.setManualBackfeed(false);
+
+            shooter.abort();
+
+            shooter.update();
+
+            packet.put("StopSec", timer.seconds());
+            packet.put("ShooterRPM", shooter.getRPM());
+            packet.put("ShooterReady", shooter.isReady());
+
+            return timer.seconds() < 0.20;
         }
     }
 }
+
+
 
