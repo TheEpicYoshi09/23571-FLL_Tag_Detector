@@ -7,11 +7,10 @@ import org.firstinspires.ftc.lib.hardware.CyberMap;
 
 @TeleOp
 public class DriverOperated extends OpMode {
-    CyberMap map = new CyberMap(hardwareMap);
 
     @Override
     public void init() {
-
+        new CyberMap(hardwareMap);
     }
 
     @Override
