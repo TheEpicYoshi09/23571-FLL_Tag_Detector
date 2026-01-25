@@ -10,7 +10,7 @@ public class DriverOperated extends OpMode {
 
     @Override
     public void init() {
-        new CyberMap(hardwareMap);
+        CyberMap.instantiate(hardwareMap);
     }
 
     @Override
