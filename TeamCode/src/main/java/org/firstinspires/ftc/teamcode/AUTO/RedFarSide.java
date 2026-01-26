@@ -230,6 +230,7 @@ public class RedFarSide extends LinearOpMode {
                                                     drive.actionBuilder(new Pose2d(30, 40, Math.toRadians(-90)))
                                                             .setTangent(Math.toRadians(-45))
                                                             .splineTo(new Vector2d(-38, -15), Math.PI / 2)
+
                                                             .build(),
                                                     new ShooterActions.SpinUpUntilReady(shooter),
                                                     new ShooterActions.HoldSpinForTime(shooter, 2),
