@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
-import org.firstinspires.ftc.teamcode.testing.AprilTagLimelight;
+//import org.firstinspires.ftc.teamcode.testing.AprilTagLimelight;
 
 import java.util.List;
 
@@ -89,26 +89,30 @@ public class Limelight {
             return 0;
         }
 
-        public AprilTagLimelight getPoseEstimate(double heading) {
-            LLResult result = limelight.getLatestResult();
-            limelight.updateRobotOrientation(heading);
+//        public AprilTagLimelight getPoseEstimate(double heading) {
+//            LLResult result = limelight.getLatestResult();
+//            limelight.updateRobotOrientation(heading);
+//
+//            if (result != null && result.isValid()) {
+//                Pose3D botpose_mt2 = result.getBotpose_MT2();
+//                if (botpose_mt2 != null) {
+//                    double x = botpose_mt2.getPosition().x;
+//                    double y = botpose_mt2.getPosition().y;
+//
+//                    return new AprilTagLimelight(x,y);
+//                }
+//            }
+//
+//
+//            return null;
+//        }
 
-            if (result != null && result.isValid()) {
-                Pose3D botpose_mt2 = result.getBotpose_MT2();
-                if (botpose_mt2 != null) {
-                    double x = botpose_mt2.getPosition().x;
-                    double y = botpose_mt2.getPosition().y;
-
-                    return new AprilTagLimelight();
-                }
-            }
-
-
-            return null;
+    public double getRotation(){
+        LLResult result = limelight.getLatestResult();
+        if (result != null && result.isValid()) {
+            return result.getTx();
         }
-
-        public double getRotation(){
-
-        }
+        return 0; // Default to 0 if no target is found
+    }
     }
 
