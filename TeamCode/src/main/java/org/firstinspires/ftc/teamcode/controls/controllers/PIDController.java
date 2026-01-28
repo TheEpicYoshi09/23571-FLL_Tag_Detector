@@ -3,7 +3,6 @@ package org.firstinspires.ftc.teamcode.controls.controllers;
 import static java.lang.Math.abs;
 import static java.lang.Math.signum;
 
-import org.firstinspires.ftc.teamcode.controls.controllers.FeedbackController;
 import org.firstinspires.ftc.teamcode.controls.motion.Differentiator;
 import org.firstinspires.ftc.teamcode.controls.motion.Integrator;
 import org.firstinspires.ftc.teamcode.controls.motion.State;
@@ -15,6 +14,8 @@ public class PIDController implements FeedbackController {
 
     private PIDGains gains = new PIDGains();
     private State target = new State();
+
+
 
     private final Filter derivFilter;
     private final Differentiator differentiator = new Differentiator();
@@ -44,13 +45,21 @@ public class PIDController implements FeedbackController {
         error = target.minus(measurement);
 
         if (signum(error.x) != signum(lastError.x)) reset();
+
         errorIntegral = integrator.getIntegral(error.x);
         rawErrorDerivative = differentiator.getDerivative(error.x);
-        filteredErrorDerivative = filterDiff.getDerivative(derivFilter.calculate(error.x));
+        filteredErrorDerivative =
+                filterDiff.getDerivative(derivFilter.calculate(error.x));
 
-        double output = (gains.kP * error.x) + (gains.kwI * errorIntegral) + (gains.kD * filteredErrorDerivative);
+        double output =
+                (gains.getKP() * error.x) +
+                        (gains.getKI() * errorIntegral) +
+                        (gains.getKD() * filteredErrorDerivative);
 
-        stopIntegration(abs(output) >= gains.maxOutputWithIntegral && signum(output) == signum(error.x));
+        stopIntegration(
+                abs(output) >= gains.getMaxOutputWithIntegral() &&
+                        signum(output) == signum(error.x)
+        );
 
         return output;
     }
@@ -78,5 +87,9 @@ public class PIDController implements FeedbackController {
     public void reset() {
         integrator.reset();
         derivFilter.reset();
+    }
+
+    public boolean isInTolerance(State measurement, double tolerance) {
+        return Math.abs(target.x - measurement.x) <= tolerance;
     }
 }
