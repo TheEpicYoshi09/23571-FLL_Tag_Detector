@@ -6,6 +6,8 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 import java.util.List;
+import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
+
 
 /**
  * VisionProcessor handles AprilTag detection to identify the target pattern.
@@ -39,9 +41,9 @@ public class VisionProcessor {
                 .setDrawCubeProjection(true)
                 .setDrawTagOutline(true)
                 .setTagFamily(AprilTagProcessor.TagFamily.TAG_36h11)
-                .setTagLibrary(org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase.getCenterStageTagLibrary())
-                .setOutputUnits(AprilTagProcessor.OutputUnits.INCHES, AprilTagProcessor.OutputUnits.RADIANS)
+                .setTagLibrary(AprilTagGameDatabase.getCenterStageTagLibrary())
                 .build();
+
     }
 
     /**

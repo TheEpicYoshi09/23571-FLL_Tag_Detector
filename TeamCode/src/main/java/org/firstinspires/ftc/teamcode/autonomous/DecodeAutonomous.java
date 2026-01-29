@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.autonomous;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import org.firstinspires.ftc.vision.VisionProcessor;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -40,7 +41,7 @@ public class DecodeAutonomous extends LinearOpMode {
         FINAL_PARK,     // Park in assigned base zone
         COMPLETE        // Autonomous routine complete
     }
-    
+
     // Hardware components
     private DcMotor frontLeftMotor;
     private DcMotor frontRightMotor;
@@ -52,59 +53,60 @@ public class DecodeAutonomous extends LinearOpMode {
     private Servo ballPushServo;
     private ColorSensor colorSensor;
     private WebcamName webcam;
-    
+
     // Controllers
     private BarrelController barrelController;
     private ShooterController shooterController;
     private VisionProcessor visionProcessor;
-    
+
     // Autonomous state
     private AutonomousState currentState = AutonomousState.INIT;
     private String[] targetPattern;
     private int currentRowIndex = 0; // Which ball row we're currently at
     private boolean isRedAlliance = true; // True for red alliance, false for blue
     private boolean isNearSide = true; // True for near side, false for far side
-    
+
     // Timers and counters
     private long startTime;
     private int ballsCollected = 0;
-    
+
     @Override
     public void runOpMode() {
         // Initialize hardware
         initializeHardware();
-        
+
         // Initialize controllers
         barrelController = new BarrelController(wheelRotationServo, colorSensor);
         shooterController = new ShooterController(shooterMotor, ballPushServo);
-        visionProcessor = new VisionProcessor();
-        
+        visionProcessor = new VisionProcessor
+
+
         // Configure and initialize vision portal
         visionProcessor.initVisionPortal(webcam);
-        
+
         // Wait for start
         waitForStart();
         startTime = System.currentTimeMillis();
-        
+
         // Start the shooter motor immediately as per requirements
         shooterController.startShooter();
-        
+
         // Main state machine loop
         while (opModeIsActive() && !isStopRequested()) {
             updateState();
-            
+
             // Update telemetry
             updateTelemetry();
-            
+
             // Small sleep to prevent busy-waiting
             sleep(10);
         }
-        
+
         // Cleanup
         visionProcessor.close();
         shooterController.stopShooter();
     }
-    
+
     /**
      * Initializes all hardware components
      */
@@ -114,26 +116,26 @@ public class DecodeAutonomous extends LinearOpMode {
         frontRightMotor = hardwareMap.get(DcMotor.class, "front_right_motor");
         backLeftMotor = hardwareMap.get(DcMotor.class, "back_left_motor");
         backRightMotor = hardwareMap.get(DcMotor.class, "back_right_motor");
-        
+
         // Set motor directions (adjust as needed for your robot)
         frontLeftMotor.setDirection(DcMotor.Direction.REVERSE);
         backLeftMotor.setDirection(DcMotor.Direction.REVERSE);
         frontRightMotor.setDirection(DcMotor.Direction.FORWARD);
         backRightMotor.setDirection(DcMotor.Direction.FORWARD);
-        
+
         // Intake and shooter motors
         intakeMotor = hardwareMap.get(DcMotor.class, "intake_motor");
         shooterMotor = hardwareMap.get(DcMotor.class, "shooter_motor");
-        
+
         // Servos
         wheelRotationServo = hardwareMap.get(Servo.class, "wheel_rotation");
         ballPushServo = hardwareMap.get(Servo.class, "ball_push");
-        
+
         // Sensors
         colorSensor = hardwareMap.get(ColorSensor.class, "color_sensor");
         webcam = hardwareMap.get(WebcamName.class, "Webcam 1");
     }
-    
+
     /**
      * Updates the autonomous state based on the state machine
      * Implements the core logic flow of the autonomous routine
@@ -261,7 +263,7 @@ public class DecodeAutonomous extends LinearOpMode {
                 break;
         }
     }
-    
+
     /**
      * Drives to a specific ball row based on alliance, side, and row index
      * This method calculates the appropriate coordinates based on game configuration
@@ -300,7 +302,7 @@ public class DecodeAutonomous extends LinearOpMode {
         // or other positioning methods for precise navigation
         moveRobotToPosition(targetX, targetY);
     }
-    
+
     /**
      * Checks if the robot has reached the specified ball row
      * @param rowIndex The index of the ball row
@@ -311,14 +313,14 @@ public class DecodeAutonomous extends LinearOpMode {
         // For now, we'll use a simple timer-based approach
         return true; // Simplified for example
     }
-    
+
     /**
      * Drives to the launch line
      */
     private void driveToLaunchLine() {
         // Calculate launch line position based on alliance
         double targetX, targetY;
-        
+
         if (isRedAlliance) {
             targetX = 72.0; // Example coordinate for red alliance launch line
             targetY = 36.0;
@@ -326,11 +328,11 @@ public class DecodeAutonomous extends LinearOpMode {
             targetX = 72.0; // Example coordinate for blue alliance launch line
             targetY = 36.0;
         }
-        
+
         // Drive to calculated position
         moveRobotToPosition(targetX, targetY);
     }
-    
+
     /**
      * Checks if the robot has reached the launch line
      * @return true if the robot has reached the launch line, false otherwise
@@ -339,14 +341,14 @@ public class DecodeAutonomous extends LinearOpMode {
         // In a real implementation, this would check encoder values or other sensors
         return true; // Simplified for example
     }
-    
+
     /**
      * Drives to the assigned base zone for parking
      */
     private void driveToBaseZone() {
         // Calculate base zone position based on alliance
         double targetX, targetY;
-        
+
         if (isRedAlliance) {
             targetX = 120.0; // Example coordinate for red alliance base zone
             targetY = 60.0;
@@ -354,11 +356,11 @@ public class DecodeAutonomous extends LinearOpMode {
             targetX = 120.0; // Example coordinate for blue alliance base zone
             targetY = 60.0;
         }
-        
+
         // Drive to calculated position
         moveRobotToPosition(targetX, targetY);
     }
-    
+
     /**
      * Checks if the robot has reached the base zone
      * @return true if the robot has reached the base zone, false otherwise
@@ -367,7 +369,7 @@ public class DecodeAutonomous extends LinearOpMode {
         // In a real implementation, this would check encoder values or other sensors
         return true; // Simplified for example
     }
-    
+
     /**
      * Moves the robot to a specific position using mecanum drive
      * @param x Target X coordinate
@@ -380,14 +382,14 @@ public class DecodeAutonomous extends LinearOpMode {
         frontRightMotor.setPower(0.5);
         backLeftMotor.setPower(0.5);
         backRightMotor.setPower(0.5);
-        
+
         // Sleep for a short time to allow movement
         sleep(1000);
-        
+
         // Stop motors
         stopDriveMotors();
     }
-    
+
     /**
      * Checks if the intake operation has timed out
      * @return true if intake has timed out, false otherwise
@@ -396,21 +398,21 @@ public class DecodeAutonomous extends LinearOpMode {
         // Check if 10 seconds have passed since starting intake
         return (System.currentTimeMillis() - startTime) > 10000;
     }
-    
+
     /**
      * Sorts a ball based on color sensor detection
      */
     private void sortBallWithColorSensor() {
         // Detect the color of the incoming ball
         String detectedColor = barrelController.detectBallColor();
-        
+
         // Store the ball in the appropriate slot based on the target pattern
         int slot = barrelController.storeBall(targetPattern, ballsCollected);
-        
+
         // Wait for the ball to be properly positioned
         sleep(500);
     }
-    
+
     /**
      * Stops all drive motors
      */
@@ -420,7 +422,7 @@ public class DecodeAutonomous extends LinearOpMode {
         backLeftMotor.setPower(0.0);
         backRightMotor.setPower(0.0);
     }
-    
+
     /**
      * Stops all motors
      */
@@ -429,15 +431,15 @@ public class DecodeAutonomous extends LinearOpMode {
         intakeMotor.setPower(0.0);
         shooterMotor.setPower(0.0);
     }
-    
+
     /**
      * Updates telemetry with current state information
      */
     private void updateTelemetry() {
         telemetry.addData("Current State", currentState.toString());
         telemetry.addData("Balls Collected", ballsCollected);
-        telemetry.addData("Target Pattern", targetPattern != null ? 
-                         targetPattern[0] + ", " + targetPattern[1] + ", " + targetPattern[2] : "Not detected");
+        telemetry.addData("Target Pattern", targetPattern != null ?
+                targetPattern[0] + ", " + targetPattern[1] + ", " + targetPattern[2] : "Not detected");
         telemetry.addData("Alliance", isRedAlliance ? "Red" : "Blue");
         telemetry.addData("Side", isNearSide ? "Near" : "Far");
         telemetry.addData("Time Elapsed", (System.currentTimeMillis() - startTime) / 1000.0);

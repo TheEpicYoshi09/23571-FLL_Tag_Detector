@@ -13,6 +13,8 @@ import com.qualcomm.robotcore.hardware.ColorSensor;
 public class BarrelController {
     
     // Servo positions for each slot
+    // slot positions need to be changed because servo isn't directly attached,
+    // it is with gears and has a gear ratio
     private static final double SLOT_0_POSITION = 0.0;
     private static final double SLOT_1_POSITION = 0.33;
     private static final double SLOT_2_POSITION = 0.67;
@@ -113,6 +115,7 @@ public class BarrelController {
         int blue = colorSensor.blue();
         
         // Simple color detection logic based on dominant color
+        // need detection for purple, balls are usually purple or green
         if (red > green && red > blue) {
             return "RED";
         } else if (green > red && green > blue) {
