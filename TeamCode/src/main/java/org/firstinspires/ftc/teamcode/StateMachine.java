@@ -77,6 +77,7 @@ public class StateMachine {
     private boolean shoot(DecodePaths.AUTO_PATHS breakPath) {
         if (breakPath != null) {
             breakOutAuto(breakPath);
+            return false;
         }
 
         if (shootingController == null) {
@@ -126,6 +127,7 @@ public class StateMachine {
         if (autoTimer.getElapsedTimeSeconds() >= 28.75) {
             robot.runIntake(RobotHardware.IntakeDirection.STOP);
             spindexerController.setPosition(0);
+            spindexerController.disableAuto();
             stopFlywheel();
             followPath(breakPath);
         }
@@ -162,9 +164,16 @@ public class StateMachine {
                 setPose(DecodePaths.BLUE_FAR_START, DecodePaths.RED_FAR_START);
                 break;
             case AUTO_NEAR:
+                // case 0-2 first shoot sequence
+                // case 3-5 start intake sequence for getting Spike 1
+                // case 6-7 shoot last 3
+                // case 8 kill robot
+                // est : artifact count 3-5 maybe 6
+
                 switch (autoNearSubStep) {
                     case 0:
                         flywheelController.setLauncherFeedforward(30);
+                        spindexerController.enableAuto();
                         autoTimer.resetTimer();
                         runFlywheel();
                         followPath(DecodePaths.AUTO_PATHS.NEAR_PATH_TO_SHOOT_AREA, true);
@@ -174,12 +183,10 @@ public class StateMachine {
                         if (findGoal.updateAndIsDone()) autoNearSubStep++;
                         break;
                     case 2:
-                        if ( completedPath() && shoot(DecodePaths.AUTO_PATHS.NEAR_SHOOT_AREA_TO_SPIKE1) ) autoNearSubStep++;
+                        if ( completedPath() && shoot(DecodePaths.AUTO_PATHS.NEAR_SHOOT_LEAVE) ) autoNearSubStep++;
                         break;
                     case 3:
                         if ( completedPath() ) {
-                            stopFlywheel();
-                            spindexerController.setPosition(0);
                             followPath(DecodePaths.AUTO_PATHS.NEAR_SHOOT_AREA_TO_SPIKE1, true);
                             pathTimer.resetTimer();
                             autoNearSubStep++;
@@ -188,15 +195,14 @@ public class StateMachine {
                     case 4:
                         if ( completePathWithDelay(1.0) ) {
                             robot.runIntake(RobotHardware.IntakeDirection.IN);
-                            runFlywheel();
-                            followPath(DecodePaths.AUTO_PATHS.NEAR_PICKUP_SPIKE1, true);
+                            followPath(DecodePaths.AUTO_PATHS.NEAR_PICKUP_SPIKE1_PART1, true);
                             pathTimer.resetTimer();
                             autoNearSubStep++;
                         }
                         break;
                     case 5:
                         if ( completePathWithDelay(1.0) ) {
-                            followPath(DecodePaths.AUTO_PATHS.NEAR_GOTO_SHOOT_SPIKE1, true);
+                            followPath(DecodePaths.AUTO_PATHS.NEAR_PICKUP_SPIKE1_PART2, true);
                             pathTimer.resetTimer();
                             autoNearSubStep++;
                         }
@@ -204,26 +210,36 @@ public class StateMachine {
                     case 6:
                         if ( completePathWithDelay(1.5) ) {
                             robot.runIntake(RobotHardware.IntakeDirection.STOP);
+                            followPath(DecodePaths.AUTO_PATHS.NEAR_GOTO_SHOOT_SPIKE1, true);
                             autoNearSubStep++;
                         }
                         break;
                     case 7:
                         if ( completedPath() ) {
-                            if ( shoot(DecodePaths.AUTO_PATHS.NEAR_SHOOT_TO_WALL) ) {
+                            if ( shoot(DecodePaths.AUTO_PATHS.NEAR_SHOOT_LEAVE) ) {
                                 stopFlywheel();
-                                setState(State.STOP);
                                 autoNearSubStep++;
                             }
                         }
+                        break;
+                    case 8:
+                        if (completedPath()) setState(State.STOP);
                         break;
                     default:
                         break;
                 }
                 break;
             case AUTO_FAR:
+                // case 0-2 first shoot sequence
+                // case 3-5 start intake sequence for getting Spike 3
+                // case 6-7 shoot last 3
+                // case 8 kill robot
+                // est : artifact count 3-5 maybe 6
+
                 switch (autoFarSubStep) {
                     case 0:
                         flywheelController.setLauncherFeedforward(30);
+                        spindexerController.enableAuto();
                         autoTimer.resetTimer();
                         runFlywheel();
                         followPath(DecodePaths.AUTO_PATHS.FAR_START_TO_SHOOT, true);
@@ -235,7 +251,6 @@ public class StateMachine {
                     case 2:
                         if ( completedPath() ) {
                             if ( shoot(DecodePaths.AUTO_PATHS.FAR_SHOOT_LEAVE) ) {
-                                spindexerController.setPosition(2);
                                 robot.runIntake(RobotHardware.IntakeDirection.IN);
                                 followPath(DecodePaths.AUTO_PATHS.FAR_SHOOT_TO_SPIKE3_LINEUP, true);
                                 autoFarSubStep++;
@@ -251,33 +266,25 @@ public class StateMachine {
                         break;
                     case 4:
                         if ( completePathWithDelay(1.0) ) {
-                            spindexerController.setPosition(0);
                             pathTimer.resetTimer();
                             autoFarSubStep++;
                         }
                         break;
                     case 5:
-                        if ( completePathWithDelay(1.0) ) {
-                            spindexerController.setPosition(1);
-                            pathTimer.resetTimer();
-                            autoFarSubStep++;
-                        }
-                        break;
-                    case 6:
                         if ( completePathWithDelay(1.375) ) {
                             followPath(DecodePaths.AUTO_PATHS.FAR_SPIKE3_PICKUP_PART2, true);
                             pathTimer.resetTimer();
                             autoFarSubStep++;
                         }
                         break;
-                    case 7:
+                    case 6:
                         if ( completePathWithDelay(1.45) ) {
                             robot.runIntake(RobotHardware.IntakeDirection.STOP);
                             followPath(DecodePaths.AUTO_PATHS.FAR_SPIKE3_TO_SHOOT, true);
                             autoFarSubStep++;
                         }
                         break;
-                    case 8:
+                    case 7:
                         if ( completedPath() ) {
                             if ( shoot(DecodePaths.AUTO_PATHS.FAR_SHOOT_LEAVE) ) {
                                 followPath(DecodePaths.AUTO_PATHS.FAR_SHOOT_LEAVE, true);
@@ -286,10 +293,8 @@ public class StateMachine {
                             }
                         }
                         break;
-                    case 9:
-                        if (completedPath()) {
-                            setState(State.STOP);
-                        }
+                    case 8:
+                        if (completedPath()) setState(State.STOP);
                         break;
                     default:
                         break;

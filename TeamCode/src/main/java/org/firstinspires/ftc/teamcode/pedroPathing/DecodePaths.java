@@ -32,15 +32,19 @@ public class DecodePaths {
 
     /// BLUE CLOSE
     public static final Pose BLUE_NEAR_START = new Pose(23,119.8,Math.toRadians(-90));
-    public static final Pose BLUE_NEAR_SHOOT = new Pose(52, 90.5, Math.toRadians(-90));
-    public static final Pose BLUE_NEAR_GOTO_ARTIFACTS = new Pose(24.1, 98, Math.toRadians(-90));
-    public static final Pose BLUE_NEAR_PICKUP_ARTIFACTS = new Pose(24.1, 90, Math.toRadians(-90));
+    public static final Pose BLUE_NEAR_SHOOT = new Pose(59, 84, Math.toRadians(-90));
+    public static final Pose BLUE_NEAR_GOTO_SPIKE1 = new Pose(41.5, 84, Math.toRadians(180));
+    public static final Pose BLUE_NEAR_PICKUP_SPIKE1_PART1 = new Pose(33, 84, Math.toRadians(180));
+    public static final Pose BLUE_NEAR_PICKUP_SPIKE1_PART2 = new Pose(16.5, 84, Math.toRadians(180));
+    public static final Pose BLUE_NEAR_LEAVE = new Pose(44, 71.5, Math.toRadians(-135));
 
     ///  RED CLOSE
     public static final Pose RED_NEAR_START = new Pose(121,119.8,Math.toRadians(-90));
-    public static final Pose RED_NEAR_SHOOT = new Pose(98.5, 98, Math.toRadians(-90));
-    public static final Pose RED_NEAR_GOTO_ARTIFACTS = new Pose(119.8, 98, Math.toRadians(-90));
-    public static final Pose RED_NEAR_PICKUP_ARTIFACTS = new Pose(119.8, 90, Math.toRadians(-90));
+    public static final Pose RED_NEAR_SHOOT = new Pose(84.5, 84, Math.toRadians(-90));
+    public static final Pose RED_NEAR_GOTO_SPIKE1 = new Pose(100, 84, 0);
+    public static final Pose RED_NEAR_PICKUP_SPIKE1_PART1 = new Pose(111, 84, 0);
+    public static final Pose RED_NEAR_PICKUP_SPIKE1_PART2 = new Pose(118, 84, 0);
+    public static final Pose RED_NEAR_LEAVE = new Pose(102, 71.5, Math.toRadians(-45));
 
     /// BLUE CLOSE LEAVE ONLY
     public static final Pose BLUE_NEAR_FROM_SHOOT_TO_WALL = new Pose(59, 133.6, Math.toRadians(-90));
@@ -54,8 +58,12 @@ public class DecodePaths {
     public enum AUTO_PATHS {
         NEAR_PATH_TO_SHOOT_AREA,
         NEAR_SHOOT_AREA_TO_SPIKE1,
+        NEAR_PICKUP_SPIKE1_PART1,
+        NEAR_PICKUP_SPIKE1_PART2,
         NEAR_GOTO_SHOOT_SPIKE1,
-        NEAR_PICKUP_SPIKE1,
+        NEAR_SHOOT_LEAVE,
+
+
         FAR_START_TO_SHOOT,
         FAR_SHOOT_TO_SPIKE3_LINEUP,
         FAR_SPIKE3_PICKUP_PART1,
@@ -81,16 +89,24 @@ public class DecodePaths {
                 RED_NEAR_START, RED_NEAR_SHOOT));
 
         paths.put(AUTO_PATHS.NEAR_SHOOT_AREA_TO_SPIKE1, buildPath(robot, follower,
-                BLUE_NEAR_SHOOT, BLUE_NEAR_GOTO_ARTIFACTS,
-                RED_NEAR_SHOOT, RED_NEAR_GOTO_ARTIFACTS));
+                BLUE_NEAR_SHOOT, BLUE_NEAR_GOTO_SPIKE1,
+                RED_NEAR_SHOOT, RED_NEAR_GOTO_SPIKE1));
 
-        paths.put(AUTO_PATHS.NEAR_PICKUP_SPIKE1, buildPath(robot, follower,
-                BLUE_NEAR_GOTO_ARTIFACTS, BLUE_NEAR_PICKUP_ARTIFACTS,
-                RED_NEAR_GOTO_ARTIFACTS, RED_NEAR_PICKUP_ARTIFACTS));
+        paths.put(AUTO_PATHS.NEAR_PICKUP_SPIKE1_PART1, buildPath(robot, follower,
+                BLUE_NEAR_GOTO_SPIKE1, BLUE_NEAR_PICKUP_SPIKE1_PART1,
+                RED_NEAR_GOTO_SPIKE1, RED_NEAR_PICKUP_SPIKE1_PART1));
+
+        paths.put(AUTO_PATHS.NEAR_PICKUP_SPIKE1_PART2, buildPath(robot, follower,
+                BLUE_NEAR_PICKUP_SPIKE1_PART1, BLUE_NEAR_PICKUP_SPIKE1_PART2,
+                RED_NEAR_PICKUP_SPIKE1_PART1, RED_NEAR_PICKUP_SPIKE1_PART2));
 
         paths.put(AUTO_PATHS.NEAR_GOTO_SHOOT_SPIKE1, buildPath(robot, follower,
-                BLUE_NEAR_PICKUP_ARTIFACTS, BLUE_NEAR_SHOOT,
-                RED_NEAR_PICKUP_ARTIFACTS, RED_NEAR_SHOOT));
+                BLUE_NEAR_PICKUP_SPIKE1_PART2, BLUE_NEAR_SHOOT,
+                RED_NEAR_PICKUP_SPIKE1_PART2, RED_NEAR_SHOOT));
+
+        paths.put(AUTO_PATHS.NEAR_SHOOT_LEAVE, buildPath(robot, follower,
+                BLUE_NEAR_SHOOT, BLUE_NEAR_LEAVE,
+                RED_NEAR_SHOOT, RED_NEAR_LEAVE));
 
         /// FAR
         paths.put(AUTO_PATHS.FAR_START_TO_SHOOT, buildPath(robot, follower,
