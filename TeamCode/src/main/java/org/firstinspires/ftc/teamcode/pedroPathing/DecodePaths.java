@@ -15,9 +15,9 @@ public class DecodePaths {
     ///  BLUE FAR
     public static final Pose BLUE_FAR_START = new Pose(60, 8.75, Math.toRadians(-90));
     public static final Pose BLUE_FAR_SHOOT = new Pose(60, 18.75, Math.toRadians(-90));
-    public static final Pose BLUE_FAR_SHOOT_TO_SPIKE3 = new Pose(47.75, 29, Math.toRadians(180));
-    public static final Pose BLUE_FAR_PICKUP_SPIKE3_PART1 = new Pose(33, 29, Math.toRadians(180));
-    public static final Pose BLUE_FAR_PICKUP_SPIKE3_PART2 = new Pose(16.5, 29, Math.toRadians(180));
+    public static final Pose BLUE_FAR_SHOOT_TO_SPIKE3 = new Pose(47.75, 24, Math.toRadians(180));
+    public static final Pose BLUE_FAR_PICKUP_SPIKE3_PART1 = new Pose(33, 24, Math.toRadians(180));
+    public static final Pose BLUE_FAR_PICKUP_SPIKE3_PART2 = new Pose(16.5, 24, Math.toRadians(180));
     public static final Pose BLUE_FAR_LEAVE = new Pose(60, 34.5, Math.toRadians(-90));
 
 

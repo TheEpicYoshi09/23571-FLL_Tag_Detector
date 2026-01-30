@@ -74,10 +74,9 @@ public class StateMachine {
         paths = DecodePaths.buildPaths(robot, follower);
     }
 
-    private boolean shoot(DecodePaths.AUTO_PATHS breakPath) {
+    private boolean shoot(DecodePaths.AUTO_PATHS breakPath, boolean checkArtifacts) {
         if (breakPath != null) {
-            breakOutAuto(breakPath);
-            return false;
+            if (breakOutAuto(breakPath)) return false;
         }
 
         if (shootingController == null) {
@@ -101,13 +100,18 @@ public class StateMachine {
             shootStarted = true;
         }
 
-        boolean finishedShooting = shootStarted && shootingController.updateAndIsComplete();
+        boolean finishedShooting = shootStarted && shootingController.updateAndIsComplete(checkArtifacts);
         if (finishedShooting) {
             shootStarted = false;
             return true;
         }
         return false;
     }
+
+    private boolean shoot(DecodePaths.AUTO_PATHS breakPath) {
+        return shoot(breakPath, true);
+    }
+
     private void runFlywheel() {
         if (flywheelController != null) {
             if (!flywheelController.isEnabled()) {
@@ -123,14 +127,16 @@ public class StateMachine {
         }
     }
 
-    private void breakOutAuto(DecodePaths.AUTO_PATHS breakPath) {
-        if (autoTimer.getElapsedTimeSeconds() >= 28.75) {
-            robot.runIntake(RobotHardware.IntakeDirection.STOP);
-            spindexerController.setPosition(0);
-            spindexerController.disableAuto();
-            stopFlywheel();
-            followPath(breakPath);
-        }
+    private boolean breakOutAuto(DecodePaths.AUTO_PATHS breakPath) {
+//        if (autoTimer.getElapsedTimeSeconds() >= 28.75) {
+//            robot.runIntake(RobotHardware.IntakeDirection.STOP);
+//            spindexerController.setPosition(0);
+//            spindexerController.disableAuto();
+//            stopFlywheel();
+//            followPath(breakPath);
+//            return true;
+//        }
+        return false;
     }
 
     private void followPath(DecodePaths.AUTO_PATHS path, boolean hold) {
@@ -173,7 +179,7 @@ public class StateMachine {
                 switch (autoNearSubStep) {
                     case 0:
                         flywheelController.setLauncherFeedforward(30);
-                        spindexerController.enableAuto();
+                        //spindexerController.enableAuto();
                         autoTimer.resetTimer();
                         runFlywheel();
                         followPath(DecodePaths.AUTO_PATHS.NEAR_PATH_TO_SHOOT_AREA, true);
@@ -183,7 +189,8 @@ public class StateMachine {
                         if (findGoal.updateAndIsDone()) autoNearSubStep++;
                         break;
                     case 2:
-                        if ( completedPath() && shoot(DecodePaths.AUTO_PATHS.NEAR_SHOOT_LEAVE) ) autoNearSubStep++;
+                        if ( completedPath() )
+                            if ( shoot(DecodePaths.AUTO_PATHS.NEAR_SHOOT_LEAVE, false)) autoNearSubStep++;
                         break;
                     case 3:
                         if ( completedPath() ) {
@@ -238,8 +245,8 @@ public class StateMachine {
 
                 switch (autoFarSubStep) {
                     case 0:
-                        flywheelController.setLauncherFeedforward(30);
-                        spindexerController.enableAuto();
+                        flywheelController.setLauncherFeedforward(29);
+                        //spindexerController.enableAuto();
                         autoTimer.resetTimer();
                         runFlywheel();
                         followPath(DecodePaths.AUTO_PATHS.FAR_START_TO_SHOOT, true);
@@ -250,7 +257,7 @@ public class StateMachine {
                         break;
                     case 2:
                         if ( completedPath() ) {
-                            if ( shoot(DecodePaths.AUTO_PATHS.FAR_SHOOT_LEAVE) ) {
+                            if ( shoot(DecodePaths.AUTO_PATHS.FAR_SHOOT_LEAVE, false) ) {
                                 robot.runIntake(RobotHardware.IntakeDirection.IN);
                                 followPath(DecodePaths.AUTO_PATHS.FAR_SHOOT_TO_SPIKE3_LINEUP, true);
                                 autoFarSubStep++;
@@ -265,26 +272,34 @@ public class StateMachine {
                         }
                         break;
                     case 4:
-                        if ( completePathWithDelay(1.0) ) {
+                        if ( completePathWithDelay(2.0) ) {
+                            spindexerController.setPosition(2);
                             pathTimer.resetTimer();
                             autoFarSubStep++;
                         }
                         break;
                     case 5:
+                        if ( completePathWithDelay(1.25) ) {
+                            spindexerController.setPosition(1);
+                            pathTimer.resetTimer();
+                            autoFarSubStep++;
+                        }
+                        break;
+                    case 6:
                         if ( completePathWithDelay(1.375) ) {
                             followPath(DecodePaths.AUTO_PATHS.FAR_SPIKE3_PICKUP_PART2, true);
                             pathTimer.resetTimer();
                             autoFarSubStep++;
                         }
                         break;
-                    case 6:
+                    case 7:
                         if ( completePathWithDelay(1.45) ) {
                             robot.runIntake(RobotHardware.IntakeDirection.STOP);
                             followPath(DecodePaths.AUTO_PATHS.FAR_SPIKE3_TO_SHOOT, true);
                             autoFarSubStep++;
                         }
                         break;
-                    case 7:
+                    case 8:
                         if ( completedPath() ) {
                             if ( shoot(DecodePaths.AUTO_PATHS.FAR_SHOOT_LEAVE) ) {
                                 followPath(DecodePaths.AUTO_PATHS.FAR_SHOOT_LEAVE, true);
@@ -293,7 +308,7 @@ public class StateMachine {
                             }
                         }
                         break;
-                    case 8:
+                    case 9:
                         if (completedPath()) setState(State.STOP);
                         break;
                     default:

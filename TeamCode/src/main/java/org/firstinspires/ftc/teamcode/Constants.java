@@ -13,7 +13,7 @@ public class Constants {
     public static final double DEFAULT_RPM = 1500.0;
     public static final double LAUNCH_ZONE_MID_RPM = 2200.0; // ~3.5 ft, OLD : 2000.0
     public static final double LAUNCH_ZONE_FAR_RPM = 2350.0; // ~5.5 ft, OLD : 2200.0
-    public static final double LAUNCH_ZONE_FAR_FAR_RPM = 2750.0; // ~8 ft, OLD : 2700.0
+    public static final double LAUNCH_ZONE_FAR_FAR_RPM = 2775.0; // ~8 ft, OLD : 2700.0
     public static final double FLYWHEEL_TOLERANCE_RPM = 85.0;
     public static final double LAUNCHER_GEAR_REDUCTION = 16.0 / 24.0; // motor:flywheel = 2:3
 
@@ -49,7 +49,7 @@ public class Constants {
 
     /// SHOOTER TIMING (milliseconds)
     public static final long SHOOT_FIRE_DURATION_MS = 300;
-    public static final long SHOOT_RETRACT_DURATION_MS = 550;
+    public static final long SHOOT_RETRACT_DURATION_MS = 750;
 
     /// COLOR SENSOR
     public static final double COLOR_SENSOR_PURPLE_RATIO = 1.05; // Blue must exceed red and green by this factor try 1.20
@@ -61,7 +61,7 @@ public class Constants {
     public static final double COLOR_SENSOR_DETECTION_DISTANCE_MM = 100.0;
 
     /// SPINDEXER TIMING (milliseconds)
-    public static final long SPINDEXER_ROTATION_TIME = 550;
+    public static final long SPINDEXER_ROTATION_TIME = 650;
 
     ///AUTONOMOUS SETPOINTS
 

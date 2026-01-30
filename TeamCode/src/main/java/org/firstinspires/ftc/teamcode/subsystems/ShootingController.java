@@ -43,7 +43,7 @@ public class ShootingController {
         shootState = ShootState.WAIT_FOR_SPINUP;
     }
 
-    public void update() {
+    public void update(boolean checkArtifacts) {
         if (!flywheelController.isEnabled() || flywheelController.getTargetRpm() <= 0) return;
 
         switch (shootState) {
@@ -57,7 +57,7 @@ public class ShootingController {
                 }
 
                 // Check if current slot is empty
-                if (spindexerController.getSlotState(0) == ArtifactTracker.SlotStatus.VACANT) {
+                if (checkArtifacts && spindexerController.getSlotState(0) == ArtifactTracker.SlotStatus.VACANT) {
                     shootState = ShootState.ADVANCE;
                     return;
                 }
@@ -75,6 +75,10 @@ public class ShootingController {
                 break;
             case NEXT_ARTIFACT:
                 if (!spindexerController.isFinished()) return;
+                if (!checkArtifacts) {
+                    shootState = ShootState.FIRE;
+                    return;
+                }
 
                 if (spindexerController.isSpindexerEmpty()) {
                     shootState = ShootState.FINISH;
@@ -119,13 +123,17 @@ public class ShootingController {
         telemetry.addData("State", shootState);
     }
 
+    public void update() {
+        update(true);
+    }
+
     /**
      * Update the shooting sequence and report when the full firing cycle has finished.
      *
      * @return true once the controller has completed the queued shots and returned to IDLE
      */
-    public boolean updateAndIsComplete() {
-        update();
+    public boolean updateAndIsComplete(boolean checkArtifacts) {
+        update(checkArtifacts);
         return shootState == ShootState.IDLE && spindexerController.isSpindexerEmpty();
     }
 
@@ -146,7 +154,7 @@ public class ShootingController {
         double txPercent = result.getTx();
         if (!Double.isNaN(txPercent)) {
             telemetry.addData("*** TX PERCENT", Math.abs(txPercent));
-            return Math.abs(txPercent) <= 1.5; // USE TO BE <=, AND 0.075
+            return Math.abs(txPercent) <= 1.75; // USE TO BE <=, AND 0.075
         }
 
         List<LLResultTypes.FiducialResult> fiducials = result.getFiducialResults();
