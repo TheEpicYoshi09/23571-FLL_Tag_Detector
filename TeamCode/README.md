@@ -19,7 +19,7 @@ Manages the barrel rotation and ball sorting mechanism with 3 servo-controlled s
 Controls the shooter motor and ball pushing mechanism for launching balls in the correct sequence.
 
 ### 5. BalldentifierAndDriver
-Placeholder for OpenCV-based ball detection and tracking system (currently under development).
+OpenCV-based ball detection and tracking system using EasyOpenCV pipeline to detect purple and green balls.
 
 ## Autonomous Logic Flow
 
@@ -70,12 +70,12 @@ graph TD
     E --> F[SHOOT]
     F --> G[FINAL_PARK]
     G --> H[COMPLETE]
-    
+
     B --> B[Waiting for AprilTag Detection]
     D --> D[Collecting and Sorting Balls]
     F --> F[Shooting in Sequence]
     G --> G[Parking in Base Zone]
-    
+
     style A fill:#e1f5fe
     style H fill:#e8f5e8
     style B fill:#fff3e0
@@ -93,16 +93,18 @@ graph TD
 - Drive motor control for navigation
 - Color sensor integration for ball detection
 - Hardware mapping and initialization
+- OpenCV-based ball detection and tracking system (BalldentifierAndDriver) - Created but not yet integrated
 
 ### In Progress
-- OpenCV-based ball detection and tracking system (BalldentifierAndDriver)
 - Fine-tuning of navigation parameters
 - Optimization of ball sorting algorithm
 - Testing and calibration of shooting sequence
 
 ### To Do
-- Complete OpenCV pipeline for ball detection
-- Implement advanced navigation with odometry
+- Integrate the BalldentifierAndDriver OpenCV pipeline with the autonomous routine
+- Implement proper navigation system with encoder-based movement
+- Replace placeholder navigation methods with actual position tracking
+- Implement proper position checking using encoders, IMU, or other sensors
 - Add error handling and recovery procedures
 - Optimize timing for maximum scoring efficiency
 - Create teleop routines for driver-controlled period

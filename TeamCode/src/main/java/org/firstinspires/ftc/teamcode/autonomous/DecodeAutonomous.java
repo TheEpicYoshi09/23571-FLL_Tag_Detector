@@ -57,6 +57,7 @@ public class DecodeAutonomous extends LinearOpMode {
     private BarrelController barrelController;
     private ShooterController shooterController;
     private AprilTagVisionProcessor visionProcessor;
+    private BalldentifierAndDriver ballDetector;
 
     // Autonomous state
     private AutonomousState currentState = AutonomousState.INIT;
@@ -78,10 +79,16 @@ public class DecodeAutonomous extends LinearOpMode {
         barrelController = new BarrelController(wheelRotationServo, colorSensor);
         shooterController = new ShooterController(shooterMotor, ballPushServo);
         visionProcessor = new AprilTagVisionProcessor();
+        ballDetector = new BalldentifierAndDriver();
 
 
-        // Configure and initialize vision portal
+        // Configure and initialize vision portal with ball detector
+        // Note: We'll use separate vision portals for AprilTag detection and ball detection
         visionProcessor.initVisionPortal(webcam);
+
+        // Optionally set up the ball detector with the same webcam if needed
+        // This would require a different approach since we can't have two processors
+        // on the same vision portal simultaneously
 
         // Wait for start
         waitForStart();
@@ -104,6 +111,8 @@ public class DecodeAutonomous extends LinearOpMode {
         // Cleanup
         visionProcessor.close();
         shooterController.stopShooter();
+        // Note: BalldentifierAndDriver doesn't need explicit cleanup as it's just a pipeline
+        // It will be cleaned up when the vision portal it's attached to is closed
     }
 
     /**
@@ -183,19 +192,27 @@ public class DecodeAutonomous extends LinearOpMode {
                 // according to the detected target pattern
                 intakeMotor.setPower(1.0); // Start the intake mechanism
 
+                // Use the ball detector to identify balls in the intake area
+                // This would typically happen in a separate thread or with periodic updates
+                // For this implementation, we'll use the ball detector to identify balls
+                int detectedPurpleBalls = ballDetector.getPurpleBallCount();
+                int detectedGreenBalls = ballDetector.getGreenBallCount();
+
                 // Continue intake and sorting until we reach capacity or timeout
                 // Note: Max 3 balls allowed on robot at any time as per hard constraint
                 if (ballsCollected < 3 && !barrelController.isFull()) {
                     // The barrel controller handles sorting as balls come in based on
                     // the detected color and the target pattern sequence
-                    // This would typically happen in a separate thread or with periodic updates
-                    // For this implementation, we increment the counter to simulate collection
                     // In a real implementation, the color sensor would trigger sorting automatically
-                    ballsCollected++;
+                    // For simulation, we'll check if balls are detected by the vision system
+                    if (detectedPurpleBalls > 0 || detectedGreenBalls > 0) {
+                        // A ball has been detected, so we can simulate collection
+                        ballsCollected++;
 
-                    // In a real implementation, you'd check if a ball has been detected
-                    // by the color sensor and then sort it using the barrel controller
-                    // sortBallWithColorSensor();
+                        // In a real implementation, you'd check if a ball has been detected
+                        // by the color sensor and then sort it using the barrel controller
+                        sortBallWithColorSensor();
+                    }
                 }
 
                 // Transition to next state when we have 3 balls, barrel is full, or timeout occurs
@@ -309,8 +326,10 @@ public class DecodeAutonomous extends LinearOpMode {
      */
     private boolean hasReachedBallRow(int rowIndex) {
         // In a real implementation, this would check encoder values or other sensors
-        // For now, we'll use a simple timer-based approach
-        return true; // Simplified for example
+        // For now, we'll use a simple check based on whether the movement has completed
+        // This would be determined by checking if the motors have reached their target positions
+        return !frontLeftMotor.isBusy() && !frontRightMotor.isBusy() &&
+               !backLeftMotor.isBusy() && !backRightMotor.isBusy();
     }
 
     /**
@@ -338,7 +357,9 @@ public class DecodeAutonomous extends LinearOpMode {
      */
     private boolean hasReachedLaunchLine() {
         // In a real implementation, this would check encoder values or other sensors
-        return true; // Simplified for example
+        // For now, we'll use a simple check based on whether the movement has completed
+        return !frontLeftMotor.isBusy() && !frontRightMotor.isBusy() &&
+               !backLeftMotor.isBusy() && !backRightMotor.isBusy();
     }
 
     /**
@@ -366,7 +387,9 @@ public class DecodeAutonomous extends LinearOpMode {
      */
     private boolean hasReachedBaseZone() {
         // In a real implementation, this would check encoder values or other sensors
-        return true; // Simplified for example
+        // For now, we'll use a simple check based on whether the movement has completed
+        return !frontLeftMotor.isBusy() && !frontRightMotor.isBusy() &&
+               !backLeftMotor.isBusy() && !backRightMotor.isBusy();
     }
 
     /**
@@ -375,18 +398,58 @@ public class DecodeAutonomous extends LinearOpMode {
      * @param y Target Y coordinate
      */
     private void moveRobotToPosition(double x, double y) {
-        // This is a simplified movement function
+        // This is a simplified movement function using encoder-based movement
         // In real implementation, you'd use encoders and PID control for precise movement
+
+        // Reset encoder counts
+        frontLeftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        frontRightMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        backLeftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        backRightMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        // Set motors to run using encoder
+        frontLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        frontRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        backLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        backRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        // Calculate target encoder counts based on distance (this is a simplified calculation)
+        // You would need to calibrate these values based on your robot's wheel circumference and gear ratios
+        int targetTicks = (int)(Math.sqrt(x*x + y*y) * 50); // Rough conversion: 50 ticks per inch (needs calibration)
+
+        // Set target positions
+        frontLeftMotor.setTargetPosition(targetTicks);
+        frontRightMotor.setTargetPosition(targetTicks);
+        backLeftMotor.setTargetPosition(targetTicks);
+        backRightMotor.setTargetPosition(targetTicks);
+
+        // Set motors to run to position
+        frontLeftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        frontRightMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        backLeftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        backRightMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        // Set power to move toward target
         frontLeftMotor.setPower(0.5);
         frontRightMotor.setPower(0.5);
         backLeftMotor.setPower(0.5);
         backRightMotor.setPower(0.5);
 
-        // Sleep for a short time to allow movement
-        sleep(1000);
+        // Wait until target position is reached
+        while (frontLeftMotor.isBusy() && frontRightMotor.isBusy() &&
+               backLeftMotor.isBusy() && backRightMotor.isBusy() && opModeIsActive()) {
+            // Continue until all motors reach target position
+            sleep(10);
+        }
 
         // Stop motors
         stopDriveMotors();
+
+        // Reset to run using encoder mode
+        frontLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        frontRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        backLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        backRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
     /**
@@ -435,6 +498,23 @@ public class DecodeAutonomous extends LinearOpMode {
      * Updates telemetry with current state information
      */
     private void updateTelemetry() {
+        // Add ball detection information to telemetry
+        if (ballDetector != null) {
+            telemetry.addData("Purple Balls", ballDetector.getPurpleBallCount());
+            telemetry.addData("Green Balls", ballDetector.getGreenBallCount());
+            telemetry.addData("Total Balls", ballDetector.getTotalBallCount());
+
+            // Get info about the largest detected ball
+            BalldentifierAndDriver.BallPositionInfo largestBall = ballDetector.getLargestBallInfo();
+            if (largestBall != null) {
+                telemetry.addData("Largest Ball Color", largestBall.isPurple ? "Purple" : "Green");
+                telemetry.addData("Largest Ball Pos X", "%.2f", largestBall.normalizedX);
+                telemetry.addData("Largest Ball Pos Y", "%.2f", largestBall.normalizedY);
+            } else {
+                telemetry.addData("Largest Ball", "None detected");
+            }
+        }
+
         telemetry.addData("Current State", currentState.toString());
         telemetry.addData("Balls Collected", ballsCollected);
         telemetry.addData("Target Pattern", targetPattern != null ?
