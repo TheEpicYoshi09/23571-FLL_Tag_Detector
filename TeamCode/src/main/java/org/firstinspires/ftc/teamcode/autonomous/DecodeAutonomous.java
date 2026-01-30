@@ -5,9 +5,12 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.ColorSensor;
+import com.qualcomm.robotcore.hardware.IMU;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 
 /**
  * Main autonomous class implementing the state machine for the FTC robot.
@@ -51,6 +54,7 @@ public class DecodeAutonomous extends LinearOpMode {
     private Servo wheelRotationServo;
     private Servo ballPushServo;
     private ColorSensor colorSensor;
+    private IMU imu;
     private WebcamName webcam;
 
     // Controllers
@@ -141,6 +145,7 @@ public class DecodeAutonomous extends LinearOpMode {
 
         // Sensors
         colorSensor = hardwareMap.get(ColorSensor.class, "color_sensor");
+        imu = hardwareMap.get(IMU.class, "imu");  // IMU is typically configured as "imu" in the robot configuration
         webcam = hardwareMap.get(WebcamName.class, "Webcam 1");
     }
 
@@ -236,8 +241,20 @@ public class DecodeAutonomous extends LinearOpMode {
 
             case SHOOT:
                 // Shooting phase: shoot balls in the correct sequence based on target pattern
+                // First, rotate to the correct angle for the current ball in the sequence
+                if (shooterController.getCurrentShotIndex() < 3) { // Only for the first 3 shots
+                    // Calculate the optimal angle for this shot based on the target pattern
+                    double targetAngle = calculateOptimalShootingAngle(targetPattern, shooterController.getCurrentShotIndex());
+
+                    // Rotate to the calculated angle using IMU feedback
+                    rotateToHeading(targetAngle);
+
+                    // Small delay to ensure robot is settled after rotation
+                    sleep(200);
+                }
+
+                // Start the shooting sequence if it hasn't already begun
                 if (!shooterController.isShootingSequenceActive()) {
-                    // Start the shooting sequence if it hasn't already begun
                     shooterController.beginShootingSequence();
                 }
 
@@ -486,12 +503,185 @@ public class DecodeAutonomous extends LinearOpMode {
     }
 
     /**
+     * Rotates the robot to a target heading using IMU feedback with PID control
+     * @param targetHeading The target heading in degrees (0-360)
+     */
+    private void rotateToHeading(double targetHeading) {
+        // Normalize target heading to 0-360 range
+        targetHeading = normalizeAngleDegrees(targetHeading);
+
+        // PID constants
+        final double kP = 0.015;  // Proportional constant
+        final double kI = 0.0001; // Integral constant
+        final double kD = 0.005;  // Derivative constant
+        final double ROTATION_THRESHOLD = 2.0; // Stop when within 2 degrees
+        final double MAX_ROTATION_POWER = 0.4;
+        final double MIN_ROTATION_POWER = 0.05;
+
+        // PID variables
+        double previousError = 0;
+        double integral = 0;
+        final double integralLimit = 10.0; // Limit integral windup
+
+        // Get initial heading
+        YawPitchRollAngles orientation = imu.getRobotYawPitchRollAngles();
+        double currentHeading = normalizeAngleDegrees(orientation.getYaw(AngleUnit.DEGREES));
+        double error = angleDifference(currentHeading, targetHeading);
+
+        // Continue rotating until we're close enough to the target heading
+        while (Math.abs(error) > ROTATION_THRESHOLD && opModeIsActive()) {
+            // Get current heading
+            orientation = imu.getRobotYawPitchRollAngles();
+            currentHeading = normalizeAngleDegrees(orientation.getYaw(AngleUnit.DEGREES));
+
+            // Calculate error
+            error = angleDifference(currentHeading, targetHeading);
+
+            // Calculate PID terms
+            // Proportional term
+            double proportional = kP * error;
+
+            // Integral term
+            integral += error;
+            if (Math.abs(proportional) > MAX_ROTATION_POWER) {
+                integral = 0; // Reset integral if we're already at max power
+            }
+            // Limit integral to prevent windup
+            integral = Math.max(-integralLimit, Math.min(integralLimit, integral));
+            double integralTerm = kI * integral;
+
+            // Derivative term
+            double derivative = kD * (error - previousError);
+            previousError = error;
+
+            // Calculate rotation power using PID formula
+            double rotationPower = proportional + integralTerm + derivative;
+
+            // Limit the rotation power to acceptable range
+            rotationPower = Math.max(-MAX_ROTATION_POWER, Math.min(MAX_ROTATION_POWER, rotationPower));
+
+            // Ensure minimum power to overcome friction
+            if (Math.abs(rotationPower) < MIN_ROTATION_POWER && Math.abs(error) > ROTATION_THRESHOLD) {
+                if (rotationPower >= 0) {
+                    rotationPower = MIN_ROTATION_POWER;
+                } else {
+                    rotationPower = -MIN_ROTATION_POWER;
+                }
+            }
+
+            // Determine direction of rotation and set motor powers
+            // For turning in place, left motors go opposite direction of right motors
+            frontLeftMotor.setPower(rotationPower);
+            frontRightMotor.setPower(-rotationPower);
+            backLeftMotor.setPower(rotationPower);
+            backRightMotor.setPower(-rotationPower);
+
+            // Update telemetry with rotation information
+            telemetry.addData("Current Heading", "%.2f", currentHeading);
+            telemetry.addData("Target Heading", "%.2f", targetHeading);
+            telemetry.addData("Heading Error", "%.2f", error);
+            telemetry.addData("Rotation Power", "%.3f", rotationPower);
+            telemetry.update();
+
+            // Small sleep to allow for motor control updates
+            sleep(10);
+        }
+
+        // Stop all motors when rotation is complete
+        stopDriveMotors();
+    }
+
+    /**
      * Stops all motors
      */
     private void stopAllMotors() {
         stopDriveMotors();
         intakeMotor.setPower(0.0);
         shooterMotor.setPower(0.0);
+    }
+
+    /**
+     * Determines the optimal shooting angle based on the target pattern and current ball sequence
+     * @param targetPattern The sequence of ball colors to shoot
+     * @param ballsShot The number of balls already shot
+     * @return The optimal angle to rotate to for the next shot
+     */
+    private double calculateOptimalShootingAngle(String[] targetPattern, int ballsShot) {
+        if (targetPattern == null || ballsShot >= targetPattern.length) {
+            return 0; // Default angle if no pattern or all balls shot
+        }
+
+        // For the DECODE game, the shooting angle might vary based on which ball in the sequence we're shooting
+        // This is a simplified approach - in practice, this would depend on your robot's physical setup
+        // and the field geometry
+
+        // Different angles for different positions in the sequence
+        // These are example angles - you would need to calibrate these based on your robot's position
+        // and the actual field setup
+        double[] shootingAngles = {0.0, 30.0, 60.0}; // Example angles for 3 balls in sequence
+
+        if (ballsShot < shootingAngles.length) {
+            // Get the initial robot heading from IMU to use as reference
+            YawPitchRollAngles orientation = imu.getRobotYawPitchRollAngles();
+            double initialHeading = normalizeAngleDegrees(orientation.getYaw(AngleUnit.DEGREES));
+
+            // Return the absolute angle by adding the offset to the initial heading
+            return normalizeAngleDegrees(initialHeading + shootingAngles[ballsShot]);
+        } else {
+            // If we're beyond the predefined angles, use the last angle
+            YawPitchRollAngles orientation = imu.getRobotYawPitchRollAngles();
+            double initialHeading = normalizeAngleDegrees(orientation.getYaw(AngleUnit.DEGREES));
+            return normalizeAngleDegrees(initialHeading + shootingAngles[shootingAngles.length - 1]);
+        }
+    }
+
+    /**
+     * Normalizes an angle to be within the range [0, 360) degrees
+     * @param angle The angle to normalize
+     * @return The normalized angle in the range [0, 360)
+     */
+    private double normalizeAngleDegrees(double angle) {
+        while (angle >= 360) {
+            angle -= 360;
+        }
+        while (angle < 0) {
+            angle += 360;
+        }
+        return angle;
+    }
+
+    /**
+     * Calculates the difference between two angles, returning the shortest angular distance
+     * @param fromAngle The starting angle
+     * @param toAngle The target angle
+     * @return The shortest angular distance from fromAngle to toAngle (positive for clockwise, negative for counter-clockwise)
+     */
+    private double angleDifference(double fromAngle, double toAngle) {
+        double difference = toAngle - fromAngle;
+
+        // Normalize to [-180, 180] range
+        while (difference > 180) {
+            difference -= 360;
+        }
+        while (difference <= -180) {
+            difference += 360;
+        }
+
+        return difference;
+    }
+
+    /**
+     * Calibrate the rotation PID values for optimal performance
+     * This method can be used to adjust the PID constants based on testing
+     */
+    private void calibrateRotationPID() {
+        // These are example values - actual values need to be tuned based on your robot
+        // The values used in rotateToHeading are already tuned for typical robots
+        // This method is for fine-tuning if needed
+
+        // For example, if the robot oscillates too much, increase kD
+        // If it's too slow to reach target, increase kP
+        // If it has steady-state error, increase kI (careful of integral windup)
     }
 
     /**
