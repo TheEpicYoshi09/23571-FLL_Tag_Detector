@@ -15,8 +15,8 @@ import org.firstinspires.ftc.teamcode.decode.Subsystems.Actions;
 import org.firstinspires.ftc.teamcode.decode.Subsystems.Common;
 import org.firstinspires.ftc.teamcode.decode.Subsystems.FollowPathAction;
 import org.firstinspires.ftc.teamcode.decode.Subsystems.RobotActions;
-@Autonomous (name = "6BallClose")
-public class SixBallClose extends AbstractAuto {
+@Autonomous (name = "NineBallClose")
+public class NineBallClose extends AbstractAuto {
     private Follower f;
     private Paths path;
 
@@ -36,13 +36,16 @@ public class SixBallClose extends AbstractAuto {
             path.mirrorAll();
         }
 
-        path.goal6Build();
+        path.goal9Build();
     }
 
     @Override
     protected void onRun() {
         shootPreload();
         cycle3();
+        cycle6();
+        unloadRamp();
+
     }
 
     private void shootPreload() {
@@ -76,26 +79,62 @@ public class SixBallClose extends AbstractAuto {
                 new SequentialAction(
                         new ParallelAction(
                                 new Actions.CallbackAction(
-                                        RobotActions.intakeAction(1,4),
-                                        path.intake3,0.01,0,f,"Intake3"
+                                        RobotActions.intakeAction(1, 4),
+                                        path.intake3, 0.01, 0, f, "Intake3"
                                 ),
-                                new FollowPathAction(f,path.intake3)
+                                new FollowPathAction(f, path.intake3)
                         ),
                         new ParallelAction(
                                 new Actions.CallbackAction(
                                         RobotActions.startShooter(1),
-                                        path.shoot3,0.3,0,f,"Shoot3"
+                                        path.shoot3, 0.3, 0, f, "Shoot3"
                                 ),
-                                new FollowPathAction(f,path.shoot3)
+                                new FollowPathAction(f, path.shoot3)
                         ),
                         new ParallelAction(
-                                RobotActions.intakeAction(1,1),
-                                RobotActions.loaderAction(1,1)
+                                RobotActions.intakeAction(1, 1),
+                                RobotActions.loaderAction(1, 1)
                         ),
-                        new InstantAction(()-> robot.shooter.stop())
+                        new InstantAction(() -> robot.shooter.stop())
                 )
 
         );
+        robot.actionScheduler.runBlocking();
+    }
+
+    private void cycle6() {
+
+        robot.actionScheduler.addAction(
+                new SequentialAction(
+                        new ParallelAction(
+                                new Actions.CallbackAction(
+                                        RobotActions.intakeAction(1, 4),
+                                        path.intake6, 0.01, 0, f, "intake6"
+                                ),
+                                new FollowPathAction(f, path.intake6)
+                        ),
+                        new ParallelAction(
+                                new Actions.CallbackAction(
+                                        RobotActions.startShooter(1), path.shoot6, 0.6, 0, f, "Shoot6"
+                                ),
+                                new FollowPathAction(f, path.shoot6)
+                        ),
+                        new ParallelAction(
+                                RobotActions.intakeAction(1, 1),
+                                RobotActions.loaderAction(1, 1)
+                        ),
+                        new InstantAction(() -> robot.shooter.stop())
+                )
+        );
+        robot.actionScheduler.runBlocking();
+    }
+
+    private void unloadRamp() {
+
+        robot.actionScheduler.addAction(
+                new FollowPathAction(f, path.unloadRamp)
+        );
+
         robot.actionScheduler.runBlocking();
     }
 }

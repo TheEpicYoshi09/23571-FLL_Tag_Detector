@@ -81,15 +81,15 @@ private void cycle3() {
             new SequentialAction(
                     new ParallelAction(
                                 new Actions.CallbackAction(
-                                        RobotActions.intakeAction(1,3),
-                                        path.intake3,0.1,0,f,"Intake3"
+                                        RobotActions.intakeAction(1,4),
+                                        path.intake3,0.01,0,f,"Intake3"
                                 ),
                                 new FollowPathAction(f,path.intake3)
                              ),
                             new ParallelAction(
                                     new Actions.CallbackAction(
                                             RobotActions.startShooter(1),
-                                            path.shoot3,0.5,0,f,"Shoot3"
+                                            path.shoot3,0.3,0,f,"Shoot3"
                                     ),
                                     new FollowPathAction(f,path.shoot3)
                             ),
@@ -110,14 +110,14 @@ private void cycle6() {
             new SequentialAction(
                     new ParallelAction(
                             new Actions.CallbackAction(
-                                    RobotActions.intakeAction(1,2),
-                                    path.intake6,0.1,0,f,"intake6"
+                                    RobotActions.intakeAction(1,4),
+                                    path.intake6,0.01,0,f,"intake6"
                             ),
                             new FollowPathAction(f,path.intake6)
                     ),
                     new ParallelAction(
                             new Actions.CallbackAction(
-                                    RobotActions.startShooter(1),path.shoot6,0.5,0,f,"Shoot6"
+                                    RobotActions.startShooter(1),path.shoot6,0.3,0,f,"Shoot6"
                             ),
                             new FollowPathAction(f,path.shoot6)
                     ),
@@ -145,14 +145,14 @@ private void cycle9() {
             new SequentialAction(
                     new ParallelAction(
                             new Actions.CallbackAction(
-                                    RobotActions.intakeAction(1,2),path.intake9,0.1,0,f,"Intake9"
+                                    RobotActions.intakeAction(1,4),path.intake9,0.1,0,f,"Intake9"
                             ),
                             new FollowPathAction(f,path.intake9)
 
                     ),
                             new ParallelAction(
                                     new Actions.CallbackAction(
-                                            RobotActions.startShooter(1),path.shoot9,0.8,0,f,"Shoot9"
+                                            RobotActions.startShooter(1),path.shoot9,0.6,0,f,"Shoot9"
                                     ),
                                     new FollowPathAction(f,path.shoot9)
                             ),

@@ -52,7 +52,7 @@ public class ThreeBallClose extends AbstractAuto {
                         new ParallelAction(
                                 new Actions.CallbackAction(
                                         RobotActions.startShooter(1),
-                                        path.shootPreload, 0.2, 0, f, "Preloadrev"
+                                        path.shootPreload, 0.5, 0, f, "Preloadrev"
                                 ),
                                 new FollowPathAction(f, path.shootPreload, true)
 

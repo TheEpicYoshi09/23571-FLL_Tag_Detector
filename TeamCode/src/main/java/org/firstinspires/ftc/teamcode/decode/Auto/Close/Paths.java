@@ -40,82 +40,85 @@ public class Paths {
     public static Pose P_SHOOT = new Pose(89.000, 102.000);
 
     // Intake 3
-    public static Pose P_I3_CP        = new Pose(79.512, 84);
-    public static Pose P_I3_END       = new Pose(95.550, 84);
-    public static Pose P_I3_WALL      = new Pose(118.5 ,84.7);
+    public static Pose P_I3_CP = new Pose(79.512, 84);
+    public static Pose P_I3_END = new Pose(95.550, 84);
+    public static Pose P_I3_WALL = new Pose(117.7, 84.7);
 
     // Intake 6
-    public static Pose P_I6_CP        = new Pose(73.435, 63);
-    public static Pose P_I6_END       = new Pose(96.563, 63);
-    public static Pose P_I6_WALL      = new Pose(128, 63);
+    public static Pose P_I6_CP = new Pose(73.435, 63);
+    public static Pose P_I6_END = new Pose(96.563, 63);
+    public static Pose P_I6_WALL = new Pose(127, 63);
 
     // Ramp
-    public static Pose P_RAMP_CP      = new Pose(92.680, 75.123);
-    public static Pose P_RAMP_END     = new Pose(128, 75);
+    public static Pose P_RAMP_CP = new Pose(92.680, 75.123);
+    public static Pose P_RAMP_END = new Pose(127.8, 75);
 
     // Intake 9
-    public static Pose P_I9_CP        = new Pose(90, 42);
-    public static Pose P_I9_END       = new Pose(99.264, 42);
-    public static Pose P_I9_WALL      = new Pose(127, 42);
-    public static Pose P_I9_RETURN    = new Pose(99.433, 42);
+    public static Pose P_I9_CP = new Pose(90, 42);
+    public static Pose P_I9_END = new Pose(99.264, 42);
+    public static Pose P_I9_WALL = new Pose(126.7, 42);
+    public static Pose P_I9_RETURN = new Pose(99.433, 42);
 
     // Extra balls
-    public static Pose P_EX_CP1       = new Pose(93.862, 66.851);
-    public static Pose P_EX_END1      = new Pose(133.027, 60.774);
+    public static Pose P_EX_CP1 = new Pose(93.862, 66.851);
+    public static Pose P_EX_END1 = new Pose(133.027, 60.774);
 
-    public static Pose P_EX_CP2       = new Pose(93.862, 66.682);
-    public static Pose P_EX_END2      = new Pose(133.027, 60.774);
+    public static Pose P_EX_CP2 = new Pose(93.862, 66.682);
+    public static Pose P_EX_END2 = new Pose(133.027, 60.774);
 
-    public static Pose P_EX_CP3       = new Pose(94.368, 66.513);
-    public static Pose P_EX_END3      = new Pose(133.027, 60.605);
+    public static Pose P_EX_CP3 = new Pose(94.368, 66.513);
+    public static Pose P_EX_END3 = new Pose(133.027, 60.605);
 
     // Leave
-    public static Pose P_LEAVE_END    = new Pose(89.135, 52.164);
-    public static double H_38  = Math.toRadians(38);
-    public static double H_0  = Math.toRadians(0);
-    public static double H_43  = Math.toRadians(43);
+    public static Pose P_LEAVE_END = new Pose(89.135, 52.164);
+    public static double H_38 = Math.toRadians(38);
+    public static double H_0 = Math.toRadians(0);
+    public static double H_43 = Math.toRadians(43);
+
     public Paths(Follower follower) {
         f = follower;
     }
+
     public double mirrorAngleRad(double angle) {
         return Math.PI - angle;
     }
+
     public static boolean isPathRed = true;
 
     public void mirrorAll() {
-        P_START     = P_START.mirror();
-        P_SHOOT     = P_SHOOT.mirror();
+        P_START = P_START.mirror();
+        P_SHOOT = P_SHOOT.mirror();
 
-        P_I3_CP     = P_I3_CP.mirror();
-        P_I3_END    = P_I3_END.mirror();
-        P_I3_WALL   = P_I3_WALL.mirror();
+        P_I3_CP = P_I3_CP.mirror();
+        P_I3_END = P_I3_END.mirror();
+        P_I3_WALL = P_I3_WALL.mirror();
 
-        P_I6_CP     = P_I6_CP.mirror();
-        P_I6_END    = P_I6_END.mirror();
-        P_I6_WALL   = P_I6_WALL.mirror();
+        P_I6_CP = P_I6_CP.mirror();
+        P_I6_END = P_I6_END.mirror();
+        P_I6_WALL = P_I6_WALL.mirror();
 
-        P_RAMP_CP   = P_RAMP_CP.mirror();
-        P_RAMP_END  = P_RAMP_END.mirror();
+        P_RAMP_CP = P_RAMP_CP.mirror();
+        P_RAMP_END = P_RAMP_END.mirror();
 
-        P_I9_CP     = P_I9_CP.mirror();
-        P_I9_END    = P_I9_END.mirror();
-        P_I9_WALL   = P_I9_WALL.mirror();
+        P_I9_CP = P_I9_CP.mirror();
+        P_I9_END = P_I9_END.mirror();
+        P_I9_WALL = P_I9_WALL.mirror();
         P_I9_RETURN = P_I9_RETURN.mirror();
 
-        P_EX_CP1    = P_EX_CP1.mirror();
-        P_EX_END1   = P_EX_END1.mirror();
+        P_EX_CP1 = P_EX_CP1.mirror();
+        P_EX_END1 = P_EX_END1.mirror();
 
-        P_EX_CP2    = P_EX_CP2.mirror();
-        P_EX_END2   = P_EX_END2.mirror();
+        P_EX_CP2 = P_EX_CP2.mirror();
+        P_EX_END2 = P_EX_END2.mirror();
 
-        P_EX_CP3    = P_EX_CP3.mirror();
-        P_EX_END3   = P_EX_END3.mirror();
+        P_EX_CP3 = P_EX_CP3.mirror();
+        P_EX_END3 = P_EX_END3.mirror();
 
         P_LEAVE_END = P_LEAVE_END.mirror();
 
-        H_0 =  mirrorAngleRad(H_0);
-        H_38 =  mirrorAngleRad(H_38);
-        H_43 =  mirrorAngleRad(H_43);
+        H_0 = mirrorAngleRad(H_0);
+        H_38 = mirrorAngleRad(H_38);
+        H_43 = mirrorAngleRad(H_43);
     }
 
 
@@ -126,7 +129,7 @@ public class Paths {
     public void goal3Build() {
         shootPreload = f.pathBuilder()
                 .addPath(new BezierLine(P_START, P_SHOOT))
-                .setLinearHeadingInterpolation(H_0,H_38)
+                .setLinearHeadingInterpolation(H_0, H_38)
                 .build();
 
         leave = f.pathBuilder()
@@ -135,16 +138,16 @@ public class Paths {
                 .build();
     }
 
-    public void goal6Build () {
+    public void goal6Build() {
         shootPreload = f.pathBuilder()
                 .addPath(new BezierLine(P_START, P_SHOOT))
-                .setLinearHeadingInterpolation(H_0,H_38)
+                .setLinearHeadingInterpolation(H_0, H_38)
                 .build();
 
         // ---------- Intake + Shoot 3 ----------
         intake3 = f.pathBuilder()
                 .addPath(new BezierCurve(P_SHOOT, P_I3_CP, P_I3_END))
-                .setLinearHeadingInterpolation(H_38,H_0)
+                .setLinearHeadingInterpolation(H_38, H_0)
                 .addPath(new BezierLine(P_I3_END, P_I3_WALL))
                 .setConstantHeadingInterpolation(H_0)
                 .addPath(new BezierLine(P_I3_WALL, P_I3_END))
@@ -154,7 +157,7 @@ public class Paths {
 
         shoot3 = f.pathBuilder()
                 .addPath(new BezierCurve(P_I3_END, P_I3_CP, P_SHOOT))
-                .setLinearHeadingInterpolation(H_0,H_38)
+                .setLinearHeadingInterpolation(H_0, H_38)
                 .build();
 
         leave = f.pathBuilder()
@@ -162,18 +165,19 @@ public class Paths {
                 .setConstantHeadingInterpolation(H_38)
                 .build();
     }
-    public void goal21Build() {
+
+    public void goal9Build() {
 
         // ---------- Preload ----------
         shootPreload = f.pathBuilder()
                 .addPath(new BezierLine(P_START, P_SHOOT))
-                .setLinearHeadingInterpolation(H_0,H_38)
+                .setLinearHeadingInterpolation(H_0, H_38)
                 .build();
 
         // ---------- Intake + Shoot 3 ----------
         intake3 = f.pathBuilder()
                 .addPath(new BezierCurve(P_SHOOT, P_I3_CP, P_I3_END))
-                .setLinearHeadingInterpolation(H_38,H_0)
+                .setLinearHeadingInterpolation(H_38, H_0)
                 .addPath(new BezierLine(P_I3_END, P_I3_WALL))
                 .setConstantHeadingInterpolation(H_0)
                 .addPath(new BezierLine(P_I3_WALL, P_I3_END))
@@ -183,7 +187,7 @@ public class Paths {
 
         shoot3 = f.pathBuilder()
                 .addPath(new BezierCurve(P_I3_END, P_I3_CP, P_SHOOT))
-                .setLinearHeadingInterpolation(H_0,H_38)
+                .setLinearHeadingInterpolation(H_0, H_38)
                 .build();
 
         // ---------- Intake + Shoot 6 ----------
@@ -205,60 +209,107 @@ public class Paths {
         // ---------- Ramp ----------
         unloadRamp = f.pathBuilder()
                 .addPath(new BezierCurve(P_SHOOT, P_RAMP_CP, P_RAMP_END))
-                .setLinearHeadingInterpolation(H_38,H_0)
-                .build();
-
-        // ---------- Intake + Shoot 9 ----------
-        intake9 = f.pathBuilder()
-                .addPath(new BezierCurve(P_RAMP_END, P_I9_CP, P_I9_END))
-                .setConstantHeadingInterpolation(H_0)
-                .addPath(new BezierLine(P_I9_END, P_I9_WALL))
-                .setTangentHeadingInterpolation()
-                .addPath(new BezierLine(P_I9_WALL, P_I9_RETURN))
-                .setTangentHeadingInterpolation()
-                .setReversed()
-                .build();
-
-        shoot9 = f.pathBuilder()
-                .addPath(new BezierCurve(P_I9_RETURN, P_I9_CP, P_SHOOT))
-                .setLinearHeadingInterpolation(H_0, H_38)
-                .build();
-
-        // ---------- Extra Balls ----------
-        intakeExtra1 = f.pathBuilder()
-                .addPath(new BezierCurve(P_SHOOT, P_EX_CP1, P_EX_END1))
-                .setLinearHeadingInterpolation(H_38, H_43)
-                .build();
-
-        shootExtra1 = f.pathBuilder()
-                .addPath(new BezierCurve(P_EX_END1, P_EX_CP1, P_SHOOT))
-                .setLinearHeadingInterpolation(H_43, H_38)
-                .build();
-
-        intakeExtra2 = f.pathBuilder()
-                .addPath(new BezierCurve(P_SHOOT, P_EX_CP2, P_EX_END2))
-                .setLinearHeadingInterpolation(H_38, H_43)
-                .build();
-
-        shootExtra2 = f.pathBuilder()
-                .addPath(new BezierCurve(P_EX_END2, P_EX_CP2, P_SHOOT))
-                .setLinearHeadingInterpolation(H_43,H_38)
-                .build();
-
-        intakeExtra3 = f.pathBuilder()
-                .addPath(new BezierCurve(P_SHOOT, P_EX_CP3, P_EX_END3))
-                .setLinearHeadingInterpolation(H_38, H_43)
-                .build();
-
-        shootExtra3 = f.pathBuilder()
-                .addPath(new BezierLine(P_EX_END3, P_SHOOT))
-                .setLinearHeadingInterpolation(H_43, H_38)
-                .build();
-
-        // ---------- Leave ----------
-        leave = f.pathBuilder()
-                .addPath(new BezierLine(P_SHOOT, P_LEAVE_END))
-                .setConstantHeadingInterpolation(H_38)
+                .setLinearHeadingInterpolation(H_38, H_0)
                 .build();
     }
-}
+
+        public void goal21Build() {
+
+            // ---------- Preload ----------
+            shootPreload = f.pathBuilder()
+                    .addPath(new BezierLine(P_START, P_SHOOT))
+                    .setLinearHeadingInterpolation(H_0, H_38)
+                    .build();
+
+            // ---------- Intake + Shoot 3 ----------
+            intake3 = f.pathBuilder()
+                    .addPath(new BezierCurve(P_SHOOT, P_I3_CP, P_I3_END))
+                    .setLinearHeadingInterpolation(H_38, H_0)
+                    .addPath(new BezierLine(P_I3_END, P_I3_WALL))
+                    .setConstantHeadingInterpolation(H_0)
+                    .addPath(new BezierLine(P_I3_WALL, P_I3_END))
+                    .setTangentHeadingInterpolation()
+                    .setReversed()
+                    .build();
+
+            shoot3 = f.pathBuilder()
+                    .addPath(new BezierCurve(P_I3_END, P_I3_CP, P_SHOOT))
+                    .setLinearHeadingInterpolation(H_0, H_38)
+                    .build();
+
+            // ---------- Intake + Shoot 6 ----------
+            intake6 = f.pathBuilder()
+                    .addPath(new BezierCurve(P_SHOOT, P_I6_CP, P_I6_END))
+                    .setLinearHeadingInterpolation(H_38, H_0)
+                    .addPath(new BezierLine(P_I6_END, P_I6_WALL))
+                    .setTangentHeadingInterpolation()
+                    .addPath(new BezierLine(P_I6_WALL, P_I6_END))
+                    .setTangentHeadingInterpolation()
+                    .setReversed()
+                    .build();
+
+            shoot6 = f.pathBuilder()
+                    .addPath(new BezierCurve(P_I6_END, P_I6_CP, P_SHOOT))
+                    .setLinearHeadingInterpolation(H_0, H_38)
+                    .build();
+
+            // ---------- Ramp ----------
+            unloadRamp = f.pathBuilder()
+                    .addPath(new BezierCurve(P_SHOOT, P_RAMP_CP, P_RAMP_END))
+                    .setLinearHeadingInterpolation(H_38, H_0)
+                    .build();
+
+            // ---------- Intake + Shoot 9 ----------
+            intake9 = f.pathBuilder()
+                    .addPath(new BezierCurve(P_RAMP_END, P_I9_CP, P_I9_END))
+                    .setConstantHeadingInterpolation(H_0)
+                    .addPath(new BezierLine(P_I9_END, P_I9_WALL))
+                    .setTangentHeadingInterpolation()
+                    .addPath(new BezierLine(P_I9_WALL, P_I9_RETURN))
+                    .setTangentHeadingInterpolation()
+                    .setReversed()
+                    .build();
+
+            shoot9 = f.pathBuilder()
+                    .addPath(new BezierCurve(P_I9_RETURN, P_I9_CP, P_SHOOT))
+                    .setLinearHeadingInterpolation(H_0, H_38)
+                    .build();
+
+            // ---------- Extra Balls ----------
+            intakeExtra1 = f.pathBuilder()
+                    .addPath(new BezierCurve(P_SHOOT, P_EX_CP1, P_EX_END1))
+                    .setLinearHeadingInterpolation(H_38, H_43)
+                    .build();
+
+            shootExtra1 = f.pathBuilder()
+                    .addPath(new BezierCurve(P_EX_END1, P_EX_CP1, P_SHOOT))
+                    .setLinearHeadingInterpolation(H_43, H_38)
+                    .build();
+
+            intakeExtra2 = f.pathBuilder()
+                    .addPath(new BezierCurve(P_SHOOT, P_EX_CP2, P_EX_END2))
+                    .setLinearHeadingInterpolation(H_38, H_43)
+                    .build();
+
+            shootExtra2 = f.pathBuilder()
+                    .addPath(new BezierCurve(P_EX_END2, P_EX_CP2, P_SHOOT))
+                    .setLinearHeadingInterpolation(H_43, H_38)
+                    .build();
+
+            intakeExtra3 = f.pathBuilder()
+                    .addPath(new BezierCurve(P_SHOOT, P_EX_CP3, P_EX_END3))
+                    .setLinearHeadingInterpolation(H_38, H_43)
+                    .build();
+
+            shootExtra3 = f.pathBuilder()
+                    .addPath(new BezierLine(P_EX_END3, P_SHOOT))
+                    .setLinearHeadingInterpolation(H_43, H_38)
+                    .build();
+
+            // ---------- Leave ----------
+            leave = f.pathBuilder()
+                    .addPath(new BezierLine(P_SHOOT, P_LEAVE_END))
+                    .setConstantHeadingInterpolation(H_38)
+                    .build();
+        }
+    }

@@ -36,7 +36,7 @@ public class AudiencePath {
     // POSES
     // =============================
 
-    public static Pose P_START = new Pose(56.047, 8.103);
+    public static Pose P_START = new Pose(56.047, 8.103, Math.toRadians(90));
     public static Pose P_SHOOT = new Pose(58.000, 16.000);
 
     // Intake 3
@@ -74,11 +74,11 @@ public class AudiencePath {
     // Leave
     public static Pose P_LEAVE_END = new Pose(57.735, 34.101);
 
-    public static double H_90  = Math.toRadians(0);
-    public static double H_180  = Math.toRadians(90);
-        public static double H_114 = Math.toRadians(16); // heading for far
+    public static double H_90  = Math.toRadians(90);
+    public static double H_180  = Math.toRadians(180);
+    public static double H_114 = Math.toRadians(114); // heading for far16
 
-    public static double H_150 = Math.toRadians(60);
+    public static double H_150 = Math.toRadians(150);
     // =============================
     // MIRROR SUPPORT
     // ===================

@@ -47,7 +47,7 @@ public class TeleOp2 extends LinearOpMode {
 
         double flyPower = 0;
 
-        servo.setHoodservo(0);
+        servo.setHoodservo(0.45);
 
         waitForStart();
 
@@ -124,13 +124,13 @@ public class TeleOp2 extends LinearOpMode {
             }
 
             if(gamepad1.x){
-                servo.setHoodservo(0.3);// close
+                servo.setHoodservo(0.45);// close
             }
             else if(gamepad1.b){ // far
-                servo.setHoodservo(0);
+                servo.setHoodservo(0.5);
             }
             else if(gamepad1.dpad_down){ // all the way to the top
-                servo.setHoodservo(0.5);
+                servo.setHoodservo(0.4);
             }
 
 
