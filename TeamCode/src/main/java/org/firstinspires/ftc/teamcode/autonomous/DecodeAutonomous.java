@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.autonomous;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import org.firstinspires.ftc.vision.VisionProcessor;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -57,7 +56,7 @@ public class DecodeAutonomous extends LinearOpMode {
     // Controllers
     private BarrelController barrelController;
     private ShooterController shooterController;
-    private VisionProcessor visionProcessor;
+    private AprilTagVisionProcessor visionProcessor;
 
     // Autonomous state
     private AutonomousState currentState = AutonomousState.INIT;
@@ -78,7 +77,7 @@ public class DecodeAutonomous extends LinearOpMode {
         // Initialize controllers
         barrelController = new BarrelController(wheelRotationServo, colorSensor);
         shooterController = new ShooterController(shooterMotor, ballPushServo);
-        visionProcessor = new VisionProcessor
+        visionProcessor = new AprilTagVisionProcessor();
 
 
         // Configure and initialize vision portal

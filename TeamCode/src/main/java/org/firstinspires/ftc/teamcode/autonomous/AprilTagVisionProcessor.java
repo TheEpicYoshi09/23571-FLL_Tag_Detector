@@ -10,10 +10,10 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
 
 
 /**
- * VisionProcessor handles AprilTag detection to identify the target pattern.
+ * AprilTagVisionProcessor handles AprilTag detection to identify the target pattern.
  * It processes camera feed to detect AprilTags and interpret the sequence of colors.
  */
-public class VisionProcessor {
+public class AprilTagVisionProcessor {
 
     // AprilTag IDs for different color patterns
     // These would need to be calibrated to your specific AprilTag setup
@@ -31,10 +31,10 @@ public class VisionProcessor {
     private boolean patternDetected = false;
 
     /**
-     * Constructor for VisionProcessor
+     * Constructor for AprilTagVisionProcessor
      * Creates and configures the AprilTag processor and vision portal
      */
-    public VisionProcessor() {
+    public AprilTagVisionProcessor() {
         // Create the AprilTag processor
         aprilTagProcessor = new AprilTagProcessor.Builder()
                 .setDrawAxes(true)
