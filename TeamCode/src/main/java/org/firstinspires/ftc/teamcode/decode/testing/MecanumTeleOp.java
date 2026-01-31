@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.decode.testing;
 
 
+import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -8,6 +9,8 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 @TeleOp
 public class MecanumTeleOp extends LinearOpMode {
+
+    public GamepadEx gamepad1;
     @Override
     public void runOpMode() throws InterruptedException {
         // Declare our motors
@@ -29,9 +32,9 @@ public class MecanumTeleOp extends LinearOpMode {
         if (isStopRequested()) return;
 
         while (opModeIsActive()) {
-            double y = gamepad1.left_stick_y * 0.5;
-            double x = -gamepad1.left_stick_x;
-            double rx = -gamepad1.right_stick_x * 0.5;//was 0.5
+            double y = gamepad1.getLeftY() * 0.5;
+            double x = -gamepad1.getLeftX();
+            double rx = -gamepad1.getRightX() * 0.5;//was 0.5
 
             // Denominator is the largest motor power (absolute value) or 1
             // This ensures all the powers maintain the same ratio,
