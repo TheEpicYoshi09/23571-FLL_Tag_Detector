@@ -31,21 +31,19 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-@TeleOp(name = "my1_27_2026CameraTeleop", group = "StarterBot")
+@TeleOp(name = "my1_31_2026CameraTeleop", group = "StarterBot")
 //@Disabled
-public class my1_27_2026CameraTeleop extends OpMode {
+public class my1_31_2026CameraTeleop extends OpMode {
     final double FEED_TIME_SECONDS = 0.20;
     final double STOP_SPEED = 0.0;
     final double FULL_SPEED = 1.0;
-    final double FORWARD_SPEED = 0.5;
-    final double MID_SPEED = 0.25;
-    private static final boolean USE_WEBCAM = true;  // Set true to use a webcam, or false for a phone camera
     private static final int DESIRED_TAG_ID = -1;     // Choose the tag you want to approach or set to -1 for ANY tag.
     private VisionPortal visionPortal;               // Used to manage the video source.
     private AprilTagProcessor aprilTag;              // Used for managing the AprilTag detection process.
     private AprilTagDetection desiredTag = null;     // Used to hold the data for a detected AprilTag
     double LAUNCHER_TARGET_VELOCITY = 1300;
     double LAUNCHER_MIN_VELOCITY = 1270;
+    boolean clearToShoot = false;
     private DcMotor leftFront = null;
     private DcMotor rightFront = null;
     private DcMotor leftBack = null;
@@ -56,9 +54,7 @@ public class my1_27_2026CameraTeleop extends OpMode {
     private Servo hood = null;
 
     ElapsedTime feederTimer = new ElapsedTime();
-
-    // Data Logging Stuff - We'll make it store all the same stuff as telemetry
-    //DataLog datalog;
+    private boolean cameraSettingsApplied = false;
 
     private enum LaunchState {
         IDLE,
@@ -71,8 +67,6 @@ public class my1_27_2026CameraTeleop extends OpMode {
 
     @Override
     public void init() {
-        boolean targetFound     = false;    // Set to true when an AprilTag target is detected
-
         launchState = LaunchState.IDLE;
 
         leftFront = hardwareMap.get(DcMotor.class, "left_Front");
@@ -104,127 +98,102 @@ public class my1_27_2026CameraTeleop extends OpMode {
         launcher.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER,
                 new PIDFCoefficients(300, 0, 0, 10));
 
-        //leftFeeder.setDirection(DcMotorSimple.Direction.REVERSE);
         telemetry.addData("Status", "Initialized");
 
-        /*
-         * Initialize the AprilTag processor.
-         */
-            // Create the AprilTag processor by using a builder.
-            aprilTag = new AprilTagProcessor.Builder().build();
+        // Create the AprilTag processor by using a builder.
+        aprilTag = new AprilTagProcessor.Builder().build();
 
-            // Adjust Image Decimation to trade-off detection-range for detection-rate.
-            // e.g. Some typical detection data using a Logitech C920 WebCam
-            // Decimation = 1 ..  Detect 2" Tag from 10 feet away at 10 Frames per second
-            // Decimation = 2 ..  Detect 2" Tag from 6  feet away at 22 Frames per second
-            // Decimation = 3 ..  Detect 2" Tag from 4  feet away at 30 Frames Per Second
-            // Decimation = 3 ..  Detect 5" Tag from 10 feet away at 30 Frames Per Second
-            // Note: Decimation can be changed on-the-fly to adapt during a match.
-            aprilTag.setDecimation(2);
+        // Adjust Image Decimation to trade-off detection-range for detection-rate.
+        aprilTag.setDecimation(2);
 
-            // Create the vision portal by using a builder.
-                visionPortal = new VisionPortal.Builder()
-                        .setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"))
-                        .addProcessor(aprilTag)
-                        .build();
-
-
-
-        }
-
-
-
+        // Create the vision portal by using a builder.
+        visionPortal = new VisionPortal.Builder()
+                .setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"))
+                .addProcessor(aprilTag)
+                .build();
+    }
 
     @Override
-    public void init_loop() {}
+    public void init_loop() {
+        checkAndSetCameraControls();
+    }
 
     @Override
     public void start() {
-        ExposureControl exposureControl = visionPortal.getCameraControl(ExposureControl.class);
-        exposureControl.setMode(ExposureControl.Mode.Manual);
-        exposureControl.setExposure((long)6, TimeUnit.MILLISECONDS);
-
-        GainControl gainControl = visionPortal.getCameraControl(GainControl.class);
-        gainControl.setGain(250);
-
-
     }
 
     @Override
     public void loop() {
+        checkAndSetCameraControls();
 
         boolean targetFound = false;
         desiredTag  = null;
 
-
-
         // Step through the list of detected tags and look for a matching tag
         List<AprilTagDetection> currentDetections = aprilTag.getDetections();
         for (AprilTagDetection detection : currentDetections) {
-            // Look to see if we have size info on this tag.
             if (detection.metadata != null) {
-                //  Check to see if we want to track towards this tag.
                 if ((DESIRED_TAG_ID < 0) || (detection.id == DESIRED_TAG_ID)) {
-                    // Yes, we want to use this tag.
                     targetFound = true;
                     desiredTag = detection;
-                    break;  // don't look any further.
+                    break;
                 } else {
-                    // This tag is in the library, but we do not want to track it right now.
                     telemetry.addData("Skipping", "Tag ID %d is not desired", detection.id);
                 }
             } else {
-                // This tag is NOT in the library, so we don't have enough information to track to it.
                 telemetry.addData("Unknown", "Tag ID %d is not in TagLibrary", detection.id);
             }
         }
 
-        // Tell the driver what we see, and what to do.
+        // 1. Logic & Calculations
         if (targetFound) {
-            //telemetry.addData("\n>","HOLD Left-Bumper to Drive to Target\n");
-            telemetry.addData("Found", "ID %d (%s)", desiredTag.id, desiredTag.metadata.name);
-            telemetry.addData("Range",  "%5.1f inches", desiredTag.ftcPose.range);
-            telemetry.addData("Bearing","%3.0f degrees", desiredTag.ftcPose.bearing);
-            telemetry.addData("Yaw","%3.0f degrees", desiredTag.ftcPose.yaw);
-            telemetry.update();
-            double yawRadians = toRadians(desiredTag.ftcPose.yaw);
-            double horizontalError = desiredTag.ftcPose.range * tan(yawRadians);
+            /*
+             * CAMERA ORIENTATION ADJUSTMENT:
+             * Since the camera is mounted "perpendicular" (rotated 90 degrees), the axes are swapped.
+             * 
+             * Standard Mount: X = Left/Right, Y = Up/Down, Bearing = Horiz Angle, Yaw = Tag Rotation
+             * Rotated 90 Deg: Y = Left/Right, X = Up/Down, Elevation = Horiz Angle, Pitch = Tag Rotation
+             */
+            
+            // horizontalError is now the actual distance (in inches) from the center of the tag.
+            // We use .y because that is now the robot's horizontal plane.
+            double horizontalError = desiredTag.ftcPose.y; 
+            
+            // Centering check: Are we within 2.61 inches of the center line?
+            if (abs(horizontalError) < 2.61) {
+                clearToShoot = true;
+            } else {
+                clearToShoot = false;
+            }
 
+            // Keep specific logic for these tags
             if (abs(horizontalError) >= 2.61 && (desiredTag.id == 20 || desiredTag.id == 24)) {
-                telemetry.addData("Clear to shoot", "false, please reposition robot");
-                telemetry.update();
-
+                clearToShoot = false;
             }
-            else if (abs(horizontalError) < 2.61) {
-                telemetry.addData("Clear to shoot", "true, clear to shoot");
-            }
+        } else {
+            // Reset if no target found
+            clearToShoot = false;
         }
 
-
-
-
-
-    // ⭐ FRONT/BACK FLIPPED ⭐
-        // (Only line changed)
-        double x = -gamepad1.left_stick_y;   // ← forward/back reversed
+        // 2. Drive Controls
+        // ⭐ FRONT/BACK FLIPPED ⭐
+        double x = -gamepad1.left_stick_y;
         double y =  gamepad1.left_stick_x;
         double rotation = gamepad1.right_stick_x;
 
-        double leftFrontPower  = x + y + rotation;
-        double rightFrontPower = x - y - rotation;
-        double leftBackPower   = x - y + rotation;
-        double rightBackPower  = x + y - rotation;
+        leftFront.setPower(x + y + rotation);
+        rightFront.setPower(x - y - rotation);
+        leftBack.setPower(x - y + rotation);
+        rightBack.setPower(x + y - rotation);
 
-        leftFront.setPower(leftFrontPower);
-        rightFront.setPower(rightFrontPower);
-        leftBack.setPower(leftBackPower);
-        rightBack.setPower(rightBackPower);
-
+        // 3. Launcher Controls
         if (gamepad1.y) {
             launcher.setVelocity(LAUNCHER_TARGET_VELOCITY);
         } else if (gamepad1.b) {
             launcher.setVelocity(STOP_SPEED);
         }
+
+        // 4. Hood Controls
         if (gamepad1.left_bumper && gamepad1.left_trigger > 0) {
             hood.setPosition(0.45);
             LAUNCHER_TARGET_VELOCITY = 1325;
@@ -243,13 +212,28 @@ public class my1_27_2026CameraTeleop extends OpMode {
             LAUNCHER_MIN_VELOCITY = 1275;
         }
 
-        launch(gamepad1.rightBumperWasPressed());
+        launch(gamepad1.right_bumper);
 
-        telemetry.addData("State", launchState);
-        telemetry.addData("Motors", "leftFront (%.2f), rightFront (%.2f), leftBack (%.2f), rightBack (%.2f)",
-                leftFrontPower, rightFrontPower, leftBackPower, rightBackPower);
-        telemetry.addData("motorSpeed", launcher.getVelocity());
+        // 5. Telemetry (NO update() calls here!)
+        if (targetFound) {
+            telemetry.addData("Found", "ID %d (%s)", desiredTag.id, desiredTag.metadata.name);
+            telemetry.addData("Range",  "%5.1f inches", desiredTag.ftcPose.range);
+            // Swapping labels for the driver's sake based on perpendicular mount
+            telemetry.addData("Horiz Angle (Elev)", "%3.0f deg", desiredTag.ftcPose.elevation);
+            telemetry.addData("Horiz Offset (Y)", "%5.1f inches", desiredTag.ftcPose.y);
+            telemetry.addData("Tag Rotation (Pitch)", "%3.0f deg", desiredTag.ftcPose.pitch);
+        } else {
+            telemetry.addData("Target", "Not Found");
+        }
+
+        telemetry.addData("Clear to shoot", clearToShoot);
+        telemetry.addData("Launch State", launchState);
+        telemetry.addData("Launcher Velocity", launcher.getVelocity());
         telemetry.addData("Hood Position", hood.getPosition());
+        telemetry.addData("Motors", "LF %.2f, RF %.2f, LB %.2f, RB %.2f", 
+            leftFront.getPower(), rightFront.getPower(), leftBack.getPower(), rightBack.getPower());
+        
+        // 6. Final Update (Only once at the very end)
         telemetry.update();
     }
 
@@ -289,6 +273,21 @@ public class my1_27_2026CameraTeleop extends OpMode {
                     rightFeeder.setPower(STOP_SPEED);
                 }
                 break;
+        }
+    }
+
+    private void checkAndSetCameraControls() {
+        if (!cameraSettingsApplied && visionPortal.getCameraState() == VisionPortal.CameraState.STREAMING) {
+            ExposureControl exposureControl = visionPortal.getCameraControl(ExposureControl.class);
+            if (exposureControl != null) {
+                exposureControl.setMode(ExposureControl.Mode.Manual);
+                exposureControl.setExposure(6, TimeUnit.MILLISECONDS);
+                GainControl gainControl = visionPortal.getCameraControl(GainControl.class);
+                if (gainControl != null) {
+                    gainControl.setGain(250);
+                    cameraSettingsApplied = true;
+                }
+            }
         }
     }
 }
