@@ -10,31 +10,35 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 @TeleOp
 public class MecanumTeleOp extends LinearOpMode {
 
-    public GamepadEx gamepad1;
+    public GamepadEx gp1;
     @Override
     public void runOpMode() throws InterruptedException {
+
+        gp1 = new GamepadEx(gamepad1);
+
+        
         // Declare our motors
         // Make sure your ID's match your configuration
-        DcMotor frontLeftMotor = hardwareMap.dcMotor.get("frontLeftMotor");
-        DcMotor backLeftMotor = hardwareMap.dcMotor.get("backLeftMotor");
-        DcMotor frontRightMotor = hardwareMap.dcMotor.get("frontRightMotor");
-        DcMotor backRightMotor = hardwareMap.dcMotor.get("backRightMotor");
+        DcMotor frontLeft = hardwareMap.dcMotor.get("frontLeftMotor");
+        DcMotor backLeft = hardwareMap.dcMotor.get("backLeftMotor");
+        DcMotor frontRight = hardwareMap.dcMotor.get("frontRightMotor");
+        DcMotor backRight = hardwareMap.dcMotor.get("backRightMotor");
 
         // Reverse the right side motors. This may be wrong for your setup.
         // If your robot moves backwards when commanded to go forwards,
         // reverse the left side instead.
         // See the note about this earlier on this page.
-        frontRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-        backRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        backRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
         waitForStart();
 
         if (isStopRequested()) return;
 
         while (opModeIsActive()) {
-            double y = gamepad1.getLeftY() * 0.5;
-            double x = -gamepad1.getLeftX();
-            double rx = -gamepad1.getRightX() * 0.5;//was 0.5
+            double y = gp1.getLeftY() * 0.5;
+            double x = -gp1.getLeftX();
+            double rx = -gp1.getRightX() * 0.5;//was 0.5
 
             // Denominator is the largest motor power (absolute value) or 1
             // This ensures all the powers maintain the same ratio,
@@ -45,10 +49,10 @@ public class MecanumTeleOp extends LinearOpMode {
             double frontRightPower = (y - x - rx) / denominator;
             double backRightPower = (y + x - rx) / denominator;
 
-            setSafePower(frontLeftMotor, frontLeftPower);
-            setSafePower(backLeftMotor, backLeftPower);
-            setSafePower(frontRightMotor,frontRightPower);
-            setSafePower(backRightMotor,backRightPower);
+            frontLeft.setPower(frontLeftPower);
+            frontRight.setPower(frontRightPower);
+            backLeft.setPower(backLeftPower);
+            backRight.setPower(backRightPower);
 
             telemetry.addData("Front Left Power", frontLeftPower);
             telemetry.addData("Front Right Power", frontRightPower);
