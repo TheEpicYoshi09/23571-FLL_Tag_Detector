@@ -163,6 +163,15 @@ public class DecodeAutonomous extends LinearOpMode {
 
             case READ_TAG:
                 // AprilTag detection phase: use vision processor to read the pattern
+                // Add timeout to prevent infinite waiting
+                long currentTime = System.currentTimeMillis();
+
+                // If we haven't started scanning yet, begin scanning
+                if (startTime == 0) {
+                    startTime = currentTime;
+                }
+
+                // Check if we've detected the pattern
                 visionProcessor.processDetections();
 
                 if (visionProcessor.isPatternDetected()) {
@@ -178,6 +187,32 @@ public class DecodeAutonomous extends LinearOpMode {
 
                     // Move to the next phase: driving to the first ball row
                     currentState = AutonomousState.DRIVE_TO_ROW;
+
+                    // Stop any scanning rotation
+                    stopDriveMotors();
+                } else if ((currentTime - startTime) > 5000) { // 5 second timeout
+                    // Timeout reached, move to next state with default pattern
+                    // Create a default pattern if no tag was detected
+                    targetPattern = new String[]{"PURPLE", "GREEN", "PURPLE"}; // Default fallback
+
+                    // Determine alliance and starting side - these would typically be set via
+                    // initialization parameters or other mechanisms in a real robot
+                    isRedAlliance = true;  // Change based on actual alliance selection
+                    isNearSide = true;     // Change based on actual starting position
+
+                    // Move to the next phase: driving to the first ball row
+                    currentState = AutonomousState.DRIVE_TO_ROW;
+
+                    // Stop any scanning rotation
+                    stopDriveMotors();
+                } else {
+                    // Still scanning - rotate slowly to search for AprilTags
+                    // Rotate at a slow speed to scan the environment
+                    double scanPower = 0.2; // Slow rotation power
+                    frontLeftMotor.setPower(scanPower);
+                    frontRightMotor.setPower(-scanPower);
+                    backLeftMotor.setPower(scanPower);
+                    backRightMotor.setPower(-scanPower);
                 }
                 break;
 
@@ -307,26 +342,28 @@ public class DecodeAutonomous extends LinearOpMode {
         // Red Near, Red Far, Blue Near, Blue Far
         double targetX, targetY;
 
+        // These are placeholder coordinates - MEASURE AND REPLACE WITH ACTUAL FIELD COORDINATES
+        // Field dimensions are approximately 12 feet x 12 feet (144 inches x 144 inches)
         if (isRedAlliance) {
             if (isNearSide) {
                 // Red alliance, near side positioning
-                // Coordinates are example values - adjust based on field measurements
-                targetX = rowIndex == 0 ? 24.0 : 48.0; // Different X for different rows
-                targetY = 36.0; // Fixed Y for near side
+                // Example coordinates - MEASURE YOUR ACTUAL FIELD POSITIONS
+                targetX = rowIndex == 0 ? 30.0 : 60.0; // Different X for different rows (MEASURE ACCURATELY)
+                targetY = 40.0; // Fixed Y for near side (MEASURE ACCURATELY)
             } else {
                 // Red alliance, far side positioning
-                targetX = rowIndex == 0 ? 24.0 : 48.0; // Different X for different rows
-                targetY = 36.0; // Fixed Y for far side (example - adjust as needed)
+                targetX = rowIndex == 0 ? 30.0 : 60.0; // Different X for different rows (MEASURE ACCURATELY)
+                targetY = 104.0; // Fixed Y for far side (MEASURE ACCURATELY)
             }
         } else {
             if (isNearSide) {
                 // Blue alliance, near side positioning
-                targetX = rowIndex == 0 ? 24.0 : 48.0; // Different X for different rows
-                targetY = 36.0; // Fixed Y for near side
+                targetX = rowIndex == 0 ? 114.0 : 84.0; // Different X for different rows (MEASURE ACCURATELY)
+                targetY = 40.0; // Fixed Y for near side (MEASURE ACCURATELY)
             } else {
                 // Blue alliance, far side positioning
-                targetX = rowIndex == 0 ? 24.0 : 48.0; // Different X for different rows
-                targetY = 36.0; // Fixed Y for far side (example - adjust as needed)
+                targetX = rowIndex == 0 ? 114.0 : 84.0; // Different X for different rows (MEASURE ACCURATELY)
+                targetY = 104.0; // Fixed Y for far side (MEASURE ACCURATELY)
             }
         }
 
@@ -342,11 +379,15 @@ public class DecodeAutonomous extends LinearOpMode {
      * @return true if the robot has reached the row, false otherwise
      */
     private boolean hasReachedBallRow(int rowIndex) {
-        // In a real implementation, this would check encoder values or other sensors
-        // For now, we'll use a simple check based on whether the movement has completed
-        // This would be determined by checking if the motors have reached their target positions
-        return !frontLeftMotor.isBusy() && !frontRightMotor.isBusy() &&
-               !backLeftMotor.isBusy() && !backRightMotor.isBusy();
+        // Check if the motors have reached their target positions
+        // This is a more reliable method than just checking isBusy
+        boolean allAtTarget = Math.abs(frontLeftMotor.getCurrentPosition() - frontLeftMotor.getTargetPosition()) < 10 &&
+                             Math.abs(frontRightMotor.getCurrentPosition() - frontRightMotor.getTargetPosition()) < 10 &&
+                             Math.abs(backLeftMotor.getCurrentPosition() - backLeftMotor.getTargetPosition()) < 10 &&
+                             Math.abs(backRightMotor.getCurrentPosition() - backRightMotor.getTargetPosition()) < 10;
+
+        return allAtTarget || (!frontLeftMotor.isBusy() && !frontRightMotor.isBusy() &&
+                              !backLeftMotor.isBusy() && !backRightMotor.isBusy());
     }
 
     /**
@@ -356,12 +397,13 @@ public class DecodeAutonomous extends LinearOpMode {
         // Calculate launch line position based on alliance
         double targetX, targetY;
 
+        // These are placeholder coordinates - MEASURE AND REPLACE WITH ACTUAL FIELD COORDINATES
         if (isRedAlliance) {
-            targetX = 72.0; // Example coordinate for red alliance launch line
-            targetY = 36.0;
+            targetX = 60.0; // Example coordinate for red alliance launch line (MEASURE ACCURATELY)
+            targetY = 60.0; // Example Y coordinate (MEASURE ACCURATELY)
         } else {
-            targetX = 72.0; // Example coordinate for blue alliance launch line
-            targetY = 36.0;
+            targetX = 84.0; // Example coordinate for blue alliance launch line (MEASURE ACCURATELY)
+            targetY = 60.0; // Example Y coordinate (MEASURE ACCURATELY)
         }
 
         // Drive to calculated position
@@ -373,10 +415,14 @@ public class DecodeAutonomous extends LinearOpMode {
      * @return true if the robot has reached the launch line, false otherwise
      */
     private boolean hasReachedLaunchLine() {
-        // In a real implementation, this would check encoder values or other sensors
-        // For now, we'll use a simple check based on whether the movement has completed
-        return !frontLeftMotor.isBusy() && !frontRightMotor.isBusy() &&
-               !backLeftMotor.isBusy() && !backRightMotor.isBusy();
+        // Check if the motors have reached their target positions
+        boolean allAtTarget = Math.abs(frontLeftMotor.getCurrentPosition() - frontLeftMotor.getTargetPosition()) < 10 &&
+                             Math.abs(frontRightMotor.getCurrentPosition() - frontRightMotor.getTargetPosition()) < 10 &&
+                             Math.abs(backLeftMotor.getCurrentPosition() - backLeftMotor.getTargetPosition()) < 10 &&
+                             Math.abs(backRightMotor.getCurrentPosition() - backRightMotor.getTargetPosition()) < 10;
+
+        return allAtTarget || (!frontLeftMotor.isBusy() && !frontRightMotor.isBusy() &&
+                              !backLeftMotor.isBusy() && !backRightMotor.isBusy());
     }
 
     /**
@@ -386,12 +432,13 @@ public class DecodeAutonomous extends LinearOpMode {
         // Calculate base zone position based on alliance
         double targetX, targetY;
 
+        // These are placeholder coordinates - MEASURE AND REPLACE WITH ACTUAL FIELD COORDINATES
         if (isRedAlliance) {
-            targetX = 120.0; // Example coordinate for red alliance base zone
-            targetY = 60.0;
+            targetX = 120.0; // Example coordinate for red alliance base zone (MEASURE ACCURATELY)
+            targetY = 30.0; // Example Y coordinate for parking (MEASURE ACCURATELY)
         } else {
-            targetX = 120.0; // Example coordinate for blue alliance base zone
-            targetY = 60.0;
+            targetX = 24.0; // Example coordinate for blue alliance base zone (MEASURE ACCURATELY)
+            targetY = 30.0; // Example Y coordinate for parking (MEASURE ACCURATELY)
         }
 
         // Drive to calculated position
@@ -403,16 +450,20 @@ public class DecodeAutonomous extends LinearOpMode {
      * @return true if the robot has reached the base zone, false otherwise
      */
     private boolean hasReachedBaseZone() {
-        // In a real implementation, this would check encoder values or other sensors
-        // For now, we'll use a simple check based on whether the movement has completed
-        return !frontLeftMotor.isBusy() && !frontRightMotor.isBusy() &&
-               !backLeftMotor.isBusy() && !backRightMotor.isBusy();
+        // Check if the motors have reached their target positions
+        boolean allAtTarget = Math.abs(frontLeftMotor.getCurrentPosition() - frontLeftMotor.getTargetPosition()) < 10 &&
+                             Math.abs(frontRightMotor.getCurrentPosition() - frontRightMotor.getTargetPosition()) < 10 &&
+                             Math.abs(backLeftMotor.getCurrentPosition() - backLeftMotor.getTargetPosition()) < 10 &&
+                             Math.abs(backRightMotor.getCurrentPosition() - backRightMotor.getTargetPosition()) < 10;
+
+        return allAtTarget || (!frontLeftMotor.isBusy() && !frontRightMotor.isBusy() &&
+                              !backLeftMotor.isBusy() && !backRightMotor.isBusy());
     }
 
     /**
      * Moves the robot to a specific position using mecanum drive
-     * @param x Target X coordinate
-     * @param y Target Y coordinate
+     * @param x Target X coordinate (forward/backward)
+     * @param y Target Y coordinate (left/right)
      */
     private void moveRobotToPosition(double x, double y) {
         // This is a simplified movement function using encoder-based movement
@@ -430,15 +481,25 @@ public class DecodeAutonomous extends LinearOpMode {
         backLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         backRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        // Calculate target encoder counts based on distance (this is a simplified calculation)
-        // You would need to calibrate these values based on your robot's wheel circumference and gear ratios
-        int targetTicks = (int)(Math.sqrt(x*x + y*y) * 50); // Rough conversion: 50 ticks per inch (needs calibration)
+        // Calculate target encoder counts based on distance (these need calibration for your robot)
+        // These are placeholder values - you'll need to measure your robot's actual ticks per inch
+        final double TICKS_PER_INCH = 50.0; // Placeholder - CALIBRATE THIS FOR YOUR ROBOT
 
-        // Set target positions
-        frontLeftMotor.setTargetPosition(targetTicks);
-        frontRightMotor.setTargetPosition(targetTicks);
-        backLeftMotor.setTargetPosition(targetTicks);
-        backRightMotor.setTargetPosition(targetTicks);
+        // Calculate forward/backward and left/right movement separately
+        int forwardTicks = (int)(x * TICKS_PER_INCH);
+        int strafeTicks = (int)(y * TICKS_PER_INCH);
+
+        // Calculate target positions for mecanum drive
+        int flTarget = forwardTicks - strafeTicks; // Front-left moves forward and strafes right
+        int frTarget = forwardTicks + strafeTicks; // Front-right moves forward and strafes left
+        int blTarget = forwardTicks + strafeTicks; // Back-left moves forward and strafes left
+        int brTarget = forwardTicks - strafeTicks; // Back-right moves forward and strafes right
+
+        // Set target positions for each motor
+        frontLeftMotor.setTargetPosition(Math.abs(flTarget));
+        frontRightMotor.setTargetPosition(Math.abs(frTarget));
+        backLeftMotor.setTargetPosition(Math.abs(blTarget));
+        backRightMotor.setTargetPosition(Math.abs(brTarget));
 
         // Set motors to run to position
         frontLeftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -446,11 +507,12 @@ public class DecodeAutonomous extends LinearOpMode {
         backLeftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         backRightMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-        // Set power to move toward target
-        frontLeftMotor.setPower(0.5);
-        frontRightMotor.setPower(0.5);
-        backLeftMotor.setPower(0.5);
-        backRightMotor.setPower(0.5);
+        // Set power to move toward target (use appropriate signs for direction)
+        double power = 0.5;
+        frontLeftMotor.setPower(flTarget >= 0 ? power : -power);
+        frontRightMotor.setPower(frTarget >= 0 ? power : -power);
+        backLeftMotor.setPower(blTarget >= 0 ? power : -power);
+        backRightMotor.setPower(brTarget >= 0 ? power : -power);
 
         // Wait until target position is reached
         while (frontLeftMotor.isBusy() && frontRightMotor.isBusy() &&
@@ -486,7 +548,7 @@ public class DecodeAutonomous extends LinearOpMode {
         String detectedColor = barrelController.detectBallColor();
 
         // Store the ball in the appropriate slot based on the target pattern
-        int slot = barrelController.storeBall(targetPattern, ballsCollected);
+        int slot = barrelController.storeBall(targetPattern, ballsCollected % 3); // Use modulo to cycle through pattern
 
         // Wait for the ball to be properly positioned
         sleep(500);

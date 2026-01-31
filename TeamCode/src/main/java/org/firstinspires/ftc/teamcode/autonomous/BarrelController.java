@@ -105,7 +105,7 @@ public class BarrelController {
     
     /**
      * Detects the color of the ball using the color sensor
-     * @return The detected color as a string ("RED", "BLUE", "GREEN", etc.)
+     * @return The detected color as a string ("PURPLE", "GREEN", etc.)
      */
     public String detectBallColor() {
         // This is a simplified color detection - in practice, you'd use the actual color values
@@ -113,15 +113,18 @@ public class BarrelController {
         int red = colorSensor.red();
         int green = colorSensor.green();
         int blue = colorSensor.blue();
-        
-        // Simple color detection logic based on dominant color
-        // need detection for purple, balls are usually purple or green
-        if (red > green && red > blue) {
-            return "RED";
+
+        // For DECODE game, we need to detect purple and green balls
+        // Purple has high red and blue, green has high green
+        // Need to account for lighting conditions and sensor sensitivity
+
+        // Simple color detection logic for purple vs green
+        // Purple: high red and blue compared to green
+        // Green: high green compared to red and blue
+        if (red > green && blue > green && (red + blue) > (green * 1.5)) {
+            return "PURPLE";
         } else if (green > red && green > blue) {
             return "GREEN";
-        } else if (blue > red && blue > green) {
-            return "BLUE";
         } else {
             // If no clear dominant color, return a default
             return "UNKNOWN";
