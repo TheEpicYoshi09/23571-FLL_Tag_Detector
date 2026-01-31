@@ -76,7 +76,7 @@ public class AudiencePath {
 
     public static double H_90  = Math.toRadians(90);
     public static double H_180  = Math.toRadians(180);
-    public static double H_114 = Math.toRadians(114); // heading for far16
+    public static double H_114 = Math.toRadians(114); // heading for far
 
     public static double H_150 = Math.toRadians(150);
     // =============================

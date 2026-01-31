@@ -123,20 +123,20 @@ public class TeleOp1 extends LinearOpMode {
             } else {
                 loader.setPower(0);
             }
-            if (gamepad1.x) { // goes down
-                servoPower += 0.5;
-                servo.CRServo( servoPower, true); // Forward
-            }
-            else if (gamepad1.b) {// goes up
-                servoPower -= 0.5;
-                servo.CRServo( servoPower, false); // Reverse
-            }
-//            else if (gamepad1.dpad_down){
-//                servo.CRServo(1, false);
+//            if (gamepad1.x) { // goes down
+//                servoPower += 0.5;
+//                servo.CRServo( servoPower, true); // Forward
 //            }
-            else{
-                servo.CRStop();
-            }
+//            else if (gamepad1.b) {// goes up
+//                servoPower -= 0.5;
+//                servo.CRServo( servoPower, false); // Reverse
+//            }
+////            else if (gamepad1.dpad_down){
+////                servo.CRServo(1, false);
+////            }
+//            else{
+//                servo.CRStop();
+//            }
 
            // telemetry.addData("Servo Position", servo.getPower());
 

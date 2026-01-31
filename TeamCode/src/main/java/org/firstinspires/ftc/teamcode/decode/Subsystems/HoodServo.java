@@ -8,43 +8,55 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 public class HoodServo {
-    private Servo hoodservo;
-    private CRServo CRservo;
 
-    public void init(HardwareMap hardwareMap){
-        //CRservo = hardwareMap.get(CRServo.class,"hoodServo");
-       hoodservo = hardwareMap.get(Servo.class, "hoodServo");
+    private Servo hoodLeft;
+    private Servo hoodRight;
+
+
+    // private CRServo CRservo;
+
+    public void init(HardwareMap hardwareMap) {
+
+        // -------- Standard Servos --------
+        hoodLeft  = hardwareMap.get(Servo.class, "hoodServLeft");
+        hoodRight = hardwareMap.get(Servo.class, "hoodServRight");
+
+        // Reverse one servo if mounted opposite
+        hoodRight.setDirection(Servo.Direction.REVERSE);
+
+
+        // CRservo = hardwareMap.get(CRServo.class, "hoodServo");
     }
-    public void setHoodservo(double angle){
 
-
-       hoodservo.setPosition(angle);
-
-
+    public void setHoodservo(double angle) {
+        hoodLeft.setPosition(angle);
+        hoodRight.setPosition(angle);
     }
 
+
+    /*
     public void CRServo(double power, boolean isForward){
-//        if (isForward == true){// goes down
-//            CRservo.setDirection(DcMotorSimple.Direction.FORWARD);
-//            CRservo.setPower(power);
-//        }
-//        else if( isForward == false){ // goes up
-//            CRservo.setDirection(DcMotorSimple.Direction.REVERSE);
-//            CRservo.setPower(power);
-//        }
-
+        if (isForward) { // goes down
+            CRservo.setDirection(DcMotorSimple.Direction.FORWARD);
+            CRservo.setPower(power);
+        } else { // goes up
+            CRservo.setDirection(DcMotorSimple.Direction.REVERSE);
+            CRservo.setPower(power);
+        }
     }
 
     public void CRStop(){
-        //CRservo.setPower(0);
+        CRservo.setPower(0);
     }
 
-    //public double getPower(){
-//        double power = CRservo.getPower();
-//        return power;
-    //}
+    public double getPower(){
+        return CRservo.getPower();
+    }
+    */
+
+
     public double getPosition(){
-       double postion = hoodservo.getPosition();
-        return postion;
+
+        return hoodLeft.getPosition();
     }
 }
