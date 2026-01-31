@@ -767,6 +767,20 @@ public class DecodeAutonomous extends LinearOpMode {
             }
         }
 
+        // Add IMU data to telemetry
+        if (imu != null) {
+            try {
+                YawPitchRollAngles orientation = imu.getRobotYawPitchRollAngles();
+                telemetry.addData("IMU Yaw", "%.2f", orientation.getYaw(AngleUnit.DEGREES));
+                telemetry.addData("IMU Pitch", "%.2f", orientation.getPitch(AngleUnit.DEGREES));
+                telemetry.addData("IMU Roll", "%.2f", orientation.getRoll(AngleUnit.DEGREES));
+            } catch (Exception e) {
+                telemetry.addData("IMU Error", e.getMessage());
+            }
+        } else {
+            telemetry.addData("IMU", "Not initialized");
+        }
+
         telemetry.addData("Current State", currentState.toString());
         telemetry.addData("Balls Collected", ballsCollected);
         telemetry.addData("Target Pattern", targetPattern != null ?
