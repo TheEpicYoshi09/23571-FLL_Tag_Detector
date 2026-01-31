@@ -38,6 +38,8 @@ public class RobotHardware {
     public LauncherMotorGroup launcherGroup;
     public DcMotorEx turret;
     public Servo spindexer;
+
+    public Servo kickStand1;
     public Servo kicker;
     public Servo headlight;  //PWM Controlled LED
     public boolean allianceColorRed = false;
@@ -183,6 +185,9 @@ public class RobotHardware {
 
         kicker = myOpMode.hardwareMap.get(Servo.class, "kicker");
         kicker.setPosition(Constants.KICKER_DOWN);
+
+        kickStand1 = myOpMode.hardwareMap.get(Servo.class, "kickStand1");
+        kickStand1.setPosition(Constants.KICKERSTAND_NORMAL);
 
         //Turret LED
         headlight = myOpMode.hardwareMap.get(Servo.class, "headlight");

@@ -169,7 +169,7 @@ public class CompetitionTest extends LinearOpMode {
 
             flywheelController.update();
             spindexerController.update();
-            shootingController.update();
+            shootingController.update(false);
 
             telemetry.addLine("--- FLYWHEEL DATA ---");
             telemetry.addData("Flywheel Tolerance", "%.0f rpm", flywheelController.getRpmTolerance());

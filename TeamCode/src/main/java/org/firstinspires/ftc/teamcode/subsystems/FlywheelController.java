@@ -41,6 +41,7 @@ public class FlywheelController {
     private double rpmTolerance = Constants.FLYWHEEL_TOLERANCE_RPM;
 
     private final ElapsedTime spinupTimer = new ElapsedTime();
+    private final ElapsedTime flywheelAdjustmentTimer = new ElapsedTime();
     private boolean measuringSpinup = false;
     private double spinupSetpointRpm = 0.0;
 
@@ -98,7 +99,7 @@ public class FlywheelController {
     }
 
     public void adjustLauncherFeedforward(double delta) {
-        FlywheelPidfConfig.launcherF += delta;
+        FlywheelPidfConfig.launcherF = Math.max(0.0, FlywheelPidfConfig.launcherF + delta);
     }
 
     public void setLauncherFeedforward(double delta) {
@@ -170,6 +171,18 @@ public class FlywheelController {
                     telemetry.addData("Flywheel Distance (ft)", "%.2f", distanceFeet);
                 }
             }
+        }
+
+        if (targetRpm == 0 || result == null || !result.isValid()) {
+            setLauncherFeedforward(31.0);
+            flywheelAdjustmentTimer.reset();
+        } else if (flywheelAdjustmentTimer.seconds() >= Constants.FLYWHEEL_ADJUSTMENT_TIME) {
+            if (getCurrentRpm() >= targetRpm+rpmTolerance) {
+                adjustLauncherFeedforward(-Constants.FLYWHEEL_ADJUSTMENT_INCREMENT);
+            } else if (getCurrentRpm() <= targetRpm-rpmTolerance) {
+                adjustLauncherFeedforward(Constants.FLYWHEEL_ADJUSTMENT_INCREMENT);
+            }
+            flywheelAdjustmentTimer.reset();
         }
 
         rpm = Math.max(rpm, Constants.DEFAULT_RPM);
