@@ -6,9 +6,9 @@ android {
 
     packagingOptions {
         jniLibs {
-            pickFirsts += ['**/*.so']
+            // This is the critical line for the 16KB error
+            useLegacyPackaging = true
         }
-        jniLibs.useLegacyPackaging true
     }
 
     compileOptions {
