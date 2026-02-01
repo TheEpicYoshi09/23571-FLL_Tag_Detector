@@ -18,8 +18,8 @@ public class HoodServo {
     public void init(HardwareMap hardwareMap) {
 
         // -------- Standard Servos --------
-        hoodLeft  = hardwareMap.get(Servo.class, "hoodServLeft");
-        hoodRight = hardwareMap.get(Servo.class, "hoodServRight");
+        hoodLeft  = hardwareMap.get(Servo.class, "hoodServoLeft");
+        hoodRight = hardwareMap.get(Servo.class, "hoodServoRight");
 
         // Reverse one servo if mounted opposite
         hoodRight.setDirection(Servo.Direction.REVERSE);

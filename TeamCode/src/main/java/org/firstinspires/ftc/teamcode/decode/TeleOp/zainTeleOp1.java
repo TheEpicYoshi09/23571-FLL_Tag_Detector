@@ -1,7 +1,5 @@
 package org.firstinspires.ftc.teamcode.decode.TeleOp;
 
-import com.arcrobotics.ftclib.gamepad.GamepadEx;
-import com.arcrobotics.ftclib.gamepad.GamepadKeys;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -19,9 +17,6 @@ public class zainTeleOp1 extends LinearOpMode {
 
     // Subsystems
     private HoodServo hoodServo;
-
-    // GamepadEx
-    private GamepadEx gamepadEx1;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -43,9 +38,6 @@ public class zainTeleOp1 extends LinearOpMode {
         hoodServo.init(hardwareMap);
         hoodServo.setHoodservo(0); // starting position
 
-        // -------- GamepadEx --------
-        gamepadEx1 = new GamepadEx(gamepad1);
-
         // -------- Motor Directions --------
         frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -66,14 +58,12 @@ public class zainTeleOp1 extends LinearOpMode {
 
         while (opModeIsActive()) {
 
-            gamepadEx1.readButtons();
-
             // -------- Field-Centric Mecanum --------
-            double y = -gamepadEx1.getLeftY();
-            double x = gamepadEx1.getLeftX();
-            double rx = gamepadEx1.getRightX();
+            double y = -gamepad1.left_stick_y;
+            double x = gamepad1.left_stick_x;
+            double rx = gamepad1.right_stick_x;
 
-            if (gamepadEx1.wasJustPressed(GamepadKeys.Button.LEFT_STICK_BUTTON)) {
+            if (gamepad1.left_stick_button) {
                 imu.resetYaw();
             }
 
@@ -90,28 +80,28 @@ public class zainTeleOp1 extends LinearOpMode {
             backRight.setPower((rotY + rotX - rx) / denominator);
 
             // -------- Shooter --------
-            flyPower += gamepadEx1.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) * 0.05;
-            flyPower -= gamepadEx1.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) * 0.05;
+            flyPower += gamepad1.right_trigger * 0.05;
+            flyPower -= gamepad1.left_trigger * 0.05;
             flyPower = Math.max(0, Math.min(1, flyPower));
 
             flyWheelMotor.setPower(flyPower);
             followerWheelMotor.setPower(flyPower);
 
             // -------- Intake --------
-            if (gamepadEx1.getButton(GamepadKeys.Button.RIGHT_BUMPER)) {
+            if (gamepad1.right_bumper) {
                 intake.setPower(1);
-            } else if (gamepadEx1.getButton(GamepadKeys.Button.LEFT_BUMPER)) {
+            } else if (gamepad1.left_bumper) {
                 intake.setPower(-1);
             } else {
                 intake.setPower(0);
             }
 
             // -------- Loader --------
-            if (gamepadEx1.getButton(GamepadKeys.Button.Y)) {
+            if (gamepad1.y) {
                 loader.setPower(1);
-            } else if (gamepadEx1.getButton(GamepadKeys.Button.A)) {
+            } else if (gamepad1.a) {
                 loader.setPower(-1);
-            } else if (gamepadEx1.getButton(GamepadKeys.Button.DPAD_UP)) {
+            } else if (gamepad1.dpad_up) {
                 loader.setPower(1);
                 intake.setPower(1);
             } else {
@@ -119,11 +109,11 @@ public class zainTeleOp1 extends LinearOpMode {
             }
 
             // -------- Hood (2 Servos) --------
-            if (gamepadEx1.getButton(GamepadKeys.Button.X)) {
+            if (gamepad1.x) {
                 hoodServo.setHoodservo(0.4);
-            } else if (gamepadEx1.getButton(GamepadKeys.Button.B)) {
+            } else if (gamepad1.b) {
                 hoodServo.setHoodservo(0.45);
-            } else if (gamepadEx1.getButton(GamepadKeys.Button.DPAD_DOWN)) {
+            } else if (gamepad1.dpad_down) {
                 hoodServo.setHoodservo(0.5);
             }
 
