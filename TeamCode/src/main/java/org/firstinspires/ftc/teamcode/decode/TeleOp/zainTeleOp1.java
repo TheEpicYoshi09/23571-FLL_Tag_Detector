@@ -4,6 +4,8 @@ import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.arcrobotics.ftclib.gamepad.GamepadKeys;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.teamcode.decode.Subsystems.HoodServo;
+
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -14,7 +16,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 @TeleOp(name = "TeleOp1 w/servo from zain")
 public class zainTeleOp1 extends LinearOpMode {
     private IMU imu;
-    public Servo servo;
+    public HoodServo servo = new HoodServo();
     private GamepadEx gp1; // FTCLib Gamepad Wrapper
 
     @Override
@@ -31,7 +33,7 @@ public class zainTeleOp1 extends LinearOpMode {
         DcMotor intake = hardwareMap.dcMotor.get("intakeMotor");
         DcMotor loader = hardwareMap.dcMotor.get("loaderMotor");
 
-        servo = hardwareMap.get(Servo.class, "hoodServo");
+    servo.init(hardwareMap);
 
         frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -43,7 +45,7 @@ public class zainTeleOp1 extends LinearOpMode {
         imu.initialize(parameters);
 
         double flyPower = 0;
-        servo.setPosition(0);
+        servo.setHoodservo(0.45);
 
         waitForStart();
 
@@ -115,13 +117,13 @@ public class zainTeleOp1 extends LinearOpMode {
 
             // Servo positions using Buttons and D-Pad
             if (gp1.isDown(GamepadKeys.Button.X)){
-                servo.setPosition(0.3);
+                servo.setHoodservo(0.3);
             } else if (gp1.isDown(GamepadKeys.Button.B)){
-                servo.setPosition(0.75);
+                servo.setHoodservo(0.75);
             } else if (gp1.isDown(GamepadKeys.Button.DPAD_DOWN)){
-                servo.setPosition(0.5);
+                servo.setHoodservo(0.5);
             } else if (gp1.isDown(GamepadKeys.Button.DPAD_RIGHT)){
-                servo.setPosition(0.8);
+                servo.setHoodservo(0.8);
             }
 
             telemetry.addData("Front Left Power", frontLeftPower);
