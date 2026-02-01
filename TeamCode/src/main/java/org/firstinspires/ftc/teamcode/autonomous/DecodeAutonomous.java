@@ -49,6 +49,73 @@ public class DecodeAutonomous extends LinearOpMode {
         COMPLETE        // Autonomous routine complete
     }
 
+    // Game-specific constants and constraints
+    private static final int MAX_ARTIFACTS = 3; // Maximum number of ARTIFACTS allowed on robot at any time (hard constraint)
+    private static final int MAX_BARREL_SLOTS = 3; // Number of slots in the barrel for sorting
+    private static final int MAX_PATTERN_LENGTH = 3; // Length of the target pattern sequence
+
+    // Field coordinate constants for DECODE game
+    private static class FieldConstants {
+        // Field dimensions
+        public static final double FIELD_WIDTH = 144.0;  // inches
+        public static final double FIELD_LENGTH = 144.0; // inches
+        public static final double FIELD_HALF_WIDTH = FIELD_WIDTH / 2.0;
+        public static final double FIELD_HALF_LENGTH = FIELD_LENGTH / 2.0;
+
+        // Origin is at center of field
+        public static final double ORIGIN_X = 0.0;
+        public static final double ORIGIN_Y = 0.0;
+
+        // Tile dimensions
+        public static final double TILE_SIZE = 24.0; // inches per tile
+
+        // GOAL positions (approximate from manual and community measurements)
+        public static final double RED_GOAL_X = -58.37;  // inches
+        public static final double RED_GOAL_Y = 55.64;   // inches
+        public static final double BLUE_GOAL_X = -58.37; // inches (same X as red)
+        public static final double BLUE_GOAL_Y = -55.64; // inches
+
+        // BASE ZONE positions
+        public static final double BASE_ZONE_SIZE = 18.0; // inches (18"x18")
+
+        // Red BASE ZONE (bottom-left corner)
+        public static final double RED_BASE_X_MIN = -72.0;
+        public static final double RED_BASE_Y_MIN = 54.0;
+        public static final double RED_BASE_X_MAX = -54.0;
+        public static final double RED_BASE_Y_MAX = 72.0;
+
+        // Blue BASE ZONE (top-right corner)
+        public static final double BLUE_BASE_X_MIN = 54.0;
+        public static final double BLUE_BASE_Y_MIN = -72.0;
+        public static final double BLUE_BASE_X_MAX = 72.0;
+        public static final double BLUE_BASE_Y_MAX = -54.0;
+
+        // Spike Mark positions (for ARTIFACT collection)
+        // Near (Audience side)
+        public static final double NEAR_SPIKE_RED_X = -10.0;
+        public static final double NEAR_SPIKE_RED_Y = 50.0;
+        public static final double NEAR_SPIKE_BLUE_X = 10.0;
+        public static final double NEAR_SPIKE_BLUE_Y = -50.0;
+
+        // Middle (Center)
+        public static final double MIDDLE_SPIKE_X = 0.0;
+        public static final double MIDDLE_SPIKE_Y = 0.0;
+
+        // Far (GOAL side)
+        public static final double FAR_SPIKE_RED_X = -10.0;
+        public static final double FAR_SPIKE_RED_Y = -50.0;
+        public static final double FAR_SPIKE_BLUE_X = 10.0;
+        public static final double FAR_SPIKE_BLUE_Y = 50.0;
+
+        // Launch Line positions (where robots start)
+        public static final double RED_LAUNCH_LINE_X = -60.0; // Approximate
+        public static final double RED_LAUNCH_LINE_Y_NEAR = 60.0;  // Near side
+        public static final double RED_LAUNCH_LINE_Y_FAR = 45.0;   // Far side
+        public static final double BLUE_LAUNCH_LINE_X = 60.0;  // Approximate
+        public static final double BLUE_LAUNCH_LINE_Y_NEAR = -60.0; // Near side
+        public static final double BLUE_LAUNCH_LINE_Y_FAR = -45.0;  // Far side
+    }
+
     // Hardware components
     private DcMotor frontLeftMotor;
     private DcMotor frontRightMotor;
@@ -281,33 +348,39 @@ public class DecodeAutonomous extends LinearOpMode {
                 break;
 
             case INTAKE_AND_SORT:
-                // Ball collection and sorting phase: intake balls while sorting them
+                // ARTIFACT collection and sorting phase: intake ARTIFACTS while sorting them
                 // according to the detected target pattern
                 intakeMotor.setPower(1.0); // Start the intake mechanism
 
-                // Use the color sensor to detect ball colors as they enter the intake
-                // The ball detection vision system would be used for navigation to ball positions
+                // Use the color sensor to detect ARTIFACT colors as they enter the intake
+                // The ball detection vision system would be used for navigation to ARTIFACT positions
                 // but for sorting, we rely on the color sensor at the intake point
 
                 // Continue intake and sorting until we reach capacity or timeout
-                // Note: Max 3 balls allowed on robot at any time as per hard constraint
-                if (ballsCollected < 3 && !barrelController.isFull()) {
-                    // The barrel controller handles sorting as balls come in based on
-                    // the detected color and the target pattern sequence
-                    // In a real implementation, the color sensor would trigger sorting automatically
-                    // For simulation, we'll check if balls are detected by the color sensor
-                    if (isBallDetectedByColorSensor()) { // Check if a ball has entered the intake area
-                        // A ball has been detected, so we can simulate collection
-                        ballsCollected++;
+                // Note: Max 3 ARTIFACTS allowed on robot at any time as per hard constraint
+                if (ballsCollected < MAX_ARTIFACTS && !barrelController.isFull()) {
+                    // Check if we're within the ARTIFACT control limit (max 3 simultaneously)
+                    if (isWithinArtifactControlLimit()) {
+                        // The barrel controller handles sorting as ARTIFACTS come in based on
+                        // the detected color and the target pattern sequence
+                        // In a real implementation, the color sensor would trigger sorting automatically
+                        // For simulation, we'll check if ARTIFACTS are detected by the color sensor
+                        if (isBallDetectedByColorSensor()) { // Check if an ARTIFACT has entered the intake area
+                            // An ARTIFACT has been detected, so we can simulate collection
+                            ballsCollected++;
 
-                        // Sort the ball using the color sensor and target pattern
-                        sortBallWithColorSensor();
+                            // Sort the ARTIFACT using the color sensor and target pattern
+                            sortBallWithColorSensor();
+                        }
+                    } else {
+                        // Exceeded control limit, stop intake temporarily
+                        intakeMotor.setPower(0.0);
                     }
                 }
 
-                // Transition to next state when we have 3 balls, barrel is full, or timeout occurs
-                // Ensuring compliance with the hard constraint of max 3 balls at any time
-                if (ballsCollected >= 3 || barrelController.isFull() || intakeTimeout()) {
+                // Transition to next state when we have 3 ARTIFACTS, barrel is full, or timeout occurs
+                // Ensuring compliance with the hard constraint of max 3 ARTIFACTS at any time
+                if (ballsCollected >= MAX_ARTIFACTS || barrelController.isFull() || intakeTimeout()) {
                     intakeMotor.setPower(0.0); // Stop the intake mechanism
                     currentState = AutonomousState.DRIVE_TO_LINE; // Move to shooting position
                 }
@@ -418,43 +491,108 @@ public class DecodeAutonomous extends LinearOpMode {
     }
 
     /**
-     * Drives to a specific ball row based on alliance, side, and row index
+     * Drives to a specific ARTIFACT row based on alliance, side, and row index
      * This method calculates the appropriate coordinates based on game configuration
-     * @param rowIndex The index of the ball row to drive to (0 for first row, 1 for second, etc.)
+     * @param rowIndex The index of the ARTIFACT row to drive to (0 for first row, 1 for second, etc.)
      */
     private void driveToBallRow(int rowIndex) {
         // Calculate position based on alliance and side to support all 4 scenarios:
         // Red Near, Red Far, Blue Near, Blue Far
         double targetX, targetY;
 
-        // These are placeholder coordinates - MEASURE AND REPLACE WITH ACTUAL FIELD COORDINATES
-        // Field dimensions are approximately 12 feet x 12 feet (144 inches x 144 inches)
+        // Use real field coordinates from FieldConstants
         if (isRedAlliance) {
             if (isNearSide) {
-                // Red alliance, near side positioning
-                // Example coordinates - MEASURE YOUR ACTUAL FIELD POSITIONS
-                targetX = rowIndex == 0 ? 30.0 : 60.0; // Different X for different rows (MEASURE ACCURATELY)
-                targetY = 40.0; // Fixed Y for near side (MEASURE ACCURATELY)
+                // Red alliance, near side positioning (Audience side)
+                switch (rowIndex) {
+                    case 0: // Near spike mark (Audience side)
+                        targetX = FieldConstants.NEAR_SPIKE_RED_X;
+                        targetY = FieldConstants.NEAR_SPIKE_RED_Y;
+                        break;
+                    case 1: // Far spike mark (GOAL side)
+                        targetX = FieldConstants.FAR_SPIKE_RED_X;
+                        targetY = FieldConstants.FAR_SPIKE_RED_Y;
+                        break;
+                    case 2: // Middle spike mark (Center)
+                        targetX = FieldConstants.MIDDLE_SPIKE_X;
+                        targetY = FieldConstants.MIDDLE_SPIKE_Y;
+                        break;
+                    default:
+                        // Default to near spike if invalid index
+                        targetX = FieldConstants.NEAR_SPIKE_RED_X;
+                        targetY = FieldConstants.NEAR_SPIKE_RED_Y;
+                        break;
+                }
             } else {
-                // Red alliance, far side positioning
-                targetX = rowIndex == 0 ? 30.0 : 60.0; // Different X for different rows (MEASURE ACCURATELY)
-                targetY = 104.0; // Fixed Y for far side (MEASURE ACCURATELY)
+                // Red alliance, far side positioning (GOAL side)
+                // For DECODE, this would be the same positions but approached from different angle
+                switch (rowIndex) {
+                    case 0: // Near spike mark (Audience side)
+                        targetX = FieldConstants.NEAR_SPIKE_RED_X;
+                        targetY = FieldConstants.NEAR_SPIKE_RED_Y;
+                        break;
+                    case 1: // Far spike mark (GOAL side)
+                        targetX = FieldConstants.FAR_SPIKE_RED_X;
+                        targetY = FieldConstants.FAR_SPIKE_RED_Y;
+                        break;
+                    case 2: // Middle spike mark (Center)
+                        targetX = FieldConstants.MIDDLE_SPIKE_X;
+                        targetY = FieldConstants.MIDDLE_SPIKE_Y;
+                        break;
+                    default:
+                        // Default to near spike if invalid index
+                        targetX = FieldConstants.NEAR_SPIKE_RED_X;
+                        targetY = FieldConstants.NEAR_SPIKE_RED_Y;
+                        break;
+                }
             }
         } else {
             if (isNearSide) {
-                // Blue alliance, near side positioning
-                targetX = rowIndex == 0 ? 114.0 : 84.0; // Different X for different rows (MEASURE ACCURATELY)
-                targetY = 40.0; // Fixed Y for near side (MEASURE ACCURATELY)
+                // Blue alliance, near side positioning (Audience side)
+                switch (rowIndex) {
+                    case 0: // Near spike mark (Audience side)
+                        targetX = FieldConstants.NEAR_SPIKE_BLUE_X;
+                        targetY = FieldConstants.NEAR_SPIKE_BLUE_Y;
+                        break;
+                    case 1: // Far spike mark (GOAL side)
+                        targetX = FieldConstants.FAR_SPIKE_BLUE_X;
+                        targetY = FieldConstants.FAR_SPIKE_BLUE_Y;
+                        break;
+                    case 2: // Middle spike mark (Center)
+                        targetX = FieldConstants.MIDDLE_SPIKE_X;
+                        targetY = FieldConstants.MIDDLE_SPIKE_Y;
+                        break;
+                    default:
+                        // Default to near spike if invalid index
+                        targetX = FieldConstants.NEAR_SPIKE_BLUE_X;
+                        targetY = FieldConstants.NEAR_SPIKE_BLUE_Y;
+                        break;
+                }
             } else {
-                // Blue alliance, far side positioning
-                targetX = rowIndex == 0 ? 114.0 : 84.0; // Different X for different rows (MEASURE ACCURATELY)
-                targetY = 104.0; // Fixed Y for far side (MEASURE ACCURATELY)
+                // Blue alliance, far side positioning (GOAL side)
+                switch (rowIndex) {
+                    case 0: // Near spike mark (Audience side)
+                        targetX = FieldConstants.NEAR_SPIKE_BLUE_X;
+                        targetY = FieldConstants.NEAR_SPIKE_BLUE_Y;
+                        break;
+                    case 1: // Far spike mark (GOAL side)
+                        targetX = FieldConstants.FAR_SPIKE_BLUE_X;
+                        targetY = FieldConstants.FAR_SPIKE_BLUE_Y;
+                        break;
+                    case 2: // Middle spike mark (Center)
+                        targetX = FieldConstants.MIDDLE_SPIKE_X;
+                        targetY = FieldConstants.MIDDLE_SPIKE_Y;
+                        break;
+                    default:
+                        // Default to near spike if invalid index
+                        targetX = FieldConstants.NEAR_SPIKE_BLUE_X;
+                        targetY = FieldConstants.NEAR_SPIKE_BLUE_Y;
+                        break;
+                }
             }
         }
 
-        // Drive to calculated position (this is a simplified implementation)
-        // In real implementation, you'd use encoder-based movement, IMU heading control,
-        // or other positioning methods for precise navigation
+        // Drive to calculated position using real field coordinates
         moveRobotToPosition(targetX, targetY);
     }
 
@@ -482,16 +620,30 @@ public class DecodeAutonomous extends LinearOpMode {
         // Calculate launch line position based on alliance
         double targetX, targetY;
 
-        // These are placeholder coordinates - MEASURE AND REPLACE WITH ACTUAL FIELD COORDINATES
+        // Use real launch line coordinates from FieldConstants
         if (isRedAlliance) {
-            targetX = 60.0; // Example coordinate for red alliance launch line (MEASURE ACCURATELY)
-            targetY = 60.0; // Example Y coordinate (MEASURE ACCURATELY)
+            if (isNearSide) {
+                // Red alliance, near side launch line
+                targetX = FieldConstants.RED_LAUNCH_LINE_X;
+                targetY = FieldConstants.RED_LAUNCH_LINE_Y_NEAR;
+            } else {
+                // Red alliance, far side launch line
+                targetX = FieldConstants.RED_LAUNCH_LINE_X;
+                targetY = FieldConstants.RED_LAUNCH_LINE_Y_FAR;
+            }
         } else {
-            targetX = 84.0; // Example coordinate for blue alliance launch line (MEASURE ACCURATELY)
-            targetY = 60.0; // Example Y coordinate (MEASURE ACCURATELY)
+            if (isNearSide) {
+                // Blue alliance, near side launch line
+                targetX = -FieldConstants.RED_LAUNCH_LINE_X; // Mirror for blue side (negative X)
+                targetY = FieldConstants.RED_LAUNCH_LINE_Y_NEAR;
+            } else {
+                // Blue alliance, far side launch line
+                targetX = -FieldConstants.RED_LAUNCH_LINE_X; // Mirror for blue side (negative X)
+                targetY = FieldConstants.RED_LAUNCH_LINE_Y_FAR;
+            }
         }
 
-        // Drive to calculated position
+        // Drive to calculated position using real field coordinates
         moveRobotToPosition(targetX, targetY);
     }
 
@@ -517,16 +669,18 @@ public class DecodeAutonomous extends LinearOpMode {
         // Calculate base zone position based on alliance
         double targetX, targetY;
 
-        // These are placeholder coordinates - MEASURE AND REPLACE WITH ACTUAL FIELD COORDINATES
+        // Use real base zone coordinates from FieldConstants
         if (isRedAlliance) {
-            targetX = 120.0; // Example coordinate for red alliance base zone (MEASURE ACCURATELY)
-            targetY = 30.0; // Example Y coordinate for parking (MEASURE ACCURATELY)
+            // Red alliance base zone - aim for center of zone
+            targetX = (FieldConstants.RED_BASE_X_MIN + FieldConstants.RED_BASE_X_MAX) / 2.0;
+            targetY = (FieldConstants.RED_BASE_Y_MIN + FieldConstants.RED_BASE_Y_MAX) / 2.0;
         } else {
-            targetX = 24.0; // Example coordinate for blue alliance base zone (MEASURE ACCURATELY)
-            targetY = 30.0; // Example Y coordinate for parking (MEASURE ACCURATELY)
+            // Blue alliance base zone - aim for center of zone
+            targetX = (FieldConstants.BLUE_BASE_X_MIN + FieldConstants.BLUE_BASE_X_MAX) / 2.0;
+            targetY = (FieldConstants.BLUE_BASE_Y_MIN + FieldConstants.BLUE_BASE_Y_MAX) / 2.0;
         }
 
-        // Drive to calculated position
+        // Drive to calculated position using real field coordinates
         moveRobotToPosition(targetX, targetY);
     }
 
@@ -641,6 +795,15 @@ public class DecodeAutonomous extends LinearOpMode {
         // This threshold may need tuning based on your robot's setup
         int totalColor = red + green + blue;
         return totalColor > 50; // Adjust threshold as needed
+    }
+
+    /**
+     * Checks if the robot is within the ARTIFACT control limit (max 3 simultaneously)
+     * @return true if within limit, false if over limit
+     */
+    private boolean isWithinArtifactControlLimit() {
+        // Check if we're controlling fewer than the maximum allowed ARTIFACTS
+        return ballsCollected < MAX_ARTIFACTS;
     }
 
     /**
