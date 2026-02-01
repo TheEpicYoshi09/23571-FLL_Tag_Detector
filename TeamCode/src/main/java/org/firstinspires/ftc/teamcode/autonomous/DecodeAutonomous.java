@@ -108,12 +108,24 @@ public class DecodeAutonomous extends LinearOpMode {
         public static final double FAR_SPIKE_BLUE_Y = 50.0;
 
         // Launch Line positions (where robots start)
-        public static final double RED_LAUNCH_LINE_X = -60.0; // Approximate
-        public static final double RED_LAUNCH_LINE_Y_NEAR = 60.0;  // Near side
-        public static final double RED_LAUNCH_LINE_Y_FAR = 45.0;   // Far side
-        public static final double BLUE_LAUNCH_LINE_X = 60.0;  // Approximate
-        public static final double BLUE_LAUNCH_LINE_Y_NEAR = -60.0; // Near side
-        public static final double BLUE_LAUNCH_LINE_Y_FAR = -45.0;  // Far side
+        public static final double RED_LAUNCH_LINE_X = -60.0; // Approximate X position for red alliance
+        public static final double RED_LAUNCH_LINE_Y_NEAR = 60.0;  // Y position for red alliance near side
+        public static final double RED_LAUNCH_LINE_Y_FAR = 45.0;   // Y position for red alliance far side
+        public static final double BLUE_LAUNCH_LINE_X = 60.0;  // Approximate X position for blue alliance (mirrored)
+        public static final double BLUE_LAUNCH_LINE_Y_NEAR = -60.0; // Y position for blue alliance near side
+        public static final double BLUE_LAUNCH_LINE_Y_FAR = -45.0;  // Y position for blue alliance far side
+
+        // Loading Zone positions (for human player ARTIFACT placement)
+        public static final double RED_LOADING_ZONE_X = -72.0;  // Approximate X position for red loading zone
+        public static final double RED_LOADING_ZONE_Y = -23.0;  // Approximate Y position for red loading zone
+        public static final double BLUE_LOADING_ZONE_X = 72.0;  // Approximate X position for blue loading zone (mirrored)
+        public static final double BLUE_LOADING_ZONE_Y = 23.0;   // Approximate Y position for blue loading zone
+
+        // Secret Tunnel Zone positions (for accessing additional ARTIFACTS)
+        public static final double RED_SECRET_TUNNEL_X = -69.0;  // Approximate X position for red secret tunnel
+        public static final double RED_SECRET_TUNNEL_Y = 0.0;    // Approximate Y position for red secret tunnel
+        public static final double BLUE_SECRET_TUNNEL_X = 69.0;  // Approximate X position for blue secret tunnel (mirrored)
+        public static final double BLUE_SECRET_TUNNEL_Y = 0.0;   // Approximate Y position for blue secret tunnel
     }
 
     // Hardware components
@@ -634,12 +646,12 @@ public class DecodeAutonomous extends LinearOpMode {
         } else {
             if (isNearSide) {
                 // Blue alliance, near side launch line
-                targetX = -FieldConstants.RED_LAUNCH_LINE_X; // Mirror for blue side (negative X)
-                targetY = FieldConstants.RED_LAUNCH_LINE_Y_NEAR;
+                targetX = FieldConstants.BLUE_LAUNCH_LINE_X;
+                targetY = FieldConstants.BLUE_LAUNCH_LINE_Y_NEAR;
             } else {
                 // Blue alliance, far side launch line
-                targetX = -FieldConstants.RED_LAUNCH_LINE_X; // Mirror for blue side (negative X)
-                targetY = FieldConstants.RED_LAUNCH_LINE_Y_FAR;
+                targetX = FieldConstants.BLUE_LAUNCH_LINE_X;
+                targetY = FieldConstants.BLUE_LAUNCH_LINE_Y_FAR;
             }
         }
 
