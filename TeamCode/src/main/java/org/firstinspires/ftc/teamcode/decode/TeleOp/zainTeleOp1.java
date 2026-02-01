@@ -41,7 +41,7 @@ public class zainTeleOp1 extends LinearOpMode {
         // -------- Motor Directions --------
         frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
-
+        int text_x =0;//delete this
         // -------- IMU --------
         imu = hardwareMap.get(IMU.class, "imu");
         IMU.Parameters parameters = new IMU.Parameters(
