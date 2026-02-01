@@ -48,7 +48,7 @@ public class AudiencePath {
     public static Pose P_I6_CP = new Pose(57.060, 53.683);
     public static Pose P_I6_END = new Pose(39.165, 60.098);
     public static Pose P_I6_WALL = new Pose(9.623, 59.761);
-
+    int x= 0; //test
     // Ramp
     public static Pose P_RAMP_CP = new Pose(45.749, 42.542);
     public static Pose P_RAMP_END = new Pose(50.982, 68.877);
