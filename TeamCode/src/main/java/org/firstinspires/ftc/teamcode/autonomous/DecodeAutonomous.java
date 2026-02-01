@@ -12,6 +12,11 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 
+// Import vision-related classes
+import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
+
 /**
  * Main autonomous class implementing the state machine for the FTC robot.
  * The robot performs the following sequence:
@@ -57,6 +62,10 @@ public class DecodeAutonomous extends LinearOpMode {
     private IMU imu;
     private WebcamName webcam;
 
+    // Vision portals for different tasks
+    private VisionPortal aprilTagVisionPortal;
+    // Note: Ball detection will use the color sensor instead of camera vision for sorting
+
     // Controllers
     private BarrelController barrelController;
     private ShooterController shooterController;
@@ -76,23 +85,42 @@ public class DecodeAutonomous extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        // Initialize hardware
-        initializeHardware();
-
-        // Initialize controllers
+        // Initialize controllers first
         barrelController = new BarrelController(wheelRotationServo, colorSensor);
         shooterController = new ShooterController(shooterMotor, ballPushServo);
         visionProcessor = new AprilTagVisionProcessor();
         ballDetector = new BalldentifierAndDriver();
 
+        // Initialize hardware (this will set up the vision portal)
+        initializeHardware();
 
-        // Configure and initialize vision portal with ball detector
-        // Note: We'll use separate vision portals for AprilTag detection and ball detection
-        visionProcessor.initVisionPortal(webcam);
+        // Wait for start with alliance selection
+        telemetry.addData(">", "Press Play to start autonomous");
+        telemetry.addData("Alliance", "Press A for Red, B for Blue");
+        telemetry.addData("Side", "Press X for Near, Y for Far");
+        telemetry.update();
 
-        // Optionally set up the ball detector with the same webcam if needed
-        // This would require a different approach since we can't have two processors
-        // on the same vision portal simultaneously
+        // Alliance selection during init
+        while (opModeInInit()) {
+            if (gamepad1.a) {
+                isRedAlliance = true;
+                telemetry.addData("Selected", "Red Alliance");
+            } else if (gamepad1.b) {
+                isRedAlliance = false;
+                telemetry.addData("Selected", "Blue Alliance");
+            }
+
+            if (gamepad1.x) {
+                isNearSide = true;
+                telemetry.addData("Selected", "Near Side");
+            } else if (gamepad1.y) {
+                isNearSide = false;
+                telemetry.addData("Selected", "Far Side");
+            }
+
+            telemetry.update();
+            sleep(10);
+        }
 
         // Wait for start
         waitForStart();
@@ -113,10 +141,10 @@ public class DecodeAutonomous extends LinearOpMode {
         }
 
         // Cleanup
-        visionProcessor.close();
+        if (aprilTagVisionPortal != null) {
+            aprilTagVisionPortal.close();
+        }
         shooterController.stopShooter();
-        // Note: BalldentifierAndDriver doesn't need explicit cleanup as it's just a pipeline
-        // It will be cleaned up when the vision portal it's attached to is closed
     }
 
     /**
@@ -147,6 +175,20 @@ public class DecodeAutonomous extends LinearOpMode {
         colorSensor = hardwareMap.get(ColorSensor.class, "color_sensor");
         imu = hardwareMap.get(IMU.class, "imu");  // IMU is typically configured as "imu" in the robot configuration
         webcam = hardwareMap.get(WebcamName.class, "Webcam 1");
+
+        // Initialize vision portal for AprilTag detection
+        AprilTagProcessor aprilTagProcessor = new AprilTagProcessor.Builder()
+                .setDrawAxes(true)
+                .setDrawCubeProjection(true)
+                .setDrawTagOutline(true)
+                .setTagFamily(AprilTagProcessor.TagFamily.TAG_36h11)
+                .setTagLibrary(AprilTagGameDatabase.getCenterStageTagLibrary())
+                .build();
+
+        aprilTagVisionPortal = new VisionPortal.Builder()
+                .setCamera(webcam)
+                .addProcessor(aprilTagProcessor)
+                .build();
     }
 
     /**
@@ -177,13 +219,7 @@ public class DecodeAutonomous extends LinearOpMode {
                 if (visionProcessor.isPatternDetected()) {
                     // Pattern detected, store it for later use in sorting
                     targetPattern = visionProcessor.getTargetPattern().clone();
-                    visionProcessor.pause(); // Pause vision processing after detection to save resources
-
-                    // Determine alliance and starting side - these would typically be set via
-                    // initialization parameters or other mechanisms in a real robot
-                    // For this implementation, we're using default values
-                    isRedAlliance = true;  // Change based on actual alliance selection
-                    isNearSide = true;     // Change based on actual starting position
+                    visionProcessor.close(); // Close vision processing after detection to save resources
 
                     // Move to the next phase: driving to the first ball row
                     currentState = AutonomousState.DRIVE_TO_ROW;
@@ -195,10 +231,27 @@ public class DecodeAutonomous extends LinearOpMode {
                     // Create a default pattern if no tag was detected
                     targetPattern = new String[]{"PURPLE", "GREEN", "PURPLE"}; // Default fallback
 
-                    // Determine alliance and starting side - these would typically be set via
-                    // initialization parameters or other mechanisms in a real robot
-                    isRedAlliance = true;  // Change based on actual alliance selection
-                    isNearSide = true;     // Change based on actual starting position
+                    // Move to the next phase: driving to the first ball row
+                    currentState = AutonomousState.DRIVE_TO_ROW;
+
+                    // Stop any scanning rotation
+                    stopDriveMotors();
+                } else {
+                    // Still scanning - rotate slowly to search for AprilTags
+                    // Rotate at a slow speed to scan the environment
+                    double scanPower = 0.2; // Slow rotation power
+                    frontLeftMotor.setPower(scanPower);
+                    frontRightMotor.setPower(-scanPower);
+                    backLeftMotor.setPower(scanPower);
+                    backRightMotor.setPower(-scanPower);
+                }
+
+                if (targetPattern != null) {
+                    // Pattern was detected, continue to next state
+                } else if ((currentTime - startTime) > 5000) { // 5 second timeout
+                    // Timeout reached, move to next state with default pattern
+                    // Create a default pattern if no tag was detected
+                    targetPattern = new String[]{"PURPLE", "GREEN", "PURPLE"}; // Default fallback
 
                     // Move to the next phase: driving to the first ball row
                     currentState = AutonomousState.DRIVE_TO_ROW;
@@ -232,11 +285,9 @@ public class DecodeAutonomous extends LinearOpMode {
                 // according to the detected target pattern
                 intakeMotor.setPower(1.0); // Start the intake mechanism
 
-                // Use the ball detector to identify balls in the intake area
-                // This would typically happen in a separate thread or with periodic updates
-                // For this implementation, we'll use the ball detector to identify balls
-                int detectedPurpleBalls = ballDetector.getPurpleBallCount();
-                int detectedGreenBalls = ballDetector.getGreenBallCount();
+                // Use the color sensor to detect ball colors as they enter the intake
+                // The ball detection vision system would be used for navigation to ball positions
+                // but for sorting, we rely on the color sensor at the intake point
 
                 // Continue intake and sorting until we reach capacity or timeout
                 // Note: Max 3 balls allowed on robot at any time as per hard constraint
@@ -244,13 +295,12 @@ public class DecodeAutonomous extends LinearOpMode {
                     // The barrel controller handles sorting as balls come in based on
                     // the detected color and the target pattern sequence
                     // In a real implementation, the color sensor would trigger sorting automatically
-                    // For simulation, we'll check if balls are detected by the vision system
-                    if (detectedPurpleBalls > 0 || detectedGreenBalls > 0) {
+                    // For simulation, we'll check if balls are detected by the color sensor
+                    if (isBallDetectedByColorSensor()) { // Check if a ball has entered the intake area
                         // A ball has been detected, so we can simulate collection
                         ballsCollected++;
 
-                        // In a real implementation, you'd check if a ball has been detected
-                        // by the color sensor and then sort it using the barrel controller
+                        // Sort the ball using the color sensor and target pattern
                         sortBallWithColorSensor();
                     }
                 }
@@ -329,6 +379,41 @@ public class DecodeAutonomous extends LinearOpMode {
                 stopAllMotors();
                 requestOpModeStop(); // Request to stop the op mode
                 break;
+        }
+    }
+
+    /**
+     * Interprets an AprilTag ID to determine the color pattern
+     * @param tagId The AprilTag ID detected
+     * @return The color pattern array or null if invalid tag
+     */
+    private String[] interpretAprilTag(int tagId) {
+        String[] pattern = new String[3];
+
+        switch (tagId) {
+            case 1: // APRIL_TAG_PURPLE_GREEN_GREEN:
+                pattern[0] = "PURPLE";
+                pattern[1] = "GREEN";
+                pattern[2] = "GREEN";
+                return pattern;
+            case 2: // APRIL_TAG_GREEN_PURPLE_GREEN:
+                pattern[0] = "GREEN";
+                pattern[1] = "PURPLE";
+                pattern[2] = "GREEN";
+                return pattern;
+            case 3: // APRIL_TAG_PURPLE_PURPLE_GREEN:
+                pattern[0] = "PURPLE";
+                pattern[1] = "PURPLE";
+                pattern[2] = "GREEN";
+                return pattern;
+            case 4: // APRIL_TAG_GREEN_GREEN_PURPLE:
+                pattern[0] = "GREEN";
+                pattern[1] = "GREEN";
+                pattern[2] = "PURPLE";
+                return pattern;
+            default:
+                // Unknown tag, return null
+                return null;
         }
     }
 
@@ -495,7 +580,7 @@ public class DecodeAutonomous extends LinearOpMode {
         int blTarget = forwardTicks + strafeTicks; // Back-left moves forward and strafes left
         int brTarget = forwardTicks - strafeTicks; // Back-right moves forward and strafes right
 
-        // Set target positions for each motor
+        // Set target positions for each motor (use absolute values for target position)
         frontLeftMotor.setTargetPosition(Math.abs(flTarget));
         frontRightMotor.setTargetPosition(Math.abs(frTarget));
         backLeftMotor.setTargetPosition(Math.abs(blTarget));
@@ -538,6 +623,24 @@ public class DecodeAutonomous extends LinearOpMode {
     private boolean intakeTimeout() {
         // Check if 10 seconds have passed since starting intake
         return (System.currentTimeMillis() - startTime) > 10000;
+    }
+
+    /**
+     * Checks if a ball is detected by the color sensor
+     * @return true if a ball is detected, false otherwise
+     */
+    private boolean isBallDetectedByColorSensor() {
+        // Check if the color sensor detects a ball
+        // This is a simplified check - in practice, you'd have more sophisticated detection
+        // based on color intensity or proximity sensor values
+        int red = colorSensor.red();
+        int green = colorSensor.green();
+        int blue = colorSensor.blue();
+
+        // A ball is detected if the color values exceed a threshold
+        // This threshold may need tuning based on your robot's setup
+        int totalColor = red + green + blue;
+        return totalColor > 50; // Adjust threshold as needed
     }
 
     /**
