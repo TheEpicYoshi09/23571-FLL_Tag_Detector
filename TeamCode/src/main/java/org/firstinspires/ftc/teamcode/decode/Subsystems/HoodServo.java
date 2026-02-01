@@ -8,17 +8,22 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 public class HoodServo {
-    private Servo hoodservo;
+    private Servo leftServo,rightServo;
     private CRServo CRservo;
 
     public void init(HardwareMap hardwareMap){
         //CRservo = hardwareMap.get(CRServo.class,"hoodServo");
-       hoodservo = hardwareMap.get(Servo.class, "hoodServo");
+       leftServo = hardwareMap.get(Servo.class, "leftServo");
+        rightServo = hardwareMap.get(Servo.class, "leftServo");
+
+        rightServo.setDirection(Servo.Direction.REVERSE);
+
     }
     public void setHoodservo(double angle){
 
 
-       hoodservo.setPosition(angle);
+       leftServo.setPosition(angle);
+        rightServo.setPosition(angle);
 
 
     }
@@ -44,7 +49,7 @@ public class HoodServo {
 //        return power;
     //}
     public double getPosition(){
-       double postion = hoodservo.getPosition();
+       double postion = leftServo.getPosition();
         return postion;
     }
 }

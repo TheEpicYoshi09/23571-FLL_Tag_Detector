@@ -2,6 +2,8 @@ package org.firstinspires.ftc.teamcode.decode.testing;
 
 
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
+import com.arcrobotics.ftclib.gamepad.GamepadEx;
+
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -39,6 +41,10 @@ public class MecanumTeleOp extends LinearOpMode {
             double y = gp1.getLeftY() * 0.5;
             double x = -gp1.getLeftX();
             double rx = -gp1.getRightX() * 0.5;//was 0.5
+
+            gp1.readButtons();
+
+            // --- mecanum Drive Control ---
 
             // Denominator is the largest motor power (absolute value) or 1
             // This ensures all the powers maintain the same ratio,
