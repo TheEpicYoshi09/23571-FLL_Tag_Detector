@@ -286,9 +286,12 @@ public class DecodeAutonomous extends LinearOpMode {
                 // Check if we've detected the pattern
                 visionProcessor.processDetections();
 
-                if (visionProcessor.isPatternDetected()) {
+                if (visionProcessor != null && visionProcessor.isPatternDetected()) {
                     // Pattern detected, store it for later use in sorting
-                    targetPattern = visionProcessor.getTargetPattern().clone();
+                    String[] detectedPattern = visionProcessor.getTargetPattern();
+                    if (detectedPattern != null) {
+                        targetPattern = detectedPattern.clone();
+                    }
                     visionProcessor.close(); // Close vision processing after detection to save resources
 
                     // Move to the next phase: driving to the first ball row
@@ -361,7 +364,8 @@ public class DecodeAutonomous extends LinearOpMode {
 
                 // Continue intake and sorting until we reach capacity or timeout
                 // Note: Max 3 ARTIFACTS allowed on robot at any time as per hard constraint
-                if (ballsCollected < MAX_ARTIFACTS && !barrelController.isFull()) {
+                boolean barrelIsFull = (barrelController != null) ? barrelController.isFull() : false;
+                if (ballsCollected < MAX_ARTIFACTS && !barrelIsFull) {
                     // Check if we're within the ARTIFACT control limit (max 3 simultaneously)
                     if (isWithinArtifactControlLimit()) {
                         // The barrel controller handles sorting as ARTIFACTS come in based on
@@ -383,7 +387,8 @@ public class DecodeAutonomous extends LinearOpMode {
 
                 // Transition to next state when we have 3 ARTIFACTS, barrel is full, or timeout occurs
                 // Ensuring compliance with the hard constraint of max 3 ARTIFACTS at any time
-                if (ballsCollected >= MAX_ARTIFACTS || barrelController.isFull() || intakeTimeout()) {
+                boolean barrelFullCheck = (barrelController != null) ? barrelController.isFull() : false;
+                if (ballsCollected >= MAX_ARTIFACTS || barrelFullCheck || intakeTimeout()) {
                     intakeMotor.setPower(0.0); // Stop the intake mechanism
                     currentState = AutonomousState.DRIVE_TO_LINE; // Move to shooting position
                 }
@@ -403,9 +408,10 @@ public class DecodeAutonomous extends LinearOpMode {
             case SHOOT:
                 // Shooting phase: shoot balls in the correct sequence based on target pattern
                 // First, rotate to the correct angle for the current ball in the sequence
-                if (shooterController.getCurrentShotIndex() < 3) { // Only for the first 3 shots
+                if (shooterController != null && shooterController.getCurrentShotIndex() < 3) { // Only for the first 3 shots
                     // Calculate the optimal angle for this shot based on the target pattern
-                    double targetAngle = calculateOptimalShootingAngle(targetPattern, shooterController.getCurrentShotIndex());
+                    int currentShotIndex = shooterController.getCurrentShotIndex();
+                    double targetAngle = calculateOptimalShootingAngle(targetPattern, currentShotIndex);
 
                     // Rotate to the calculated angle using IMU feedback
                     rotateToHeading(targetAngle);
@@ -415,17 +421,22 @@ public class DecodeAutonomous extends LinearOpMode {
                 }
 
                 // Start the shooting sequence if it hasn't already begun
-                if (!shooterController.isShootingSequenceActive()) {
+                if (shooterController != null && !shooterController.isShootingSequenceActive()) {
                     shooterController.beginShootingSequence();
                 }
 
                 // Continue updating the shooting sequence until complete
-                boolean shootingActive = shooterController.updateShootingSequence();
+                boolean shootingActive = false;
+                if (shooterController != null) {
+                    shootingActive = shooterController.updateShootingSequence();
+                }
 
                 // Transition when shooting sequence is complete
                 if (!shootingActive) {
                     // Shooting complete, reset the barrel controller for next cycle
-                    barrelController.reset();
+                    if (barrelController != null) {
+                        barrelController.reset();
+                    }
                     ballsCollected = 0; // Reset ball counter
 
                     // Determine if we need to collect more balls from another row
@@ -790,14 +801,19 @@ public class DecodeAutonomous extends LinearOpMode {
         // Check if the color sensor detects a ball
         // This is a simplified check - in practice, you'd have more sophisticated detection
         // based on color intensity or proximity sensor values
-        int red = colorSensor.red();
-        int green = colorSensor.green();
-        int blue = colorSensor.blue();
+        if (colorSensor != null) {
+            int red = colorSensor.red();
+            int green = colorSensor.green();
+            int blue = colorSensor.blue();
 
-        // A ball is detected if the color values exceed a threshold
-        // This threshold may need tuning based on your robot's setup
-        int totalColor = red + green + blue;
-        return totalColor > 50; // Adjust threshold as needed
+            // A ball is detected if the color values exceed a threshold
+            // This threshold may need tuning based on your robot's setup
+            int totalColor = red + green + blue;
+            return totalColor > 50; // Adjust threshold as needed
+        }
+
+        // If color sensor is not available, return false
+        return false;
     }
 
     /**
@@ -813,11 +829,16 @@ public class DecodeAutonomous extends LinearOpMode {
      * Sorts a ball based on color sensor detection
      */
     private void sortBallWithColorSensor() {
-        // Detect the color of the incoming ball
-        String detectedColor = barrelController.detectBallColor();
+        // Detect the color of the incoming ball if barrel controller is available
+        String detectedColor = null;
+        if (barrelController != null) {
+            detectedColor = barrelController.detectBallColor();
 
-        // Store the ball in the appropriate slot based on the target pattern
-        int slot = barrelController.storeBall(targetPattern, ballsCollected % 3); // Use modulo to cycle through pattern
+            // Store the ball in the appropriate slot based on the target pattern if available
+            if (targetPattern != null) {
+                int slot = barrelController.storeBall(targetPattern, ballsCollected % 3); // Use modulo to cycle through pattern
+            }
+        }
 
         // Wait for the ball to be properly positioned
         sleep(500);
@@ -855,15 +876,42 @@ public class DecodeAutonomous extends LinearOpMode {
         final double integralLimit = 10.0; // Limit integral windup
 
         // Get initial heading
-        YawPitchRollAngles orientation = imu.getRobotYawPitchRollAngles();
-        double currentHeading = normalizeAngleDegrees(orientation.getYaw(AngleUnit.DEGREES));
-        double error = angleDifference(currentHeading, targetHeading);
+        double currentHeading = 0.0;
+        double error = 0.0;
+
+        if (imu != null) {
+            try {
+                YawPitchRollAngles orientation = imu.getRobotYawPitchRollAngles();
+                currentHeading = normalizeAngleDegrees(orientation.getYaw(AngleUnit.DEGREES));
+                error = angleDifference(currentHeading, targetHeading);
+            } catch (Exception e) {
+                // Handle IMU error gracefully
+                telemetry.addData("IMU Error", "Failed to get initial heading: " + e.getMessage());
+                telemetry.update();
+                // Use default values if IMU fails
+                currentHeading = 0.0;
+                error = angleDifference(currentHeading, targetHeading);
+            }
+        } else {
+            // Use default values if IMU is not initialized
+            currentHeading = 0.0;
+            error = angleDifference(currentHeading, targetHeading);
+        }
 
         // Continue rotating until we're close enough to the target heading
         while (Math.abs(error) > ROTATION_THRESHOLD && opModeIsActive()) {
             // Get current heading
-            orientation = imu.getRobotYawPitchRollAngles();
-            currentHeading = normalizeAngleDegrees(orientation.getYaw(AngleUnit.DEGREES));
+            if (imu != null) {
+                try {
+                    YawPitchRollAngles orientation = imu.getRobotYawPitchRollAngles();
+                    currentHeading = normalizeAngleDegrees(orientation.getYaw(AngleUnit.DEGREES));
+                } catch (Exception e) {
+                    // Handle IMU error gracefully
+                    telemetry.addData("IMU Error", "Failed to get current heading: " + e.getMessage());
+                    telemetry.update();
+                    // Continue with previous heading value if IMU fails
+                }
+            }
 
             // Calculate error
             error = angleDifference(currentHeading, targetHeading);
