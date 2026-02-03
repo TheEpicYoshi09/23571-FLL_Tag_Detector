@@ -32,9 +32,11 @@ public class ShooterController {
     public ShooterController(DcMotor shooterMotor, Servo ballPushServo) {
         this.shooterMotor = shooterMotor;
         this.ballPushServo = ballPushServo;
-        
-        // Initialize servos to default positions
-        ballPushServo.setPosition(0.0); // Retracted position
+
+        // Initialize servos to default positions if not null
+        if (ballPushServo != null) {
+            ballPushServo.setPosition(0.0); // Retracted position
+        }
     }
     
     /**
@@ -70,35 +72,39 @@ public class ShooterController {
         if (!isShootingSequenceActive) {
             return false;
         }
-        
+
         // If we've shot all 3 balls, end the sequence
         if (currentShotIndex >= 3) {
             isShootingSequenceActive = false;
             return false;
         }
-        
+
         if (!isBallPushing) {
-            // Move the ball push servo to push the ball
-            ballPushServo.setPosition(1.0); // Extended position to push ball
+            // Move the ball push servo to push the ball if it's available
+            if (ballPushServo != null) {
+                ballPushServo.setPosition(1.0); // Extended position to push ball
+            }
             isBallPushing = true;
             timer.reset();
         } else if (timer.seconds() >= BALL_PUSH_DURATION) {
-            // Retract the ball push servo after the push duration
-            ballPushServo.setPosition(0.0); // Retracted position
+            // Retract the ball push servo after the push duration if it's available
+            if (ballPushServo != null) {
+                ballPushServo.setPosition(0.0); // Retracted position
+            }
             isBallPushing = false;
-            
+
             // Wait for the shot delay before moving to the next ball
             timer.reset();
             while (timer.seconds() < SHOT_DELAY) {
-                // Busy wait for the shot delay - in real implementation, 
+                // Busy wait for the shot delay - in real implementation,
                 // this would be handled differently to allow other operations
                 // For now, we'll just return true to continue processing
                 return true;
             }
-            
+
             // Move to the next shot
             currentShotIndex++;
-            
+
             // If we still have more balls to shoot, return true to continue
             if (currentShotIndex < 3) {
                 return true;
@@ -107,7 +113,7 @@ public class ShooterController {
                 return false;
             }
         }
-        
+
         return true; // Shooting sequence is still active
     }
     
@@ -115,18 +121,22 @@ public class ShooterController {
      * Manually push a single ball
      */
     public void pushSingleBall() {
-        // Push the ball
-        ballPushServo.setPosition(1.0);
-        
+        // Push the ball if servo is available
+        if (ballPushServo != null) {
+            ballPushServo.setPosition(1.0);
+        }
+
         // Wait for the push duration
         ElapsedTime pushTimer = new ElapsedTime();
         pushTimer.reset();
         while (pushTimer.seconds() < BALL_PUSH_DURATION) {
             // Busy wait - in real implementation, this would be handled differently
         }
-        
-        // Retract the servo
-        ballPushServo.setPosition(0.0);
+
+        // Retract the servo if available
+        if (ballPushServo != null) {
+            ballPushServo.setPosition(0.0);
+        }
     }
     
     /**
@@ -150,7 +160,10 @@ public class ShooterController {
      */
     public void reset() {
         stopShooter();
-        ballPushServo.setPosition(0.0); // Retracted position
+        // Retract the servo if available
+        if (ballPushServo != null) {
+            ballPushServo.setPosition(0.0); // Retracted position
+        }
         isShootingSequenceActive = false;
         currentShotIndex = 0;
         isBallPushing = false;

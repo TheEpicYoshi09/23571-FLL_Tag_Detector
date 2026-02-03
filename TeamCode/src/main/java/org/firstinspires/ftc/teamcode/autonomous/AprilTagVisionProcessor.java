@@ -81,7 +81,7 @@ public class AprilTagVisionProcessor {
      * Call this method periodically to update detection status
      */
     public void processDetections() {
-        if (visionPortal.getProcessorEnabled(aprilTagProcessor)) {
+        if (visionPortal != null && aprilTagProcessor != null) {
             List<AprilTagDetection> currentDetections = aprilTagProcessor.getDetections();
 
             for (AprilTagDetection detection : currentDetections) {
@@ -150,7 +150,7 @@ public class AprilTagVisionProcessor {
      * Pauses the vision portal
      */
     public void pause() {
-        if (visionPortal != null) {
+        if (visionPortal != null && aprilTagProcessor != null) {
             visionPortal.setProcessorEnabled(aprilTagProcessor, false);
         }
     }
@@ -159,7 +159,7 @@ public class AprilTagVisionProcessor {
      * Resumes the vision portal
      */
     public void resume() {
-        if (visionPortal != null) {
+        if (visionPortal != null && aprilTagProcessor != null) {
             visionPortal.setProcessorEnabled(aprilTagProcessor, true);
         }
     }

@@ -164,14 +164,19 @@ public class DecodeAutonomous extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        // Initialize controllers first
+        // Initialize hardware first (this will initialize all hardware components including servos)
+        initializeHardware();
+
+        // Now initialize controllers with the properly initialized hardware
         barrelController = new BarrelController(wheelRotationServo, colorSensor);
         shooterController = new ShooterController(shooterMotor, ballPushServo);
         visionProcessor = new AprilTagVisionProcessor();
         ballDetector = new BalldentifierAndDriver();
 
-        // Initialize hardware (this will set up the vision portal)
-        initializeHardware();
+        // Initialize the vision processor with the webcam
+        if (visionProcessor != null && webcam != null) {
+            visionProcessor.initVisionPortal(webcam);
+        }
 
         // Wait for start with alliance selection
         telemetry.addData(">", "Press Play to start autonomous");
@@ -254,20 +259,6 @@ public class DecodeAutonomous extends LinearOpMode {
         colorSensor = hardwareMap.get(ColorSensor.class, "color_sensor");
         imu = hardwareMap.get(IMU.class, "imu");  // IMU is typically configured as "imu" in the robot configuration
         webcam = hardwareMap.get(WebcamName.class, "Webcam 1");
-
-        // Initialize vision portal for AprilTag detection
-        AprilTagProcessor aprilTagProcessor = new AprilTagProcessor.Builder()
-                .setDrawAxes(true)
-                .setDrawCubeProjection(true)
-                .setDrawTagOutline(true)
-                .setTagFamily(AprilTagProcessor.TagFamily.TAG_36h11)
-                .setTagLibrary(AprilTagGameDatabase.getCenterStageTagLibrary())
-                .build();
-
-        aprilTagVisionPortal = new VisionPortal.Builder()
-                .setCamera(webcam)
-                .addProcessor(aprilTagProcessor)
-                .build();
     }
 
     /**
