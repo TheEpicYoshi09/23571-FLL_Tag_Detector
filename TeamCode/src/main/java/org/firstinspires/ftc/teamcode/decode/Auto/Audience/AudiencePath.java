@@ -40,26 +40,26 @@ public class AudiencePath {
     public static Pose P_SHOOT = new Pose(58.000, 16.000);
 
     // Intake 3
-    public static Pose P_I3_CP = new Pose(58.748, 33.088);
-    public static Pose P_I3_END = new Pose(40.853, 35.451);
-    public static Pose P_I3_WALL = new Pose(10.298, 35.958);
+    public static Pose P_I3_CP = new Pose(58.748, 31.2);
+    public static Pose P_I3_END = new Pose(40.853, 31.2);
+    public static Pose P_I3_WALL = new Pose(24, 31.2);
 
     // Intake 6
-    public static Pose P_I6_CP = new Pose(57.060, 53.683);
-    public static Pose P_I6_END = new Pose(39.165, 60.098);
-    public static Pose P_I6_WALL = new Pose(9.623, 59.761);
+    public static Pose P_I6_CP = new Pose(57.060, 57);
+    public static Pose P_I6_END = new Pose(39.165, 57);
+    public static Pose P_I6_WALL = new Pose(25, 57);
     int x= 0; //test
     // Ramp
-    public static Pose P_RAMP_CP = new Pose(45.749, 42.542);
-    public static Pose P_RAMP_END = new Pose(50.982, 68.877);
-    public static Pose P_RAMP_WALL = new Pose(13.505, 69.383);
-    public static Pose P_RAMP_RET = new Pose(50.982, 68.539);
+    public static Pose P_RAMP_CP = new Pose(45.749, 68.877);
+    public static Pose P_RAMP_END = new Pose(50.982, 69.383);
+    public static Pose P_RAMP_WALL = new Pose(23, 69.383);
+    public static Pose P_RAMP_RET = new Pose(50.982, 69.383);
 
     // Intake 9
-    public static Pose P_I9_CP = new Pose(58.410, 79.343);
-    public static Pose P_I9_END = new Pose(47.606, 83.733);
-    public static Pose P_I9_WALL = new Pose(14.518, 83.733);
-    public static Pose P_I9_RETURN = new Pose(47.437, 83.902);
+    public static Pose P_I9_CP = new Pose(58.410, 82);
+    public static Pose P_I9_END = new Pose(47.606, 82);
+    public static Pose P_I9_WALL = new Pose(22, 82);
+    public static Pose P_I9_RETURN = new Pose(47.437, 82);
 
     // Extra balls
     public static Pose P_EX_CP1 = new Pose(56.891, 60.436);
@@ -76,7 +76,7 @@ public class AudiencePath {
 
     public static double H_90  = Math.toRadians(90);
     public static double H_180  = Math.toRadians(180);
-    public static double H_114 = Math.toRadians(114); // heading for far
+    public static double H_114 = Math.toRadians(115); // heading for far
 
     public static double H_150 = Math.toRadians(150);
     // =============================

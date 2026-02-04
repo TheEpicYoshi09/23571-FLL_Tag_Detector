@@ -53,7 +53,7 @@ public class AudienceThreeBall extends AbstractAuto {
                 new SequentialAction(
                         new ParallelAction(
                                 new Actions.CallbackAction(
-                                        RobotActions.startShooter(3),
+                                        RobotActions.startShooter(2),
                                         path.shootPreload, 0.1, 0, f, "Preloadrev"
                                 ),
                                 new FollowPathAction(f, path.shootPreload, true)

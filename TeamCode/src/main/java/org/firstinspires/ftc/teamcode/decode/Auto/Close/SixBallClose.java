@@ -75,6 +75,7 @@ public class SixBallClose extends AbstractAuto {
         robot.actionScheduler.addAction(
                 new SequentialAction(
                         new ParallelAction(
+                                new InstantAction(()-> f.setMaxPower(0.59)),
                                 new Actions.CallbackAction(
                                         RobotActions.intakeAction(1,4),
                                         path.intake3,0.01,0,f,"Intake3"
@@ -82,7 +83,8 @@ public class SixBallClose extends AbstractAuto {
                                 new FollowPathAction(f,path.intake3)
                         ),
                         new ParallelAction(
-                                new Actions.CallbackAction(
+                                new InstantAction(()-> f.setMaxPower(1)),
+                                    new Actions.CallbackAction(
                                         RobotActions.startShooter(1),
                                         path.shoot3,0.3,0,f,"Shoot3"
                                 ),

@@ -78,24 +78,26 @@ public class NineBallClose extends AbstractAuto {
         robot.actionScheduler.addAction(
                 new SequentialAction(
                         new ParallelAction(
+                                new InstantAction(()-> f.setMaxPower(0.59)),
                                 new Actions.CallbackAction(
-                                        RobotActions.intakeAction(1, 4),
-                                        path.intake3, 0.01, 0, f, "Intake3"
+                                        RobotActions.intakeAction(1,4),
+                                        path.intake3,0.01,0,f,"Intake3"
                                 ),
-                                new FollowPathAction(f, path.intake3)
+                                new FollowPathAction(f,path.intake3)
                         ),
                         new ParallelAction(
+                                new InstantAction(()-> f.setMaxPower(1)),
                                 new Actions.CallbackAction(
                                         RobotActions.startShooter(1),
-                                        path.shoot3, 0.3, 0, f, "Shoot3"
+                                        path.shoot3,0.3,0,f,"Shoot3"
                                 ),
-                                new FollowPathAction(f, path.shoot3)
+                                new FollowPathAction(f,path.shoot3)
                         ),
                         new ParallelAction(
-                                RobotActions.intakeAction(1, 1),
-                                RobotActions.loaderAction(1, 1)
+                                RobotActions.intakeAction(1,1),
+                                RobotActions.loaderAction(1,1)
                         ),
-                        new InstantAction(() -> robot.shooter.stop())
+                        new InstantAction(()-> robot.shooter.stop())
                 )
 
         );
@@ -107,6 +109,7 @@ public class NineBallClose extends AbstractAuto {
         robot.actionScheduler.addAction(
                 new SequentialAction(
                         new ParallelAction(
+                                new InstantAction(()-> f.setMaxPower(0.59)),
                                 new Actions.CallbackAction(
                                         RobotActions.intakeAction(1, 4),
                                         path.intake6, 0.01, 0, f, "intake6"
@@ -114,6 +117,7 @@ public class NineBallClose extends AbstractAuto {
                                 new FollowPathAction(f, path.intake6)
                         ),
                         new ParallelAction(
+                                new InstantAction(()-> f.setMaxPower(1)),
                                 new Actions.CallbackAction(
                                         RobotActions.startShooter(1), path.shoot6, 0.6, 0, f, "Shoot6"
                                 ),

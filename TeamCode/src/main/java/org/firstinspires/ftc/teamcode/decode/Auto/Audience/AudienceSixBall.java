@@ -55,7 +55,7 @@ public class AudienceSixBall extends AbstractAuto {
                 new SequentialAction(
                         new ParallelAction(
                                 new Actions.CallbackAction(
-                                        RobotActions.startShooter(5),
+                                        RobotActions.startShooter(2),
                                         path.shootPreload, 0.1, 0, f, "Preloadrev"
                                 ),
                                 new FollowPathAction(f, path.shootPreload, true)
@@ -85,7 +85,7 @@ public class AudienceSixBall extends AbstractAuto {
                         ),
                                 new ParallelAction(
                                         new Actions.CallbackAction(
-                                                RobotActions.startShooter(5),
+                                                RobotActions.startShooter(2),
                                                 path.shoot3, 0.1, 0, f, "Shoot3"
                                         ),
                                         new FollowPathAction(f, path.shoot3)

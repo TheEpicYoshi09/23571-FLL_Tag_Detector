@@ -23,6 +23,11 @@ public class Paths {
     public PathChain intake9;
     public PathChain shoot9;
 
+    public PathChain intakeHuman;
+
+    public PathChain shootHuman;
+
+
     public PathChain intakeExtra1;
     public PathChain shootExtra1;
     public PathChain intakeExtra2;
@@ -40,26 +45,31 @@ public class Paths {
     public static Pose P_SHOOT = new Pose(89.000, 102.000);
 
     // Intake 3
-    public static Pose P_I3_CP = new Pose(79.512, 84);
-    public static Pose P_I3_END = new Pose(95.550, 84);
-    public static Pose P_I3_WALL = new Pose(117.7, 84.7);
+    public static Pose P_I3_CP = new Pose(79.512, 85.6);
+    public static Pose P_I3_END = new Pose(95.550, 85.6);
+    public static Pose P_I3_WALL = new Pose(123, 85.6);
 
     // Intake 6
-    public static Pose P_I6_CP = new Pose(73.435, 63);
-    public static Pose P_I6_END = new Pose(96.563, 63);
-    public static Pose P_I6_WALL = new Pose(127, 63);
+    public static Pose P_I6_CP = new Pose(73.435, 62.5);
+    public static Pose P_I6_END = new Pose(96.563, 62.5);
+    public static Pose P_I6_WALL = new Pose(129, 62.5);
 
     // Ramp
     public static Pose P_RAMP_CP = new Pose(92.680, 75.123);
     public static Pose P_RAMP_END = new Pose(127.8, 75);
 
     // Intake 9
-    public static Pose P_I9_CP = new Pose(90, 42);
-    public static Pose P_I9_END = new Pose(99.264, 42);
-    public static Pose P_I9_WALL = new Pose(126.7, 42);
-    public static Pose P_I9_RETURN = new Pose(99.433, 42);
+    public static Pose P_I9_CP = new Pose(90, 39);
+    public static Pose P_I9_END = new Pose(99.264, 39);
+    public static Pose P_I9_WALL = new Pose(130, 39);
+    public static Pose P_I9_RETURN = new Pose(99.433, 39);
 
     // Extra balls
+    public static Pose P_HP_CP1 = new Pose(111.920, 56.783);
+    public static Pose P_HP_END = new Pose(137.788, 49.329);
+    public static Pose P_HP_WALL = new Pose(137.807, 9.166);
+    public static Pose P_HP_RETURN = new Pose(137.638, 49.348);
+
     public static Pose P_EX_CP1 = new Pose(93.862, 66.851);
     public static Pose P_EX_END1 = new Pose(133.027, 60.774);
 
@@ -74,6 +84,7 @@ public class Paths {
     public static double H_38 = Math.toRadians(38);
     public static double H_0 = Math.toRadians(0);
     public static double H_43 = Math.toRadians(43);
+    public static double H_270 = Math.toRadians(270);
 
     public Paths(Follower follower) {
         f = follower;
@@ -105,6 +116,11 @@ public class Paths {
         P_I9_WALL = P_I9_WALL.mirror();
         P_I9_RETURN = P_I9_RETURN.mirror();
 
+        P_HP_CP1 = P_HP_CP1.mirror();
+        P_HP_END = P_HP_END.mirror();
+        P_HP_WALL = P_HP_WALL.mirror();
+        P_HP_RETURN = P_HP_RETURN.mirror();
+
         P_EX_CP1 = P_EX_CP1.mirror();
         P_EX_END1 = P_EX_END1.mirror();
 
@@ -119,6 +135,7 @@ public class Paths {
         H_0 = mirrorAngleRad(H_0);
         H_38 = mirrorAngleRad(H_38);
         H_43 = mirrorAngleRad(H_43);
+        H_270 = mirrorAngleRad(H_270);
     }
 
 
@@ -273,6 +290,21 @@ public class Paths {
             shoot9 = f.pathBuilder()
                     .addPath(new BezierCurve(P_I9_RETURN, P_I9_CP, P_SHOOT))
                     .setLinearHeadingInterpolation(H_0, H_38)
+                    .build();
+            intakeHuman = f.pathBuilder()
+                    .addPath(new BezierCurve(P_SHOOT, P_HP_CP1, P_HP_END))
+                    .setLinearHeadingInterpolation(H_38, H_270)
+                    .addPath(new BezierLine(P_HP_END, P_HP_WALL))
+                    .setTangentHeadingInterpolation()
+                    .addPath(new BezierLine(P_HP_WALL, P_HP_RETURN))
+                    .setTangentHeadingInterpolation()
+                    .setReversed()
+                    .build();
+
+            // ---------- Shoot Human ----------
+            shootHuman = f.pathBuilder()
+                    .addPath(new BezierCurve(P_HP_RETURN, P_HP_CP1, P_SHOOT))
+                    .setLinearHeadingInterpolation(H_270, H_38)
                     .build();
 
             // ---------- Extra Balls ----------

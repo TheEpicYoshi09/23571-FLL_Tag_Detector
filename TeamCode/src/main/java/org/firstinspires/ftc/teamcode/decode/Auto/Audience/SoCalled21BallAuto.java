@@ -61,16 +61,18 @@ public class SoCalled21BallAuto extends AbstractAuto {
                 new SequentialAction(
                         new ParallelAction(
                                 new Actions.CallbackAction(
-                                    RobotActions.startShooter(5),
+                                    RobotActions.startShooter(2),
                                     path.shootPreload,0.1,0,f,"Preloadrev"
                                 ),
                                 new FollowPathAction(f,path.shootPreload,true)
 
                         ),
                         new ParallelAction(
-                                RobotActions.intakeAction(1,3),
-                                RobotActions.loaderAction(1,3)
-                        )
+                                RobotActions.intakeAction(1,2),
+                                RobotActions.loaderAction(1,2)
+                        ),
+                        new InstantAction(()-> robot.shooter.stop())
+
                 )
 
         );
@@ -79,28 +81,32 @@ public class SoCalled21BallAuto extends AbstractAuto {
 
 
     private void cycle3() {
-
+//    path.shoot3.getPath(0).setHeadingConstraint(0.0349);
         robot.actionScheduler.addAction(
                 new SequentialAction(
                         new ParallelAction(
+                                new InstantAction(()-> f.setMaxPower(0.85)),
                                 new Actions.CallbackAction(
-                                        RobotActions.intakeAction(1, 5),
+                                        RobotActions.intakeAction(1, 3),
                                         path.intake3, 0.1, 0, f, "Intake3"
                                 ),
                                 new FollowPathAction(f,path.intake3)
                         ),
                         new ParallelAction(
+                                new InstantAction(()-> f.setMaxPower(1)),
                                 new Actions.CallbackAction(
-                                        RobotActions.startShooter(5),
-                                        path.shoot3, 0.1, 0, f, "Shoot3"
+                                        RobotActions.startShooter(2),
+                                        path.shoot3, 0.2, 0, f, "Shoot3"
                                 ),
                                 new FollowPathAction(f, path.shoot3)
                         ),
                         new ParallelAction(
-                                RobotActions.intakeAction(1, 3),
-                                RobotActions.loaderAction(1, 3)
+                                RobotActions.intakeAction(1, 2),
+                                RobotActions.loaderAction(1, 2)
                         ),
-                        new FollowPathAction(f,path.leave)
+                        new FollowPathAction(f,path.leave),
+                        new InstantAction(()-> robot.shooter.stop())
+
 
 
                 )
@@ -113,22 +119,26 @@ public class SoCalled21BallAuto extends AbstractAuto {
         robot.actionScheduler.addAction(
                 new SequentialAction(
                         new ParallelAction(
-                             new Actions.CallbackAction(
-                                     RobotActions.intakeAction(1,5),
+                                new InstantAction(()-> f.setMaxPower(0.85)),
+                                new Actions.CallbackAction(
+                                     RobotActions.intakeAction(1,3),
                                      path.intake6,0.1,0,f,"intake6"
                              ),
                                 new FollowPathAction(f,path.intake6)
                         ),
                         new ParallelAction(
+                                new InstantAction(()-> f.setMaxPower(1)),
                                 new Actions.CallbackAction(
-                                        RobotActions.startShooter(5),path.shoot6,0.1,0,f,"Shoot6"
+                                        RobotActions.startShooter(2),path.shoot6,0.4,0,f,"Shoot6"
                                 ),
                                 new FollowPathAction(f,path.shoot6)
                         ),
                         new ParallelAction(
-                                RobotActions.intakeAction(1,3),
-                                RobotActions.loaderAction(1,3)
-                        )
+                                RobotActions.intakeAction(1,2),
+                                RobotActions.loaderAction(1,2)
+                        ),
+                        new InstantAction(()-> robot.shooter.stop())
+
                 )
         );
         robot.actionScheduler.runBlocking();
@@ -147,22 +157,26 @@ public class SoCalled21BallAuto extends AbstractAuto {
         robot.actionScheduler.addAction(
                 new SequentialAction(
                         new ParallelAction(
+                                new InstantAction(()-> f.setMaxPower(0.85)),
                                 new Actions.CallbackAction(
                                         RobotActions.intakeAction(1,3),path.intake9,0.1,0,f,"Intake9"
                                 ),
                                 new FollowPathAction(f,path.intake9)
                         ),
                         new ParallelAction(
+                                new InstantAction(()-> f.setMaxPower(1)),
                                 new Actions.CallbackAction(
-                                        RobotActions.startShooter(0.35),path.shoot9,0.1,0,f,"Shoot9"
+                                        RobotActions.startShooter(2),path.shoot9,0.5,0,f,"Shoot9"
                                 ),
                                 new FollowPathAction(f,path.shoot9)
                         ),
                         new ParallelAction(
-                                RobotActions.intakeAction(1,3),
-                                RobotActions.loaderAction(1,3)
+                                RobotActions.intakeAction(1,2),
+                                RobotActions.loaderAction(1,2)
                         ),
-                        new FollowPathAction(f,path.leave)
+                        new FollowPathAction(f,path.leave),
+                        new InstantAction(()-> robot.shooter.stop())
+
 
                 )
         );

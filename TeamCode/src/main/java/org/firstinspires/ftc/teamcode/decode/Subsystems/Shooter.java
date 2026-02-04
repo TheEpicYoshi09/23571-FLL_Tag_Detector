@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.decode.Subsystems;
 
 import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.arcrobotics.ftclib.hardware.motors.MotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class Shooter {
@@ -16,6 +17,10 @@ public class Shooter {
         shooter = new MotorEx(hardwareMap, "leftShooterMotor", Motor.GoBILDA.BARE);
         followerShooter = new MotorEx(hardwareMap, "rightShooterMotor", Motor.GoBILDA.BARE);
 
+        followerShooter.motor.setDirection(DcMotorSimple.Direction.FORWARD);
+        shooter.motor.setDirection(DcMotorSimple.Direction.REVERSE);
+//forward forward didnt work
+        //reverse forward went wrong way
         shooter.setZeroPowerBehavior(Motor.ZeroPowerBehavior.FLOAT);
         followerShooter.setZeroPowerBehavior(Motor.ZeroPowerBehavior.FLOAT);
 
@@ -28,21 +33,15 @@ public class Shooter {
         followerShooter.set(1);
     }
 
-
-public void getVelocity(){
-    shooter.getVelocity();
-}
-    public void velocityShooterFar(){
+    public void velocityShooterFar() {
         shooter.setVelocity(FAR_VELOCITY);
         followerShooter.setVelocity(FAR_VELOCITY);
-
     }
-    public void velocityShooterClose(){
+
+    public void velocityShooterClose() {
         shooter.setVelocity(CLOSE_VELOCITY);
         followerShooter.setVelocity(CLOSE_VELOCITY);
-
     }
-
 
     public void stop() {
         shooter.set(0);

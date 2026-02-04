@@ -34,6 +34,7 @@ public class TeleOp2 extends LinearOpMode {
 
         frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+        followerWheelMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         // Retrieve the IMU from the hardware map
         imu = hardwareMap.get(IMU.class, "imu");
@@ -127,10 +128,10 @@ public class TeleOp2 extends LinearOpMode {
                 servo.setHoodservo(0.45);// close
             }
             else if(gamepad1.b){ // far
-                servo.setHoodservo(0.5);
+                servo.setHoodservo(0.2);
             }
             else if(gamepad1.dpad_down){ // all the way to the top
-                servo.setHoodservo(0.4);
+                servo.setHoodservo(0.3);
             }
 
 
@@ -139,7 +140,7 @@ public class TeleOp2 extends LinearOpMode {
             telemetry.addData("Back Left Power", backLeft.getPower());
             telemetry.addData("Back Right Power", backRight.getPower());
             telemetry.addData("intake Power", intake.getPower());
-            telemetry.addData("servo Power", servo.getPosition());
+            //telemetry.addData("servo Power", servo.get());
             telemetry.update();
         }
 
@@ -148,6 +149,5 @@ public class TeleOp2 extends LinearOpMode {
     }
     //telemetry.update();
 }
-
 
 

@@ -56,7 +56,7 @@ public class AudienceNineBall extends AbstractAuto {
                 new SequentialAction(
                         new ParallelAction(
                                 new Actions.CallbackAction(
-                                        RobotActions.startShooter(5),
+                                        RobotActions.startShooter(3),
                                         path.shootPreload, 0.1, 0, f, "Preloadrev"
                                 ),
                                 new FollowPathAction(f, path.shootPreload, true)
@@ -87,7 +87,7 @@ public class AudienceNineBall extends AbstractAuto {
                         ),
                         new ParallelAction(
                                 new Actions.CallbackAction(
-                                        RobotActions.startShooter(5),
+                                        RobotActions.startShooter(3),
                                         path.shoot3, 0.1, 0, f, "Shoot3"
                                 ),
                                 new FollowPathAction(f, path.shoot3)
@@ -117,7 +117,7 @@ public class AudienceNineBall extends AbstractAuto {
                         ),
                         new ParallelAction(
                                 new Actions.CallbackAction(
-                                        RobotActions.startShooter(5), path.shoot6, 0.5, 0, f, "Shoot6"
+                                        RobotActions.startShooter(3), path.shoot6, 0.5, 0, f, "Shoot6"
                                 ),
                                 new FollowPathAction(f, path.shoot6)
                         ),

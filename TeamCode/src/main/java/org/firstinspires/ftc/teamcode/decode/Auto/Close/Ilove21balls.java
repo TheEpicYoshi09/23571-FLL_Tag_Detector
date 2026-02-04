@@ -5,6 +5,7 @@ import static org.firstinspires.ftc.teamcode.decode.Subsystems.Common.robot;
 import com.acmerobotics.roadrunner.InstantAction;
 import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.SequentialAction;
+import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -15,6 +16,7 @@ import org.firstinspires.ftc.teamcode.decode.Subsystems.Actions;
 import org.firstinspires.ftc.teamcode.decode.Subsystems.Common;
 import org.firstinspires.ftc.teamcode.decode.Subsystems.FollowPathAction;
 import org.firstinspires.ftc.teamcode.decode.Subsystems.RobotActions;
+
 @Autonomous (name = "21BallClose")
 public class Ilove21balls extends AbstractAuto {
     private Follower f;
@@ -45,6 +47,7 @@ protected void onRun() {
     cycle6();
     unloadRamp();
     cycle9();
+    Human();
     extraOne();
     extraTwo();
     extraThree();
@@ -56,15 +59,15 @@ private void shootPreload() {
             new SequentialAction(
                     new ParallelAction(
                             new Actions.CallbackAction(
-                                    RobotActions.startShooter(1),
-                                    path.shootPreload,0.5,0,f,"Preloadrev"
+                                    RobotActions.startShooter(0.7),
+                                    path.shootPreload,1,0,f,"Preloadrev"
                             ),
                             new FollowPathAction(f,path.shootPreload,true)
 
                     ),
                     new ParallelAction(
-                            RobotActions.intakeAction(1,1),
-                            RobotActions.loaderAction(1,1)
+                            RobotActions.intakeAction(1,1.5),
+                            RobotActions.loaderAction(1,1.5)
                     ),
                     new InstantAction(()-> robot.shooter.stop())
 
@@ -75,61 +78,67 @@ private void shootPreload() {
 }
 
 
-private void cycle3() {
-
-    robot.actionScheduler.addAction(
-            new SequentialAction(
-                    new ParallelAction(
+    private void cycle3() {
+        path.shoot3.getPath(0).setBrakingStart(0.9);
+        path.shoot3.getPath(0).setBrakingStrength(0.7);
+        robot.actionScheduler.addAction(
+                new SequentialAction(
+                        new ParallelAction(
+                                new InstantAction(()-> f.setMaxPower(0.7)),
                                 new Actions.CallbackAction(
-                                        RobotActions.intakeAction(1,4),
+                                        RobotActions.intakeAction(1,3),
                                         path.intake3,0.01,0,f,"Intake3"
                                 ),
                                 new FollowPathAction(f,path.intake3)
-                             ),
-                            new ParallelAction(
-                                    new Actions.CallbackAction(
-                                            RobotActions.startShooter(1),
-                                            path.shoot3,0.3,0,f,"Shoot3"
-                                    ),
-                                    new FollowPathAction(f,path.shoot3)
-                            ),
-                            new ParallelAction(
-                                    RobotActions.intakeAction(1,1),
-                                    RobotActions.loaderAction(1,1)
-                            ),
-                    new InstantAction(()-> robot.shooter.stop())
-            )
+                        ),
+                        new ParallelAction(
+                                new InstantAction(()-> f.setMaxPower(0.8)),
+                                new Actions.CallbackAction(
+                                        RobotActions.startShooter(0.7),
+                                        path.shoot3,0.97,0,f,"Shoot3"
+                                ),
+                                new FollowPathAction(f,path.shoot3)
+                        ),
+                        new ParallelAction(
+                                RobotActions.intakeAction(1,1.5),
+                                RobotActions.loaderAction(1,1.5)
+                        ),
+                        new InstantAction(()-> robot.shooter.stop())
+                )
 
-    );
-    robot.actionScheduler.runBlocking();
-}
+        );
+        robot.actionScheduler.runBlocking();
+    }
 
-private void cycle6() {
-
-    robot.actionScheduler.addAction(
-            new SequentialAction(
-                    new ParallelAction(
-                            new Actions.CallbackAction(
-                                    RobotActions.intakeAction(1,4),
-                                    path.intake6,0.01,0,f,"intake6"
-                            ),
-                            new FollowPathAction(f,path.intake6)
-                    ),
-                    new ParallelAction(
-                            new Actions.CallbackAction(
-                                    RobotActions.startShooter(1),path.shoot6,0.3,0,f,"Shoot6"
-                            ),
-                            new FollowPathAction(f,path.shoot6)
-                    ),
-                    new ParallelAction(
-                            RobotActions.intakeAction(1,1),
-                            RobotActions.loaderAction(1,1)
-                    ),
-                    new InstantAction(()-> robot.shooter.stop())
-            )
-    );
-    robot.actionScheduler.runBlocking();
-}
+    private void cycle6() {
+        path.shoot6.getPath(0).setBrakingStart(0.8);
+        path.shoot6.getPath(0).setBrakingStrength(0.8);
+        robot.actionScheduler.addAction(
+                new SequentialAction(
+                        new ParallelAction(
+                                new InstantAction(()-> f.setMaxPower(0.7)),
+                                new Actions.CallbackAction(
+                                        RobotActions.intakeAction(1, 4),
+                                        path.intake6, 0.01, 0, f, "intake6"
+                                ),
+                                new FollowPathAction(f, path.intake6)
+                        ),
+                        new ParallelAction(
+                                new InstantAction(()-> f.setMaxPower(1)),
+                                new Actions.CallbackAction(
+                                        RobotActions.startShooter(0.4), path.shoot6, 0.99, 0, f, "Shoot6"
+                                ),
+                                new FollowPathAction(f, path.shoot6)
+                        ),
+                        new ParallelAction(
+                                RobotActions.intakeAction(1,1.5),
+                                RobotActions.loaderAction(1,1.5)
+                        ),
+                        new InstantAction(() -> robot.shooter.stop())
+                )
+        );
+        robot.actionScheduler.runBlocking();
+    }
     private void unloadRamp() {
 
         robot.actionScheduler.addAction(
@@ -140,10 +149,13 @@ private void cycle6() {
     }
 
 private void cycle9() {
+path.shoot9.getPath(0).setBrakingStart(0.8);
+path.shoot9.getPath(0).setBrakingStrength(0.8);
 
     robot.actionScheduler.addAction(
             new SequentialAction(
                     new ParallelAction(
+                            new InstantAction(()-> f.setMaxPower(0.7)),
                             new Actions.CallbackAction(
                                     RobotActions.intakeAction(1,4),path.intake9,0.1,0,f,"Intake9"
                             ),
@@ -151,14 +163,15 @@ private void cycle9() {
 
                     ),
                             new ParallelAction(
+                                    new InstantAction(()-> f.setMaxPower(1)),
                                     new Actions.CallbackAction(
-                                            RobotActions.startShooter(1),path.shoot9,0.6,0,f,"Shoot9"
+                                            RobotActions.startShooter(0.68),path.shoot9,0.99,0,f,"Shoot9"
                                     ),
                                     new FollowPathAction(f,path.shoot9)
                             ),
                             new ParallelAction(
-                                    RobotActions.intakeAction(1,1),
-                                    RobotActions.loaderAction(1,1)
+                                    RobotActions.intakeAction(1,1.5),
+                                    RobotActions.loaderAction(1,1.5)
                             ),
                     new InstantAction(()-> robot.shooter.stop())
 
@@ -167,7 +180,35 @@ private void cycle9() {
 
     robot.actionScheduler.runBlocking();
 }
+    private void Human() {
 
+        robot.actionScheduler.addAction(
+                new SequentialAction(
+                        new ParallelAction(
+                                new InstantAction(()-> f.setMaxPower(0.7)),
+                                new Actions.CallbackAction(
+                                        RobotActions.intakeAction(1,4),path.intakeHuman,0.1,0,f,"IntakeHuman"
+                                ),
+                                new FollowPathAction(f,path.intakeHuman)
+                        ),
+                        new ParallelAction(
+                                new InstantAction(()-> f.setMaxPower(0.85)),
+                                new Actions.CallbackAction(
+                                        RobotActions.startShooter(1),path.shootHuman,0.5,0,f,"ShootHuman"
+                                ),
+                                new FollowPathAction(f,path.shootHuman)
+                        ),
+                        new ParallelAction(
+                                RobotActions.intakeAction(1,1.5),
+                                RobotActions.loaderAction(1,1.5)
+                        ),
+                        new InstantAction(()-> robot.shooter.stop())
+
+                )
+        );
+
+        robot.actionScheduler.runBlocking();
+    }
 private void extraOne() {
 
     robot.actionScheduler.addAction(
