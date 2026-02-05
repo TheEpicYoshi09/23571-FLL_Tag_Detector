@@ -34,10 +34,9 @@ public class StateMachine {
     private final TurretTracker turretTracker;
     private final SpindexerController spindexerController;
     private final FindGoal findGoal;
-    private final boolean runTrackTurret = false;
 
-    private Timer pathTimer = new Timer();
-    private Timer autoTimer = new Timer();
+    private final Timer pathTimer = new Timer();
+    private final Timer autoTimer = new Timer();
     private int autoNearSubStep = 0;
     private int autoFarSubStep = 0;
     private boolean shootStarted = false;
@@ -75,9 +74,9 @@ public class StateMachine {
         paths = DecodePaths.buildPaths(robot, follower);
     }
 
-    private boolean shoot(DecodePaths.AUTO_PATHS breakPath, boolean runIntakeOnLastShot) {
+    private boolean shoot(DecodePaths.AUTO_PATHS breakPath, boolean checkArtifacts) {
         if (breakPath != null) {
-            breakOutAuto(breakPath);
+            if (breakOutAuto(breakPath)) return false;
         }
 
         if (shootingController == null) {
@@ -101,15 +100,18 @@ public class StateMachine {
             shootStarted = true;
         }
 
-        boolean finishedShooting = shootStarted && shootingController.updateAndIsComplete(runIntakeOnLastShot);
+        boolean finishedShooting = shootStarted && shootingController.updateAndIsComplete(checkArtifacts);
         if (finishedShooting) {
             shootStarted = false;
             return true;
         }
         return false;
     }
-    private boolean shoot(DecodePaths.AUTO_PATHS breakPath) { return shoot(breakPath, false); }
-    private boolean shoot() { return shoot(null, false); }
+
+    private boolean shoot(DecodePaths.AUTO_PATHS breakPath) {
+        return shoot(breakPath, true);
+    }
+
     private void runFlywheel() {
         if (flywheelController != null) {
             if (!flywheelController.isEnabled()) {
@@ -125,13 +127,16 @@ public class StateMachine {
         }
     }
 
-    private void breakOutAuto(DecodePaths.AUTO_PATHS breakPath) {
-        if (autoTimer.getElapsedTimeSeconds() >= 28.75) {
-            robot.runIntake(RobotHardware.IntakeDirection.STOP);
-            spindexerController.setPosition(0);
-            stopFlywheel();
-            followPath(breakPath);
-        }
+    private boolean breakOutAuto(DecodePaths.AUTO_PATHS breakPath) {
+//        if (autoTimer.getElapsedTimeSeconds() >= 28.75) {
+//            robot.runIntake(RobotHardware.IntakeDirection.STOP);
+//            spindexerController.setPosition(0);
+//            spindexerController.disableAuto();
+//            stopFlywheel();
+//            followPath(breakPath);
+//            return true;
+//        }
+        return false;
     }
 
     private void followPath(DecodePaths.AUTO_PATHS path, boolean hold) {
@@ -149,13 +154,9 @@ public class StateMachine {
         follower.setPose(pose);
     }
 
-    private boolean completedPath() {
-        return !follower.isBusy();
-    }
+    private boolean completedPath() { return !follower.isBusy(); }
 
-    private boolean completePathWithDelay(double seconds) {
-        return completedPath() && pathTimer.getElapsedTimeSeconds() >= seconds;
-    }
+    private boolean completePathWithDelay(double seconds) { return completedPath() && pathTimer.getElapsedTimeSeconds() >= seconds; }
 
     public void update() {
         switch (currentState) {
@@ -169,8 +170,16 @@ public class StateMachine {
                 setPose(DecodePaths.BLUE_FAR_START, DecodePaths.RED_FAR_START);
                 break;
             case AUTO_NEAR:
+                // case 0-2 first shoot sequence
+                // case 3-5 start intake sequence for getting Spike 1
+                // case 6-7 shoot last 3
+                // case 8 kill robot
+                // est : artifact count 3-5 maybe 6
+
                 switch (autoNearSubStep) {
                     case 0:
+                        flywheelController.setLauncherFeedforward(30);
+                        //spindexerController.enableAuto();
                         autoTimer.resetTimer();
                         runFlywheel();
                         followPath(DecodePaths.AUTO_PATHS.NEAR_PATH_TO_SHOOT_AREA, true);
@@ -180,12 +189,11 @@ public class StateMachine {
                         if (findGoal.updateAndIsDone()) autoNearSubStep++;
                         break;
                     case 2:
-                        if ( completedPath() && shoot(DecodePaths.AUTO_PATHS.NEAR_SHOOT_AREA_TO_SPIKE1) ) autoNearSubStep++;
+                        if ( completedPath() )
+                            if ( shoot(DecodePaths.AUTO_PATHS.NEAR_SHOOT_LEAVE, false)) autoNearSubStep++;
                         break;
                     case 3:
                         if ( completedPath() ) {
-                            stopFlywheel();
-                            spindexerController.setPosition(0);
                             followPath(DecodePaths.AUTO_PATHS.NEAR_SHOOT_AREA_TO_SPIKE1, true);
                             pathTimer.resetTimer();
                             autoNearSubStep++;
@@ -194,15 +202,14 @@ public class StateMachine {
                     case 4:
                         if ( completePathWithDelay(1.0) ) {
                             robot.runIntake(RobotHardware.IntakeDirection.IN);
-                            runFlywheel();
-                            followPath(DecodePaths.AUTO_PATHS.NEAR_PICKUP_SPIKE1, true);
+                            followPath(DecodePaths.AUTO_PATHS.NEAR_PICKUP_SPIKE1_PART1, true);
                             pathTimer.resetTimer();
                             autoNearSubStep++;
                         }
                         break;
                     case 5:
                         if ( completePathWithDelay(1.0) ) {
-                            followPath(DecodePaths.AUTO_PATHS.NEAR_GOTO_SHOOT_SPIKE1, true);
+                            followPath(DecodePaths.AUTO_PATHS.NEAR_PICKUP_SPIKE1_PART2, true);
                             pathTimer.resetTimer();
                             autoNearSubStep++;
                         }
@@ -210,28 +217,38 @@ public class StateMachine {
                     case 6:
                         if ( completePathWithDelay(1.5) ) {
                             robot.runIntake(RobotHardware.IntakeDirection.STOP);
+                            followPath(DecodePaths.AUTO_PATHS.NEAR_GOTO_SHOOT_SPIKE1, true);
                             autoNearSubStep++;
                         }
                         break;
                     case 7:
                         if ( completedPath() ) {
-                            if ( shoot(null, true) ) {
+                            if ( shoot(DecodePaths.AUTO_PATHS.NEAR_SHOOT_LEAVE) ) {
                                 stopFlywheel();
-                                setState(State.STOP);
                                 autoNearSubStep++;
                             }
                         }
+                        break;
+                    case 8:
+                        if (completedPath()) setState(State.STOP);
                         break;
                     default:
                         break;
                 }
                 break;
             case AUTO_FAR:
+                // case 0-2 first shoot sequence
+                // case 3-5 start intake sequence for getting Spike 3
+                // case 6-7 shoot last 3
+                // case 8 kill robot
+                // est : artifact count 3-5 maybe 6
+
                 switch (autoFarSubStep) {
                     case 0:
+                        flywheelController.setLauncherFeedforward(29);
+                        //spindexerController.enableAuto();
                         autoTimer.resetTimer();
                         runFlywheel();
-                        flywheelController.setLauncherFeedforward(30);
                         followPath(DecodePaths.AUTO_PATHS.FAR_START_TO_SHOOT, true);
                         autoFarSubStep++;
                         break;
@@ -240,8 +257,7 @@ public class StateMachine {
                         break;
                     case 2:
                         if ( completedPath() ) {
-                            if ( shoot(DecodePaths.AUTO_PATHS.FAR_SHOOT_LEAVE) ) {
-                                spindexerController.setPosition(2);
+                            if ( shoot(DecodePaths.AUTO_PATHS.FAR_SHOOT_LEAVE, false) ) {
                                 robot.runIntake(RobotHardware.IntakeDirection.IN);
                                 followPath(DecodePaths.AUTO_PATHS.FAR_SHOOT_TO_SPIKE3_LINEUP, true);
                                 autoFarSubStep++;
@@ -256,14 +272,14 @@ public class StateMachine {
                         }
                         break;
                     case 4:
-                        if ( completePathWithDelay(1.0) ) {
-                            spindexerController.setPosition(0);
+                        if ( completePathWithDelay(2.0) ) {
+                            spindexerController.setPosition(2);
                             pathTimer.resetTimer();
                             autoFarSubStep++;
                         }
                         break;
                     case 5:
-                        if ( completePathWithDelay(1.0) ) {
+                        if ( completePathWithDelay(1.25) ) {
                             spindexerController.setPosition(1);
                             pathTimer.resetTimer();
                             autoFarSubStep++;
@@ -285,7 +301,7 @@ public class StateMachine {
                         break;
                     case 8:
                         if ( completedPath() ) {
-                            if ( shoot(DecodePaths.AUTO_PATHS.FAR_SHOOT_LEAVE, true) ) {
+                            if ( shoot(DecodePaths.AUTO_PATHS.FAR_SHOOT_LEAVE) ) {
                                 followPath(DecodePaths.AUTO_PATHS.FAR_SHOOT_LEAVE, true);
                                 stopFlywheel();
                                 autoFarSubStep++;
@@ -293,9 +309,7 @@ public class StateMachine {
                         }
                         break;
                     case 9:
-                        if (completedPath()) {
-                            setState(State.STOP);
-                        }
+                        if (completedPath()) setState(State.STOP);
                         break;
                     default:
                         break;

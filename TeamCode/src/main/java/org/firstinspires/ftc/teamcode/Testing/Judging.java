@@ -5,7 +5,6 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.Constants;
 import org.firstinspires.ftc.teamcode.RobotHardware;
-import org.firstinspires.ftc.teamcode.subsystems.ArtifactTracker;
 import org.firstinspires.ftc.teamcode.subsystems.FlywheelController;
 import org.firstinspires.ftc.teamcode.subsystems.SpindexerController;
 import org.firstinspires.ftc.teamcode.subsystems.TurretTracker;
@@ -14,10 +13,6 @@ import org.firstinspires.ftc.teamcode.subsystems.TurretTracker;
 public class Judging extends LinearOpMode {
 
     private final RobotHardware robot = new RobotHardware(this);
-    private TurretTracker turretTracker;
-    private FlywheelController flywheelController;
-    private SpindexerController spindexerController;
-    private ArtifactTracker artifactTracker;
 
     @Override
     public void runOpMode() {
@@ -26,10 +21,9 @@ public class Judging extends LinearOpMode {
         boolean turretTrackingEnabled = false;
 
         robot.init();
-        turretTracker = new TurretTracker(robot, telemetry);
-        flywheelController = new FlywheelController(robot, telemetry);
-        artifactTracker = new ArtifactTracker(robot, telemetry);
-        spindexerController = new SpindexerController(robot, artifactTracker, telemetry);
+        TurretTracker turretTracker = new TurretTracker(robot, telemetry);
+        FlywheelController flywheelController = new FlywheelController(robot, telemetry);
+        SpindexerController spindexerController = new SpindexerController(robot, telemetry);
 
         telemetry.addLine("Judging OpMode Initialized");
         telemetry.update();
@@ -38,7 +32,6 @@ public class Judging extends LinearOpMode {
 
         while (opModeIsActive()) {
             robot.refreshLimelightResult();
-            artifactTracker.update();
 
             // Toggle turret tracking on gamepad1 back button
             boolean backButtonPressed = gamepad1.back;

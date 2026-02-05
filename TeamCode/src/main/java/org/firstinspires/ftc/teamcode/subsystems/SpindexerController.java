@@ -1,34 +1,30 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import com.pedropathing.util.Timer;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.Constants;
 import org.firstinspires.ftc.teamcode.RobotHardware;
+
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class SpindexerController {
     private final RobotHardware robot;
     private final ArtifactTracker artifactTracker;
     private final Telemetry telemetry;
+    private final ScheduledExecutorService scheduledExecutorService;
 
-    private final double[] spindexerPositions = new double[]{Constants.spindexer1, Constants.spindexer2, Constants.spindexer3};
+    private final double[] spindexerPositions = new double[]{Constants.SPINDEXER_1, Constants.SPINDEXER_2, Constants.SPINDEXER_3};
     private int spindexerIndex = 0;
-    private double spindexerPos = Constants.spindexerStart;
-
-    private boolean spindexerFull = false;
+    private double spindexerPos = Constants.SPINDEXER_1;
     private boolean autoSpinEnabled = false;
+    private boolean finishedMoving = true;
 
-    private long sensorReadAllowedAtNanos = 0L;
-    private long autoRotateAllowedAtNanos = 0L;
-
-    private static final long SENSOR_SETTLE_TIME_NANOS = 500_000_000L; // 0.5 seconds
-    private final ArtifactTracker.SlotStatus[] cachedSlots = new ArtifactTracker.SlotStatus[]{
-            ArtifactTracker.SlotStatus.VACANT,
-            ArtifactTracker.SlotStatus.VACANT,
-            ArtifactTracker.SlotStatus.VACANT
-    };
-
-    public SpindexerController(RobotHardware robot, ArtifactTracker artifactTracker, Telemetry telemetry) {
+    public SpindexerController(RobotHardware robot, Telemetry telemetry) {
         this.robot = robot;
-        this.artifactTracker = artifactTracker;
+        this.artifactTracker = new ArtifactTracker(robot, telemetry);
+        this.scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
         this.telemetry = telemetry;
     }
 
@@ -37,95 +33,126 @@ public class SpindexerController {
     }
 
     public void update() {
+        artifactTracker.update();
+
         telemetry.addLine("--- SPINDEXER ---");
 
-        if (autoSpinEnabled) {
-            telemetry.addLine("AUTO SPINDEXER ENABLED!");
-
-            boolean allowSensorRead = System.nanoTime() >= sensorReadAllowedAtNanos;
-            boolean allowAutoRotation = System.nanoTime() >= autoRotateAllowedAtNanos;
-            ArtifactTracker.SlotStatus[] slots = cachedSlots;
-
-            if (allowSensorRead) {
-                ArtifactTracker.SlotStatus[] latest = artifactTracker.getSlotStatuses();
-                System.arraycopy(latest, 0, cachedSlots, 0, cachedSlots.length);
-                slots = cachedSlots;
-            } else {
-                telemetry.addLine("Spindexer settling; holding position");
-            }
-
-            spindexerFull = allSlotsFilled(slots);
-            if (spindexerFull) {
-                if (allowAutoRotation) {
-                    setPosition(0);
-                    telemetry.addData("SPINDEXER POSITION", spindexerPos);
-                    telemetry.addData("SPINDEXER INDEX", spindexerIndex);
-                    telemetry.addLine("SPINDEXER FULL!");
-                    telemetry.addLine("-------------------------");
-                }
-                return;
-            }
-
-            if (!allowSensorRead) {
-                telemetry.addData("SPINDEXER POSITION", spindexerPos);
-                telemetry.addData("SPINDEXER INDEX", spindexerIndex);
-                telemetry.addLine("-------------------------");
-                return;
-            }
-
-            if (getIndex() == 0) {
-                boolean hiddenSlotVacant = slots[2] == ArtifactTracker.SlotStatus.VACANT;
-                if (hiddenSlotVacant && slotsFilled(slots, 0, 1)) {
-                    if (allowAutoRotation) {
-                        setPosition(1);
-                    }
-                }
-            } else {
-                boolean hiddenSlotVacant = slots[0] == ArtifactTracker.SlotStatus.VACANT;
-                if (hiddenSlotVacant && slotsFilled(slots, 1, 2)) {
-                    if (allowAutoRotation) {
-                        setPosition(0);
-                    }
-                }
-            }
-        }
+        if (autoSpinEnabled) autoUpdate();
 
         telemetry.addData("SPINDEXER POSITION", spindexerPos);
         telemetry.addData("SPINDEXER INDEX", spindexerIndex);
+
         telemetry.addLine("-------------------------");
+    }
+
+    public void autoUpdate() {
+        telemetry.addLine("AUTO SPINDEXER ENABLED!");
+
+        if (!isFinished()) {
+            telemetry.addLine("SPIDEXER ISNT FINISHED MOVING!");
+            return;
+        }
+
+        if (isSpindexerFull()) {
+            telemetry.addLine("SPINDEXER IS FULL!");
+            return;
+        }
+
+        int currentIndex = 0;
+        int nextIndex = 1;
+        int lastIndex = 2;
+
+        boolean lastSlotEmpty = getSlotState(lastIndex) == ArtifactTracker.SlotStatus.VACANT;
+        boolean currentSlotFull = getSlotState(currentIndex) != ArtifactTracker.SlotStatus.VACANT;
+        boolean nextSlotFull = getSlotState(nextIndex) != ArtifactTracker.SlotStatus.VACANT;
+
+        if (currentSlotFull && nextSlotFull && lastSlotEmpty) {
+            setPosition(getNearestIndex(getIndex()));
+        }
+    }
+
+    public int getNearestIndex(int index) {
+        if (index == 1) {
+            return 2;
+        }
+        return 1;
+    }
+
+    public int getPreviousIndex(int index) {
+        int previousIndex = index - 1;
+        if (previousIndex < 0) previousIndex = 2;
+        return previousIndex;
+    }
+
+    public int getNextIndex(int index) {
+        int nextIndex = index + 1;
+        if (nextIndex > 2) nextIndex = 0;
+        return nextIndex;
+    }
+
+    public ArtifactTracker getArtifactTracker() {
+        return artifactTracker;
+    }
+
+    public ArtifactTracker.SlotStatus getSlotState(int index) {
+        return artifactTracker.getSlotStatus(index);
+    }
+
+    public ArtifactTracker.SlotStatus getCurrentSlotState() {
+        return artifactTracker.getSlotStatus(getIndex());
     }
 
     public void toggleAuto() {
         autoSpinEnabled = !autoSpinEnabled;
     }
 
+    public void disableAuto() {
+        autoSpinEnabled = false;
+    }
+
+    public void enableAuto() {
+        autoSpinEnabled = true;
+    }
+
     public boolean isEnabled() {
         return autoSpinEnabled;
     }
+
     public boolean isSpindexerFull() {
-        return spindexerFull;
+        return getSlotState(0) != ArtifactTracker.SlotStatus.VACANT
+                && getSlotState(1) != ArtifactTracker.SlotStatus.VACANT
+                && getSlotState(2) != ArtifactTracker.SlotStatus.VACANT;
     }
 
-    private boolean allSlotsFilled(ArtifactTracker.SlotStatus[] slots) {
-        for (ArtifactTracker.SlotStatus status : slots) {
-            if (status == ArtifactTracker.SlotStatus.VACANT) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private boolean slotsFilled(ArtifactTracker.SlotStatus[] slots, int firstIndex, int secondIndex) {
-        return slots[firstIndex] != ArtifactTracker.SlotStatus.VACANT
-                && slots[secondIndex] != ArtifactTracker.SlotStatus.VACANT;
+    public boolean isSpindexerEmpty() {
+        return getSlotState(0) == ArtifactTracker.SlotStatus.VACANT
+                && getSlotState(1) == ArtifactTracker.SlotStatus.VACANT
+                && getSlotState(2) == ArtifactTracker.SlotStatus.VACANT;
     }
 
     public void setPosition(int index) {
-        int newIndex = Math.floorMod(index, 3);
-        if (spindexerIndex == newIndex) return; // this probably does nothing but im hoping it'll stop it from trying to set the position to the current position, and draw less power or something????????
-        spindexerIndex = newIndex;
+        if (index == getIndex()) {
+            finishedMoving = true;
+            return;
+        }
+
+        finishedMoving = false;
+
+        boolean wasAutoSpindexerEnabled = autoSpinEnabled;
+        if (wasAutoSpindexerEnabled) autoSpinEnabled = false;
+
+        spindexerIndex = Math.floorMod(index, 3);
         robot.spindexer.setPosition(spindexerPositions[spindexerIndex]);
         spindexerPos = spindexerPositions[spindexerIndex];
+
+        scheduledExecutorService.schedule(() -> {
+            finishedMoving = true;
+            if (wasAutoSpindexerEnabled) autoSpinEnabled = true;
+        }, Constants.SPINDEXER_ROTATION_TIME, TimeUnit.MILLISECONDS);
+    }
+
+    public boolean isFinished() {
+        return finishedMoving;
     }
 
     public double getPosition() {
@@ -154,7 +181,7 @@ public class SpindexerController {
     }
 
     public void testReverseSpindexer(double delta) {
-        spindexerPos += delta;
+        spindexerPos -= delta;
         spindexerPos = Math.max(0.0, Math.min(1.0, spindexerPos));
         robot.spindexer.setPosition(spindexerPos);
     }

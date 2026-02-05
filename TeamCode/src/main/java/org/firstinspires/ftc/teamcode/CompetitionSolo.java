@@ -9,13 +9,11 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit;
-import org.firstinspires.ftc.teamcode.subsystems.ArtifactTracker;
 import org.firstinspires.ftc.teamcode.subsystems.FlywheelController;
 import org.firstinspires.ftc.teamcode.subsystems.FlywheelPidfConfig;
 import org.firstinspires.ftc.teamcode.subsystems.ShootingController;
 import org.firstinspires.ftc.teamcode.subsystems.SpindexerController;
 import org.firstinspires.ftc.teamcode.subsystems.TurretTracker;
-//import org.firstinspires.ftc.teamcode.drivers.GoBildaPinpointDriver;
 
 import java.util.Locale;
 
@@ -23,7 +21,7 @@ import java.util.Locale;
 @TeleOp(name = "Competition Main (SOLO MODE)", group = "TeleOp")
 public class CompetitionSolo extends LinearOpMode {
 
-    RobotHardware robot = new RobotHardware(this);
+    final RobotHardware robot = new RobotHardware(this);
 
     private boolean dpadUpPreviouslyPressed = false;
     private boolean dpadDownPreviouslyPressed = false;
@@ -32,8 +30,6 @@ public class CompetitionSolo extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        double oldTime = 0;
-
         boolean backButtonPreviouslyPressed = false;
         boolean rightBumperPreviouslyPressed = false;
 
@@ -42,8 +38,7 @@ public class CompetitionSolo extends LinearOpMode {
 
         TurretTracker turretTracker = new TurretTracker(robot, telemetry);
         FlywheelController flywheelController = new FlywheelController(robot, telemetry);
-        ArtifactTracker artifactTracker = new ArtifactTracker(robot, telemetry);
-        SpindexerController spindexerController = new SpindexerController(robot, artifactTracker, telemetry);
+        SpindexerController spindexerController = new SpindexerController(robot, telemetry);
         ShootingController shootingController = new ShootingController(robot, flywheelController, spindexerController, telemetry);
 
         spindexerController.init();
@@ -54,7 +49,6 @@ public class CompetitionSolo extends LinearOpMode {
         while (opModeIsActive()) {
 
             robot.refreshLimelightResult();
-            artifactTracker.update();
 
             LLResult result = robot.getLatestLimelightResult();
             if (result != null) {
@@ -66,10 +60,6 @@ public class CompetitionSolo extends LinearOpMode {
             }
 
             robot.pinpoint.update();
-            double newTime = getRuntime();
-            double loopTime = newTime - oldTime;
-            double frequency = 1 / loopTime;
-            oldTime = newTime;
             Pose2D pos = robot.pinpoint.getPosition();
             String data = String.format(Locale.US, "{X: %.3f, Y: %.3f, H: %.3f}", pos.getX(DistanceUnit.INCH), pos.getY(DistanceUnit.INCH), pos.getHeading(AngleUnit.DEGREES));
             telemetry.addData("Position", data);
@@ -161,9 +151,9 @@ public class CompetitionSolo extends LinearOpMode {
 
             if (shootingController.isIdle()) {
                 if (gamepad1.left_trigger >= 0.5) {
-                    robot.kicker.setPosition(Constants.kickerUp);
+                    robot.kicker.setPosition(Constants.KICKER_UP);
                 } else {
-                    robot.kicker.setPosition(Constants.kickerDown);
+                    robot.kicker.setPosition(Constants.KICKER_DOWN);
                 }
 
                 //Spindexer Manual Control

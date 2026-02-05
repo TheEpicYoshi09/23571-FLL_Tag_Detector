@@ -19,6 +19,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.drivers.rgbIndicator;
 import org.firstinspires.ftc.teamcode.drivers.rgbIndicator.LEDColors;
+import org.firstinspires.ftc.teamcode.pedroPathing.PedroConstants;
 import org.firstinspires.ftc.teamcode.subsystems.FlywheelPidfConfig;
 import org.firstinspires.ftc.teamcode.subsystems.LauncherMotorGroup;
 import org.firstinspires.ftc.teamcode.subsystems.TurretAimConfig;
@@ -26,7 +27,7 @@ import org.firstinspires.ftc.teamcode.subsystems.TurretAimConfig;
 public class RobotHardware {
 
     /* Declare OpMode members. */
-    private LinearOpMode myOpMode;   // gain access to methods in the calling OpMode.
+    private final LinearOpMode myOpMode;   // gain access to methods in the calling OpMode.
 
     // Define Motor and Servo objects  (Make them private so they can't be accessed externally)
     public DcMotor leftFront;
@@ -35,11 +36,11 @@ public class RobotHardware {
     public DcMotor rightBack;
     public DcMotorEx intake;
     public LauncherMotorGroup launcherGroup;
-
-    public DcMotorEx launcher;
-    public DcMotorEx launcher2;
     public DcMotorEx turret;
     public Servo spindexer;
+
+    public Servo kickStand1;
+    public Servo kickStand2;
     public Servo kicker;
     public Servo headlight;  //PWM Controlled LED
     public boolean allianceColorRed = false;
@@ -50,7 +51,8 @@ public class RobotHardware {
     public DistanceSensor distance2;
     public ColorSensor color3;
     public DistanceSensor distance3;
-    //private AnalogInput turretPos;
+
+    private double powerDampener = 1;
 
     private TelemetryManager panelsTelemetry;
 
@@ -69,17 +71,14 @@ public class RobotHardware {
     public rgbIndicator rearRGB3;
     private DigitalChannel allianceButton;
     private double headingOffsetRadians = 0.0;
-    private double targetRPM = 0;
-    private boolean flywheelOn = false;
-    private int turretTargetPosition = 0;
 
     // Example: GoBilda 5202/5203/5204 encoder = 28 ticks/rev
     private static final double TICKS_PER_REV = 28.0;
     private LLResult latestLimelightResult;
 
     // Define a constructor that allows the OpMode to pass a reference to itself.
-    public RobotHardware(LinearOpMode opmode) {
-        myOpMode = opmode;
+    public RobotHardware(LinearOpMode opMode) {
+        myOpMode = opMode;
     }
 
     public TelemetryManager getPanelsTelemetry() {
@@ -115,9 +114,7 @@ public class RobotHardware {
         rearRGB1 = new rgbIndicator(myOpMode.hardwareMap, "rearRGB1");
         rearRGB2 = new rgbIndicator(myOpMode.hardwareMap, "rearRGB2");
         rearRGB3 = new rgbIndicator(myOpMode.hardwareMap, "rearRGB3");
-        rearRGB1.setColor(LEDColors.YELLOW);
-        rearRGB2.setColor(LEDColors.YELLOW);
-        rearRGB3.setColor(LEDColors.YELLOW);
+        setColorOfBackLights(LEDColors.YELLOW);
 
         allianceButton = myOpMode.hardwareMap.get(DigitalChannel.class, "allianceButton");
         allianceButton.setMode(DigitalChannel.Mode.INPUT);
@@ -131,8 +128,8 @@ public class RobotHardware {
         // Apply the Pedro Pathing tuner odometry offsets (recorded in inches) to the Pinpoint localizer.
         // The Pinpoint firmware stores offsets in millimeters, but its driver converts when given a DistanceUnit
         // so we can supply inch measurements directly. Forward pod is the Y offset, strafe pod is the X offset.
-        double forwardPodOffsetInches = -3.375;   // Pedro Pathing forward pod Y offset
-        double strafePodOffsetInches = 5.5625;    // Pedro Pathing strafe pod X offset
+        double forwardPodOffsetInches = PedroConstants.FORWARD_POD_Y;
+        double strafePodOffsetInches = PedroConstants.STRAFE_POD_X;
         pinpoint.setOffsets(forwardPodOffsetInches, strafePodOffsetInches, DistanceUnit.INCH);
         pinpoint.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
         pinpoint.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.REVERSED);
@@ -183,13 +180,15 @@ public class RobotHardware {
         // Define and initialize ALL installed servos.
 
         spindexer = myOpMode.hardwareMap.get(Servo.class, "spindexer");
-        spindexer.setPosition(Constants.spindexerStart);
+        spindexer.setPosition(Constants.SPINDEXER_1);
 
         kicker = myOpMode.hardwareMap.get(Servo.class, "kicker");
-        kicker.setPosition(Constants.kickerDown);
+        kicker.setPosition(Constants.KICKER_DOWN);
 
-        Servo hood = myOpMode.hardwareMap.get(Servo.class, "hood");
-        hood.setPosition(Constants.hoodMinimum);
+        kickStand1 = myOpMode.hardwareMap.get(Servo.class, "kickStand1");
+        kickStand1.setPosition(Constants.KICKERSTAND_NORMAL);
+        kickStand2 = myOpMode.hardwareMap.get(Servo.class, "kickStand2");
+        kickStand2.setPosition(Constants.KICKERSTAND_NORMAL);
 
         //Turret LED
         headlight = myOpMode.hardwareMap.get(Servo.class, "headlight");
@@ -241,9 +240,6 @@ public class RobotHardware {
     }
 
     public LLResult getLatestLimelightResult() {
-        myOpMode.telemetry.addLine("--- LIMELIGHT ---");
-        myOpMode.telemetry.addData("RESULT", latestLimelightResult != null && latestLimelightResult.isValid());
-        myOpMode.telemetry.addLine("-------------------------");
         return latestLimelightResult;
     }
 
@@ -254,9 +250,7 @@ public class RobotHardware {
         refreshAllianceFromSwitchState();
         rgbIndicatorMain.setColor(allianceColorRed ? LEDColors.RED : LEDColors.BLUE);
         frontLED.setColor(allianceColorRed ? LEDColors.RED : LEDColors.BLUE);
-        rearRGB1.setColor(allianceColorRed ? LEDColors.RED : LEDColors.BLUE);
-        rearRGB2.setColor(allianceColorRed ? LEDColors.RED : LEDColors.BLUE);
-        rearRGB3.setColor(allianceColorRed ? LEDColors.RED : LEDColors.BLUE);
+        setColorOfBackLights(allianceColorRed ? LEDColors.RED : LEDColors.BLUE);
 
     }
 
@@ -312,37 +306,6 @@ public class RobotHardware {
         return headingRadians + headingOffsetRadians;
     }
 
-    /**
-     * Calculates the left/right motor powers required to achieve the requested
-     * robot motions: Drive (Axial motion) and Turn (Yaw motion).
-     * Then sends these power levels to the motors.
-     *
-     * @param x     x-axis power
-     * @param y     y-axis power
-     * @param rotation Rotation
-     */
-    public void mecanumDrive(double x, double y, double rotation) {
-        // Combine drive and turn for blended motion.
-        double leftFrontPower = y + x + rotation;
-        double rightFrontPower = y - x - rotation;
-        double leftBackPower = y - x + rotation;
-        double rightBackPower = y + x - rotation;
-
-        // Normalize power values to keep them between -1 and 1
-        double maxPower = Math.max(1.0, Math.abs(leftFrontPower));
-        maxPower = Math.max(maxPower, Math.abs(rightFrontPower));
-        maxPower = Math.max(maxPower, Math.abs(leftBackPower));
-        maxPower = Math.max(maxPower, Math.abs(rightBackPower));
-
-        leftFrontPower /= maxPower;
-        rightFrontPower /= maxPower;
-        leftBackPower /= maxPower;
-        rightBackPower /= maxPower;
-
-        // Use existing function to drive the wheels.
-        setDrivePower(leftFrontPower, rightFrontPower, leftBackPower, rightBackPower);
-    }
-
     public void FieldCentricDrive(double x, double y, double rx, double botHeading){
         double rotX = x * Math.cos(-botHeading) - y * Math.sin(-botHeading);
         double rotY = x * Math.sin(-botHeading) + y * Math.cos(-botHeading);
@@ -362,14 +325,6 @@ public class RobotHardware {
     }
 
     /**
-     * Backwards-compatible wrapper for older code that referenced
-     * {@code FieldCentricdrive} with a lowercase "d".
-     */
-    public void FieldCentricdrive(double x, double y, double rx, double botHeading){
-        FieldCentricDrive(x, y, rx, botHeading);
-    }
-
-    /**
      * Pass the requested wheel motor powers to the appropriate hardware drive motors.
      *
      * @param leftFrontPower Left Front Power
@@ -379,83 +334,28 @@ public class RobotHardware {
      */
     public void setDrivePower(double leftFrontPower, double rightFrontPower, double leftBackPower, double rightBackPower) {
         // Output the values to the motor drives.
-        leftFront.setPower(leftFrontPower);
-        rightFront.setPower(rightFrontPower);
-        leftBack.setPower(leftBackPower);
-        rightBack.setPower(rightBackPower);
+        leftFront.setPower(leftFrontPower * powerDampener);
+        rightFront.setPower(rightFrontPower * powerDampener);
+        leftBack.setPower(leftBackPower * powerDampener);
+        rightBack.setPower(rightBackPower * powerDampener);
     }
 
-    public double getTargetRPM() {
-        return targetRPM;
-    }
-
-    public boolean isFlywheelOn() {
-        return flywheelOn;
-    }
-
-    public void toggleFlywheel(double rpm) {
-        if (flywheelOn && Math.abs(targetRPM - rpm) < 10) {
-            stopFlywheel();
+    public void setPowerDampener(double delta) {
+        if (powerDampener == delta) {
+            powerDampener = 1;
         } else {
-            setTargetRPM(rpm);
+            powerDampener = delta;
         }
     }
 
-    public void stopFlywheel() {
-        launcherGroup.group.setVelocity(0);
-        targetRPM = 0;
-        flywheelOn = false;
-    }
-
-    public void setTargetRPM(double rpm) {
-        launcherGroup.applyLauncherPIDFTuning();
-
-        targetRPM = rpm;
-        flywheelOn = rpm > 0;
-
-        if (flywheelOn) {
-            double ticksPerSecond = rpmToTicksPerSecond(rpm);
-            launcherGroup.group.setVelocity(ticksPerSecond);
-        } else {
-            launcherGroup.group.setVelocity(0);
-        }
-    }
-
-    public void adjustRPM(double delta) {
-        if (flywheelOn) {
-            setTargetRPM(Math.max(0, targetRPM + delta));
-        }
+    public double getPowerDampener() {
+        return powerDampener;
     }
 
     private double rpmToTicksPerSecond(double rpm) {
         // Convert desired flywheel RPM to the motor-side encoder rate using the gear reduction.
         double motorRpm = rpm * Constants.LAUNCHER_GEAR_REDUCTION;
         return (motorRpm * TICKS_PER_REV) / 60.0;
-    }
-
-    public double getCurrentRPM() {
-        // Convert motor-side encoder velocity back to flywheel RPM.
-        return (launcherGroup.group.getVelocity() * 60.0) / (TICKS_PER_REV * Constants.LAUNCHER_GEAR_REDUCTION);
-    }
-
-
-    public int getTurretTarget() {
-        return turretTargetPosition;
-    }
-
-    public int getTurretPosition() {
-        return turret.getCurrentPosition();
-    }
-
-    public void adjustTurret(int deltaTicks) {
-        turretTargetPosition += deltaTicks;
-
-        // Clamp safe range
-        turretTargetPosition = Math.max(Constants.turret_MIN, Math.min(Constants.turret_MAX, turretTargetPosition));
-
-        turret.setTargetPosition(turretTargetPosition);
-        turret.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        turret.setPower(0.40);
     }
 
     public void runIntake(IntakeDirection Direction) {
@@ -466,5 +366,16 @@ public class RobotHardware {
         } else if (Direction == IntakeDirection.STOP) {
             intake.setPower(0.0);
         }
+    }
+
+    public void setKickStandPosition(double position) {
+        kickStand1.setPosition(position);
+        kickStand2.setPosition(position);
+    }
+
+    public void setColorOfBackLights(double color) {
+        rearRGB1.setColor(color);
+        rearRGB2.setColor(color);
+        rearRGB3.setColor(color);
     }
 }

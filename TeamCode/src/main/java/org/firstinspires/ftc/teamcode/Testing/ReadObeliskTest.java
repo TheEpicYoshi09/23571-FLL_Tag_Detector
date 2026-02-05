@@ -15,8 +15,8 @@ import org.firstinspires.ftc.teamcode.subsystems.ReadObelisk;
 @TeleOp(name = "Read Obelisk Test", group = "Test")
 public class ReadObeliskTest extends LinearOpMode {
 
-    private RobotHardware robot = new RobotHardware(this);
-    private ReadObelisk obeliskReader = new ReadObelisk(robot, this);
+    private final RobotHardware robot = new RobotHardware(this);
+    private final ReadObelisk obeliskReader = new ReadObelisk(robot, this);
 
     @Override
     public void runOpMode() {

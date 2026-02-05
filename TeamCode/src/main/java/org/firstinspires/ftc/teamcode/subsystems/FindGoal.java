@@ -59,8 +59,7 @@ public class FindGoal {
                     return true;
                 }
             } else {
-                double txDegrees = result.getFiducialResults().get(0).getTargetXDegrees();
-                error = txDegrees;
+                error = result.getFiducialResults().get(0).getTargetXDegrees();
                 if (Math.abs(error) <= TARGET_TOLERANCE_DEGREES) {
                     turret.setPower(0);
                     return true;
@@ -75,7 +74,7 @@ public class FindGoal {
         power = Range.clip(power, -SEARCH_POWER, SEARCH_POWER);
 
         double pos = turret.getCurrentPosition();
-        if ((pos <= Constants.turret_MIN && power < 0) || (pos >= Constants.turret_MAX && power > 0)) {
+        if ((pos <= Constants.TURRET_MIN && power < 0) || (pos >= Constants.TURRET_MAX && power > 0)) {
             turret.setPower(0);
             return false;
         }

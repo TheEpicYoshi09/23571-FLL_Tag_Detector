@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import androidx.annotation.NonNull;
+
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -36,6 +38,7 @@ public class ReadObelisk {
             return colors.clone();
         }
 
+        @NonNull
         @Override
         public String toString() {
             return String.format(Locale.US, "%s, %s, %s", colors[0], colors[1], colors[2]);
@@ -100,7 +103,7 @@ public class ReadObelisk {
         robot.limelight.pipelineSwitch(1);
         robot.refreshLimelightResult();
 
-        int targetTicks = allianceColor ? Constants.turret_OBELISK_LEFT_LIMIT : Constants.turret_OBELISK_RIGHT_LIMIT;
+        int targetTicks = allianceColor ? Constants.TURRET_OBELISK_LEFT_LIMIT : Constants.TURRET_OBELISK_RIGHT_LIMIT;
 
         ObeliskPattern detected = cachedPattern;
         boolean targetFound = detected != null;
@@ -139,7 +142,7 @@ public class ReadObelisk {
             }
         }
 
-        driveTurretTo(Constants.turretHome);
+        driveTurretTo(Constants.TURRET_HOME);
 
         telemetry.addData("Alliance Color", allianceColor ? "RED" : "BLUE");
         telemetry.addData("Turret Sweep", "Returning to home");

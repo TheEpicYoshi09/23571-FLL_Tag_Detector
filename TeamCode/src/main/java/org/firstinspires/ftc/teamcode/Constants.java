@@ -13,7 +13,7 @@ public class Constants {
     public static final double DEFAULT_RPM = 1500.0;
     public static final double LAUNCH_ZONE_MID_RPM = 2200.0; // ~3.5 ft, OLD : 2000.0
     public static final double LAUNCH_ZONE_FAR_RPM = 2350.0; // ~5.5 ft, OLD : 2200.0
-    public static final double LAUNCH_ZONE_FAR_FAR_RPM = 2750.0; // ~8 ft, OLD : 2700.0
+    public static final double LAUNCH_ZONE_FAR_FAR_RPM = 2765.0; // ~8 ft, OLD : 2700.0
     public static final double FLYWHEEL_TOLERANCE_RPM = 85.0;
     public static final double LAUNCHER_GEAR_REDUCTION = 16.0 / 24.0; // motor:flywheel = 2:3
 
@@ -29,32 +29,31 @@ public class Constants {
     public static final double LAUNCHER_D = 0.0;     // Slightly more damping for step changes  //original 0.6
 
     ///  SPINDEXER SETPOINTS
-    public static final double spindexerStart = 0.76;
-    public static final double spindexer1 = 0.76;
-    public static final double spindexer2 = 0.39;
-    public static final double spindexer3 = 0.015;
-
-    /// TURRET HOOD POSITIONS
-    public static final double hoodMinimum = 0.0;
-    public static final double hoodMaximum = 1.0;
+    public static final double SPINDEXER_1 = 0.76;
+    public static final double SPINDEXER_2 = 0.39;
+    public static final double SPINDEXER_3 = 0.015;
 
     ///  TURRET POSITIONS
-    public static final int turretHome = 0;
-    public static final int turret_MIN = -1025;  //counter-clockwise from above starting facing opposite intake
-    public static final int turret_MAX = 975;  //clockwise from above starting facing opposite intake
-    public static final int turret_OBELISK_LEFT_LIMIT = -600;
-    public static final int turret_OBELISK_RIGHT_LIMIT = 600;
-    public static final double turret_FAR_AIM_DISTANCE_FEET = 8.0;
-    public static final double turret_FAR_AIM_ADJUST_BLUE = -0.10; // aim left when distance exceeds threshold
-    public static final double turret_FAR_AIM_ADJUST_RED = 0.10; // aim right when distance exceeds threshold
+    public static final int TURRET_HOME = 0;
+    public static final int TURRET_MIN = -1025;  //counter-clockwise from above starting facing opposite intake
+    public static final int TURRET_MAX = 975;  //clockwise from above starting facing opposite intake
+    public static final int TURRET_OBELISK_LEFT_LIMIT = -600;
+    public static final int TURRET_OBELISK_RIGHT_LIMIT = 600;
+    public static final double TURRET_FAR_AIM_DISTANCE_FEET = 8.0;
+    public static final double TURRET_FAR_AIM_ADJUST_RED = 0.40; // aim right when distance exceeds threshold
+    public static final double TURRET_FAR_AIM_ADJUST_BLUE = -TURRET_FAR_AIM_ADJUST_RED; // aim left when distance exceeds threshold
 
     ///  KICKER POSITIONS
-    public static final double kickerDown = 0.0;
-    public static final double kickerUp = 1.0;
+    public static final double KICKER_DOWN = 0.0;
+    public static final double KICKER_UP = 1.0;
+
+    /// KICKER STAND POSITION
+    public static final double KICKERSTAND_RETRACTED = 0.35;
+    public static final double KICKERSTAND_NORMAL = 0.9;
 
     /// SHOOTER TIMING (milliseconds)
-    public static final long SHOOT_FIRE_DURATION_MS = 325;
-    public static final long SHOOT_RETRACT_DURATION_MS = 300;
+    public static final long SHOOT_FIRE_DURATION_MS = 300;
+    public static final long SHOOT_RETRACT_DURATION_MS = 750;
 
     /// COLOR SENSOR
     public static final double COLOR_SENSOR_PURPLE_RATIO = 1.05; // Blue must exceed red and green by this factor try 1.20
@@ -63,7 +62,14 @@ public class Constants {
     // Tuned against field samples (purple B:G ≈ 1.2–1.6, green G:B ≈ 1.2 and G:R ≈ 2.4)
     // to keep registering balls even when the sensor happens to look into a hole
     // instead of solid plastic.
-    public static final double COLOR_SENSOR_DETECTION_DISTANCE_MM = 55.0;
+    public static final double COLOR_SENSOR_DETECTION_DISTANCE_MM = 100.0;
+
+    /// SPINDEXER TIMING (milliseconds)
+    public static final long SPINDEXER_ROTATION_TIME = 700;
+
+    /// FLYWHEEL
+    public static final double FLYWHEEL_ADJUSTMENT_TIME = 0.3;
+    public static final double FLYWHEEL_ADJUSTMENT_INCREMENT = 0.25;
 
     ///AUTONOMOUS SETPOINTS
 

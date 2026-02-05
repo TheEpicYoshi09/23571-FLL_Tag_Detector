@@ -6,6 +6,9 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 
 public class Drawer {
+    /// CONSTANTS
+    private static final double ROBOT_SIZE = 17.5;
+    private static final double ROBOT_HALF_SIZE = ROBOT_SIZE/2;
     private static final double HEADING_OFFSET = 4.5;
     private static final double HEADING_LENGTH = 9.0;
     private static final Style STYLE = new Style("", "#FABF35", 0.75);
@@ -18,7 +21,7 @@ public class Drawer {
         this.follower = follower;
     }
 
-    private boolean valid(Pose pose) {
+    private boolean isValidPose(Pose pose) {
         return pose != null
                 && !Double.isNaN(pose.getX())
                 && !Double.isNaN(pose.getY())
@@ -26,9 +29,10 @@ public class Drawer {
     }
 
     private void drawRobot(Pose pose) {
-//        field.setStyle(STYLE);
-//        field.moveCursor(pose.getX(), pose.getY());
-//        field.rect(17.5, 17.5);
+        double x = pose.getX() - ROBOT_HALF_SIZE;
+        double y = pose.getY() - ROBOT_HALF_SIZE;
+        field.moveCursor(x, y);
+        field.rect(ROBOT_SIZE, ROBOT_SIZE);
     }
 
     private void drawHeading(Pose pose) {
@@ -40,18 +44,17 @@ public class Drawer {
         double x2 = pose.getX() + headingX * HEADING_LENGTH;
         double y2 = pose.getY() + headingY * HEADING_LENGTH;
 
-        field.setStyle(STYLE);
         field.moveCursor(x1, y1);
         field.line(x2, y2);
-        field.update();
     }
 
     public void draw() {
         Pose pose = follower.getPose();
-        if (!valid(pose)) {
+        if (!isValidPose(pose)) {
             return;
         }
 
+        field.setStyle(STYLE);
         drawRobot(pose);
         drawHeading(pose);
         field.update();

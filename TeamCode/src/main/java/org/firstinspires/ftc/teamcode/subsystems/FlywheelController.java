@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import android.annotation.SuppressLint;
+
 import com.bylazar.telemetry.TelemetryManager;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
@@ -39,6 +41,7 @@ public class FlywheelController {
     private double rpmTolerance = Constants.FLYWHEEL_TOLERANCE_RPM;
 
     private final ElapsedTime spinupTimer = new ElapsedTime();
+    private final ElapsedTime flywheelAdjustmentTimer = new ElapsedTime();
     private boolean measuringSpinup = false;
     private double spinupSetpointRpm = 0.0;
 
@@ -96,7 +99,7 @@ public class FlywheelController {
     }
 
     public void adjustLauncherFeedforward(double delta) {
-        FlywheelPidfConfig.launcherF += delta;
+        FlywheelPidfConfig.launcherF = Math.max(0.0, FlywheelPidfConfig.launcherF + delta);
     }
 
     public void setLauncherFeedforward(double delta) {
@@ -170,6 +173,18 @@ public class FlywheelController {
             }
         }
 
+        if (targetRpm == 0 || result == null || !result.isValid()) {
+            setLauncherFeedforward(31.0);
+            flywheelAdjustmentTimer.reset();
+        } else if (flywheelAdjustmentTimer.seconds() >= Constants.FLYWHEEL_ADJUSTMENT_TIME) {
+            if (getCurrentRpm() >= targetRpm+rpmTolerance) {
+                adjustLauncherFeedforward(-Constants.FLYWHEEL_ADJUSTMENT_INCREMENT);
+            } else if (getCurrentRpm() <= targetRpm-rpmTolerance) {
+                adjustLauncherFeedforward(Constants.FLYWHEEL_ADJUSTMENT_INCREMENT);
+            }
+            flywheelAdjustmentTimer.reset();
+        }
+
         rpm = Math.max(rpm, Constants.DEFAULT_RPM);
         setFlywheelRpm(rpm);
 
@@ -219,6 +234,7 @@ public class FlywheelController {
         return (rpm * TICKS_PER_REV) / 60.0;
     }
 
+    @SuppressLint("DefaultLocale")
     public void publishPanelsFlywheelTelemetry(double target, double current) {
         if (panelsTelemetry == null) {
             panelsTelemetry = robot.getPanelsTelemetry();
@@ -261,7 +277,7 @@ public class FlywheelController {
         if (isAtSpeed() ) {
             setFrontLedColor(LEDColors.GREEN);
         } else if (currentRpm > maxRpm ) {
-            setFrontLedColor(LEDColors.RED);
+            setFrontLedColor(LEDColors.AZURE);
         } else if (currentRpm >= minimumRpm * 0.75) {
             setFrontLedColor(LEDColors.ORANGE);
         } else if (currentRpm >= minimumRpm * 0.5) {

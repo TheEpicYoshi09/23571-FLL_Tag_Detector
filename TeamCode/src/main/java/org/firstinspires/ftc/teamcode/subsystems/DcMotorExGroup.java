@@ -4,7 +4,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 public class DcMotorExGroup {
-    private DcMotorEx[] motors;
+    private final DcMotorEx[] motors;
 
     public DcMotorExGroup(DcMotorEx... motors) {
         this.motors = motors;

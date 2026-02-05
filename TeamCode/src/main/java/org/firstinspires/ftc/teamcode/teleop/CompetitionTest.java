@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.teleop;
 
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -9,6 +9,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit;
+import org.firstinspires.ftc.teamcode.Constants;
+import org.firstinspires.ftc.teamcode.RobotHardware;
+import org.firstinspires.ftc.teamcode.drivers.rgbIndicator;
 import org.firstinspires.ftc.teamcode.subsystems.FlywheelController;
 import org.firstinspires.ftc.teamcode.subsystems.FlywheelPidfConfig;
 import org.firstinspires.ftc.teamcode.subsystems.ShootingController;
@@ -18,38 +21,20 @@ import org.firstinspires.ftc.teamcode.subsystems.TurretTracker;
 import java.util.Locale;
 
 //@Disabled
-@TeleOp(name = "Competition Main", group = "TeleOp")
-public class Competition extends LinearOpMode {
+@TeleOp(name = "Competition (TEST)", group = "TeleOp")
+public class CompetitionTest extends LinearOpMode {
     final RobotHardware robot = new RobotHardware(this);
-
-    private boolean dpadUpPreviouslyPressed = false;
-    private boolean dpadDownPreviouslyPressed = false;
-    private boolean dpadLeftPreviouslyPressed = false;
-    private boolean dpadRightPreviouslyPressed = false;
-    private boolean gamepad1LeftStickPreviouslyPressed = false;
-
-    private boolean leftStickPreviouslyPressed = false;
-
-    private boolean rightStickPreviouslyPressed = false;
-    private boolean dpadUpGamepad2PreviouslyPressed = false;
 
     @Override
     public void runOpMode() {
-
-        ///Variable Setup
-        //Odometry
-        //double oldTime = 0;
-
-        boolean backButtonPreviouslyPressed = false;
-        boolean rightBumperPreviouslyPressed = false;
-
-
         robot.init();  //Hardware configuration in RobotHardware.java
 
         TurretTracker turretTracker = new TurretTracker(robot, telemetry);
         FlywheelController flywheelController = new FlywheelController(robot, telemetry);
         SpindexerController spindexerController = new SpindexerController(robot, telemetry);
         ShootingController shootingController = new ShootingController(robot, flywheelController, spindexerController, telemetry);
+
+        boolean kickerStandToggled = false;
 
         spindexerController.init();
 
@@ -95,118 +80,87 @@ public class Competition extends LinearOpMode {
 
             robot.FieldCentricDrive(x, y, rx, adjustedHeading);
 
-            /// BUTTON MAPPING
-            // D-Pad left/right = turret manual rotate
-            // Trigger left/right = (hold) intake forward/reverse
-
-            // Run turret tracking when the flywheel is active or Start is held for manual testing
-            boolean trackingActive = flywheelController.isEnabled() || gamepad2.start;
-            if (trackingActive) {
-                turretTracker.update();
-                robot.headlight.setPosition(Constants.headlightPower); //Set light power here
-            } else {
-                robot.turret.setPower(0);
-                robot.headlight.setPosition(0.0);
-            }
-
-            // Flywheel toggle on gamepad2 back
-            boolean backButtonPressed = gamepad2.back;
-            if (backButtonPressed && !backButtonPreviouslyPressed) {
-                flywheelController.toggle();
-            }
-            backButtonPreviouslyPressed = backButtonPressed;
-
-            boolean dpadUp = gamepad1.dpad_up;
-            boolean dpadDown = gamepad1.dpad_down;
-            boolean dpadLeft = gamepad1.dpad_left;
-            boolean dpadRight = gamepad1.dpad_right;
-
-            boolean gamepad1LeftStickDown = gamepad1.left_stick_button;
-
-            if (dpadUp && !dpadUpPreviouslyPressed) {
+            /// DPad Gamepad 1
+            if (gamepad1.dpadUpWasPressed()) {
                 flywheelController.adjustRpmTolerance(10.0);
             }
 
-            if (dpadDown && !dpadDownPreviouslyPressed) {
+            if (gamepad1.dpadDownWasPressed()) {
                 flywheelController.adjustRpmTolerance(-10.0);
             }
 
-            if (dpadRight && !dpadRightPreviouslyPressed) {
+            if (gamepad1.dpadLeftWasPressed()) {
                 flywheelController.adjustLauncherFeedforward(1.0);
             }
 
-            if (dpadLeft && !dpadLeftPreviouslyPressed) {
+            if (gamepad1.dpadRightWasPressed()) {
                 flywheelController.adjustLauncherFeedforward(-1.0);
             }
 
-            if (gamepad1LeftStickDown && !gamepad1LeftStickPreviouslyPressed) {
+            if (gamepad1.leftStickButtonWasPressed()) {
                 robot.setPowerDampener(0.5);
             }
 
-            gamepad1LeftStickPreviouslyPressed = gamepad1LeftStickDown;
+            /// GAMEPAD 2
 
-            dpadUpPreviouslyPressed = dpadUp;
-            dpadDownPreviouslyPressed = dpadDown;
-            dpadLeftPreviouslyPressed = dpadLeft;
-            dpadRightPreviouslyPressed = dpadRight;
+            /// Gamepad 2 Intake
+            boolean intakeIn = gamepad2.right_bumper; //Check if button is currently held
+            boolean intakeOut = gamepad2.left_bumper; //Check if button is currently held
 
-            boolean rightBumperPressed = gamepad2.a;
-            if (rightBumperPressed && !rightBumperPreviouslyPressed && shootingController.isIdle()
-                    && flywheelController.isEnabled() && flywheelController.getTargetRpm() > 0) {
-                shootingController.startShootSequence();
-            }
-            rightBumperPreviouslyPressed = rightBumperPressed;
-
-            flywheelController.update();
-            spindexerController.update();
-            shootingController.update();
-
-            ///INTAKE
-            //IntakeDirection
-            boolean IntakeForwardPressed = gamepad2.right_bumper; //Check if button pressed
-            boolean IntakeReversePressed = gamepad2.left_bumper; //Check if button pressed
-
-            if (IntakeForwardPressed){
-                robot.runIntake(RobotHardware.IntakeDirection.IN);
-            } else if (IntakeReversePressed) {
+            if (intakeIn){
+                if (!spindexerController.isEnabled() || !spindexerController.isSpindexerFull()) {
+                    robot.runIntake(RobotHardware.IntakeDirection.IN);
+                }
+            } else if (intakeOut) {
                 robot.runIntake(RobotHardware.IntakeDirection.OUT);
             } else {
                 robot.runIntake(RobotHardware.IntakeDirection.STOP);
             }
 
-            boolean gamepad2DpadUpPressed = gamepad2.dpad_up;
-
-            if (gamepad2DpadUpPressed && !dpadUpGamepad2PreviouslyPressed) {
-                spindexerController.toggleAuto();
-            }
-
-            dpadUpGamepad2PreviouslyPressed = gamepad2DpadUpPressed;
-
-            boolean leftStickDown = gamepad2.left_stick_button;
-            boolean rightStickDown = gamepad2.right_stick_button;
-
-            if (leftStickDown && !leftStickPreviouslyPressed) {
+            /// Gamepad 2 Sticks
+            if (gamepad2.leftStickButtonWasPressed()) {
                 spindexerController.advanceSpindexer();
             }
-
-            if (rightStickDown && !rightStickPreviouslyPressed) {
+            if (gamepad2.rightStickButtonWasPressed()) {
                 spindexerController.reverseSpindexer();
             }
 
-            leftStickPreviouslyPressed = leftStickDown;
-            rightStickPreviouslyPressed = rightStickDown;
+            /// Gamepad 2 FlyWheel toggle
+            if (gamepad2.backWasPressed()) {
+                flywheelController.toggle();
+            }
 
+            /// Gamepad 2 DPad
+            if (gamepad2.dpadUpWasPressed()) {
+                spindexerController.toggleAuto();
+            }
 
+            /// Gamepad 2 Tracking
+            boolean trackingActive = flywheelController.isEnabled() || gamepad2.start;
+            if (trackingActive) {
+                turretTracker.update();
+                robot.headlight.setPosition(Constants.headlightPower);
+            } else {
+                robot.turret.setPower(0);
+                robot.headlight.setPosition(0.0);
+            }
 
+            /// Gamepad 2 Shoot Sequence
+            if (gamepad2.aWasPressed() && shootingController.isIdle()
+                    && flywheelController.isEnabled() && flywheelController.getTargetRpm() > 0) {
+                shootingController.startShootSequence();
+            }
+
+            /// Gamepad 1 & 2 Spindexer Manuals
             if (shootingController.isIdle()) {
-                //Manual Lift Control
+                // Kicker Manual
                 if (gamepad1.a) {
                     robot.kicker.setPosition(Constants.KICKER_UP);
                 } else {
                     robot.kicker.setPosition(Constants.KICKER_DOWN);
                 }
 
-                // Spindexer Manual Control
+                // Spindexer Manual
                 if (gamepad2.b) {
                     spindexerController.setPosition(0);
                 } else if (gamepad2.y) {
@@ -215,6 +169,24 @@ public class Competition extends LinearOpMode {
                     spindexerController.setPosition(2);
                 }
             }
+
+            ///  Gamepad 1 Toggle Kicker Stand
+            if (gamepad1.rightBumperWasPressed()) {
+                if (kickerStandToggled) {
+                    robot.setKickStandPosition(Constants.KICKERSTAND_NORMAL);
+                } else {
+                    robot.setKickStandPosition(Constants.KICKERSTAND_RETRACTED);
+                }
+                kickerStandToggled = !kickerStandToggled;
+            }
+
+            if (kickerStandToggled) {
+                robot.setColorOfBackLights(rgbIndicator.LEDColors.INDIGO);
+            } else {
+                flywheelController.update();
+                spindexerController.update();
+                shootingController.update(false);
+            };
 
             telemetry.addLine("--- FLYWHEEL DATA ---");
             telemetry.addData("Flywheel Tolerance", "%.0f rpm", flywheelController.getRpmTolerance());

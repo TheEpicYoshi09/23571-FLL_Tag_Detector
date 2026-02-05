@@ -2,7 +2,6 @@ package org.firstinspires.ftc.teamcode.subsystems;
 
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -77,7 +76,7 @@ public class TurretTracker {
         }
 
         double aimOffset = 0.0;
-        if (Double.isFinite(distanceFeet) && distanceFeet > Constants.turret_FAR_AIM_DISTANCE_FEET) {
+        if (Double.isFinite(distanceFeet) && distanceFeet > Constants.TURRET_FAR_AIM_DISTANCE_FEET) {
             aimOffset = robot.allianceColorRed
                     ? TurretAimConfig.turretFarAimAdjustRed
                     : TurretAimConfig.turretFarAimAdjustBlue;
@@ -102,13 +101,13 @@ public class TurretTracker {
 
         // Turret encoder limits
         double pos = robot.turret.getCurrentPosition();
-        if ((pos <= Constants.turret_MIN && power < 0) ||
-                (pos >= Constants.turret_MAX && power > 0)) {
+        if ((pos <= Constants.TURRET_MIN && power < 0) ||
+                (pos >= Constants.TURRET_MAX && power > 0)) {
             power = 0;
         }
 
         // Apply power safely
-        power = Range.clip(power, -0.65, 0.65);
+        power = Range.clip(power, -0.75, 0.75);
         robot.turret.setPower(power);
 
         // Telemetry
@@ -117,5 +116,9 @@ public class TurretTracker {
                 : "n/a";
         telemetry.addData("Turret", "id=%d dist=%s aim=%.3f power=%.3f",
                 fid.getFiducialId(), distanceText, aimOffset, power);
+    }
+
+    public int getTurretPosition() {
+        return robot.turret.getCurrentPosition();
     }
 }

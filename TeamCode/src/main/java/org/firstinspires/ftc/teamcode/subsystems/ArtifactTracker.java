@@ -1,8 +1,11 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import android.annotation.SuppressLint;
+
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.util.RobotLog;
+
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.Constants;
@@ -49,9 +52,9 @@ public class ArtifactTracker {
      * positions. Intended to be invoked once per TeleOp loop.
      */
     public void update() {
-        SlotReading slot1 = evaluateSensor(robot.color1, robot.distance1, robot.rearRGB1, 0);
-        SlotReading slot2 = evaluateSensor(robot.color2, robot.distance2, robot.rearRGB2, 1);
-        SlotReading slot3 = evaluateSensor(robot.color3, robot.distance3, robot.rearRGB3, 2);
+        SlotReading slot1 = evaluateSensor(robot.color1, robot.distance1, robot.rearRGB1);
+        SlotReading slot2 = evaluateSensor(robot.color2, robot.distance2, robot.rearRGB2);
+        SlotReading slot3 = evaluateSensor(robot.color3, robot.distance3, robot.rearRGB3);
 
         slotStatuses[0] = slot1.status;
         slotStatuses[1] = slot2.status;
@@ -66,26 +69,49 @@ public class ArtifactTracker {
         telemetry.addLine("-------------------------------------");
     }
 
-    private SlotReading evaluateSensor(ColorSensor colorSensor, DistanceSensor distanceSensor, rgbIndicator indicator, int slot) {
+    private SlotReading evaluateSensor(ColorSensor colorSensor, DistanceSensor distanceSensor, rgbIndicator indicator) {
         if (colorSensor == null || distanceSensor == null) {
-            if (indicator != null) {
-                indicator.setColor(LEDColors.OFF);
-            }
-            return SlotReading.missing();
+            if (indicator != null) indicator.setColor(LEDColors.OFF);
+            return  SlotReading.missing();
         }
 
-        double distance = distanceSensor.getDistance(DistanceUnit.MM);
-        double red = colorSensor.red();
-        double green = colorSensor.green();
-        double blue = colorSensor.blue();
+        double distance = 0;
 
+        double red = 0;
+        double green = 0;
+        double blue = 0;
+
+        boolean validSample = false;
+
+        double dist = distanceSensor.getDistance(DistanceUnit.MM);
+        if (!Double.isNaN(dist)) {
+            distance = dist;
+            red = colorSensor.red();
+            green = colorSensor.green();
+            blue = colorSensor.blue();
+            validSample = true;
+        }
+
+        if (!validSample) {
+            if (indicator != null) indicator.setColor(LEDColors.OFF);
+            return new SlotReading(SlotStatus.VACANT, 0, 0, 0, Double.NaN);
+        }
+
+        double total = red + green + blue;
         SlotStatus status = SlotStatus.VACANT;
-        if (!Double.isNaN(distance) && distance <= Constants.COLOR_SENSOR_DETECTION_DISTANCE_MM) {
-            if (blue >= Constants.COLOR_SENSOR_PURPLE_RATIO * green && blue >= Constants.COLOR_SENSOR_PURPLE_RATIO * red) {
-                status = SlotStatus.PURPLE;
-            } else if (green >= Constants.COLOR_SENSOR_GREEN_BLUE_RATIO * blue
-                    && green >= Constants.COLOR_SENSOR_GREEN_RED_RATIO * red) {
-                status = SlotStatus.GREEN;
+
+        if (distance <= Constants.COLOR_SENSOR_DETECTION_DISTANCE_MM && total > 0) {
+            double redRatio = red / total;
+            double greenRatio = green / total;
+            double blueRatio = blue / total;
+
+            // minimum brightness level for if it detects low light
+            if (total >= 40) {
+                if (blueRatio > greenRatio && greenRatio > redRatio && blue >= Constants.COLOR_SENSOR_PURPLE_RATIO * Math.max(green, red)) {
+                    status = SlotStatus.PURPLE;
+                } else if (greenRatio > blueRatio && greenRatio > redRatio && green >= Constants.COLOR_SENSOR_GREEN_BLUE_RATIO * blue && green >= Constants.COLOR_SENSOR_GREEN_RED_RATIO * red) {
+                    status = SlotStatus.GREEN;
+                }
             }
         }
 
@@ -99,6 +125,7 @@ public class ArtifactTracker {
                     break;
                 default:
                     indicator.setColor(LEDColors.OFF);
+                    break;
             }
         }
 
@@ -144,6 +171,7 @@ public class ArtifactTracker {
         final String blueText;
         final String distanceText;
 
+        @SuppressLint("DefaultLocale")
         SlotReading(SlotStatus status, double red, double green, double blue, double distanceMm) {
             this.status = status;
             this.red = red;
@@ -160,6 +188,7 @@ public class ArtifactTracker {
             return new SlotReading(SlotStatus.VACANT, Double.NaN, Double.NaN, Double.NaN, Double.NaN);
         }
 
+        @SuppressLint("DefaultLocale")
         private static String formatChannel(double value) {
             return Double.isNaN(value) ? "--" : String.format("%.0f", value);
         }

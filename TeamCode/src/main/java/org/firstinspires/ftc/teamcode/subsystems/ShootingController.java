@@ -14,20 +14,21 @@ public class ShootingController {
 
     public enum ShootState {
         IDLE,
+        WAIT_FOR_SPINUP,
+        ADVANCE,
+        NEXT_ARTIFACT,
         FIRE,
         RETRACT,
-        ADVANCE,
-        WAIT_FOR_SPINUP,
-        PRIME_NEXT
+        FINISH,
     }
 
     private final RobotHardware robot;
     private final FlywheelController flywheelController;
     private final SpindexerController spindexerController;
     private final Telemetry telemetry;
-    private int shotsRemaining = 0;
     private final ElapsedTime shootTimer = new ElapsedTime();
     private ShootState shootState = ShootState.IDLE;
+    private int artifactCount = 3;
 
     public ShootingController(RobotHardware robot, FlywheelController flywheelController, SpindexerController spindexerController, Telemetry telemetry) {
         this.robot = robot;
@@ -38,74 +39,81 @@ public class ShootingController {
 
     public void startShootSequence() {
         shootTimer.reset();
+        spindexerController.setPosition(0);
+        robot.kicker.setPosition(Constants.KICKER_DOWN);
         shootState = ShootState.WAIT_FOR_SPINUP;
-        shotsRemaining = 3;
-        robot.kicker.setPosition(Constants.kickerDown);
     }
 
-    public void update() {
-        if (shootState == ShootState.IDLE) {
-            return;
-        }
-
-        if (!flywheelController.isEnabled() || flywheelController.getTargetRpm() <= 0) {
-            robot.kicker.setPosition(Constants.kickerDown);
-            shootState = ShootState.IDLE;
-            shotsRemaining = 0;
-            return;
-        }
+    public void update(boolean checkArtifacts) {
+        if (!flywheelController.isEnabled() || flywheelController.getTargetRpm() <= 0) return;
 
         switch (shootState) {
             case WAIT_FOR_SPINUP:
-                telemetry.addData("IS AT SPEED?", flywheelController.isAtSpeed());
-                telemetry.addData("IS AIMED AT TARGET?", isAimedAtTarget());
-                telemetry.addData("SHOOT TIMER", shootTimer.milliseconds());
-                if (flywheelController.isAtSpeed() && isAimedAtTarget() && shootTimer.milliseconds() >= 250) {
-                    robot.kicker.setPosition(Constants.kickerUp);
+                // Check if spindexer is in position
+                if (!spindexerController.isFinished()) return;
+
+                if (artifactCount == 0) {
+                    shootState = ShootState.FINISH;
+                    return;
+                }
+
+                // Check if flywheel is at speed and is aimed at the target
+                if (flywheelController.isAtSpeed() && isAimedAtTarget()) {
                     shootTimer.reset();
                     shootState = ShootState.FIRE;
+                    artifactCount -= 1;
                 }
                 break;
-            case FIRE:
-                if (shootTimer.milliseconds() >= Constants.SHOOT_FIRE_DURATION_MS) {
-                    robot.kicker.setPosition(Constants.kickerDown);
-                    shootTimer.reset();
-                    shotsRemaining = Math.max(0, shotsRemaining - 1);
-                    shootState = ShootState.RETRACT;
+            case ADVANCE:
+                spindexerController.advanceSpindexer();
+                shootTimer.reset();
+                shootState = ShootState.NEXT_ARTIFACT;
+                break;
+            case NEXT_ARTIFACT:
+                if (!spindexerController.isFinished()) return;
+
+                if (artifactCount == 0) {
+                    shootState = ShootState.FINISH;
+                    return;
                 }
+
+                shootTimer.reset();
+                shootState = ShootState.WAIT_FOR_SPINUP;
+
+                break;
+            case FIRE:
+                robot.kicker.setPosition(Constants.KICKER_UP);
+                shootTimer.reset();
+                shootState = ShootState.RETRACT;
                 break;
             case RETRACT:
                 if (shootTimer.milliseconds() >= Constants.SHOOT_RETRACT_DURATION_MS) {
-                    if (shotsRemaining > 0) {
-                        spindexerController.advanceSpindexer();
+                    robot.kicker.setPosition(Constants.KICKER_DOWN);
+                    if (artifactCount > 0) {
                         shootTimer.reset();
                         shootState = ShootState.ADVANCE;
                     } else {
                         shootTimer.reset();
-                        shootState = ShootState.PRIME_NEXT;
+                        shootState = ShootState.FINISH;
                     }
                 }
                 break;
-            case ADVANCE:
-                if (shootTimer.milliseconds() >= 250) {
-                    shootTimer.reset();
-                    shootState = ShootState.WAIT_FOR_SPINUP;
-                }
-                break;
-            case PRIME_NEXT:
-                if (shootTimer.milliseconds() >= 500) {
-                    robot.kicker.setPosition(Constants.kickerDown);
-                    shootState = ShootState.IDLE;
-                }
+            case FINISH:
+                robot.kicker.setPosition(Constants.KICKER_DOWN);
+                artifactCount = 3;
+                spindexerController.setPosition(0);
+                shootState = ShootState.IDLE;
                 break;
             default:
                 shootState = ShootState.IDLE;
-                spindexerController.setPosition(0);
                 break;
         }
 
-        telemetry.addData("Shoot State", shootState);
-        telemetry.addData("Shots Remaining", shotsRemaining);
+        telemetry.addData("State", shootState);
+    }
+
+    public void update() {
+        update(true);
     }
 
     /**
@@ -113,19 +121,10 @@ public class ShootingController {
      *
      * @return true once the controller has completed the queued shots and returned to IDLE
      */
-    public boolean updateAndIsComplete(boolean runIntakeOnLastShot) {
-        update();
-        if (runIntakeOnLastShot) {
-            if (shotsRemaining == 1) {
-                robot.runIntake(RobotHardware.IntakeDirection.IN);
-            } else if (shotsRemaining == 0) {
-                robot.runIntake(RobotHardware.IntakeDirection.STOP);
-            }
-        }
-        return shootState == ShootState.IDLE && shotsRemaining == 0;
+    public boolean updateAndIsComplete(boolean checkArtifacts) {
+        update(checkArtifacts);
+        return shootState == ShootState.IDLE && spindexerController.isSpindexerEmpty();
     }
-
-    public boolean updateAndIsComplete() { return updateAndIsComplete(false); }
 
     public boolean isIdle() {
         return shootState == ShootState.IDLE;
@@ -144,7 +143,7 @@ public class ShootingController {
         double txPercent = result.getTx();
         if (!Double.isNaN(txPercent)) {
             telemetry.addData("*** TX PERCENT", Math.abs(txPercent));
-            return Math.abs(txPercent) <= 0.5; // USE TO BE <=, AND 0.075
+            return Math.abs(txPercent) <= 1.5; // USE TO BE <=, AND 0.075
         }
 
         List<LLResultTypes.FiducialResult> fiducials = result.getFiducialResults();
