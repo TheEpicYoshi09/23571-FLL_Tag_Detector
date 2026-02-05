@@ -54,7 +54,7 @@ public class MainTeleOp extends LinearOpMode {
         DcMotor backRight = hardwareMap.dcMotor.get("backRightMotor");
         DcMotor flyWheelMotor = hardwareMap.dcMotor.get("rightShooterMotor");
         DcMotor followerWheelMotor = hardwareMap.dcMotor.get("leftShooterMotor");
-        DcMotor intake = hardwareMap.dcMotor.get("intakeMotor");
+        //DcMotor intake = hardwareMap.dcMotor.get("intakeMotor");
         DcMotor loader = hardwareMap.dcMotor.get("loaderMotor");
         Servo servo = hardwareMap.servo.get("leftServo");
 
@@ -127,16 +127,19 @@ public class MainTeleOp extends LinearOpMode {
             flyWheelMotor.setPower(flyPower);
             followerWheelMotor.setPower(output);
 
-            if (gamepad1.dpad_left) {
-                robot.loader.setLoaderMotor(1);
-                robot.intake.intakeArtifacts(1);
-            }
-            // Button logic changed from .isDown() to direct boolean access
             if (gamepad1.y) {
-                robot.loader.setLoaderMotor(1);
-            }
-            else if (gamepad1.a){
-                robot.loader.setLoaderMotor(-1);
+                loader.setDirection(DcMotorSimple.Direction.FORWARD);
+
+                loader.setPower(1);
+            } else if (gamepad1.a) {
+
+                loader.setPower(-1);
+
+            } else if (gamepad1.dpad_up) {
+                loader.setPower(1);
+                robot.intake.intakeArtifacts(1);
+            } else {
+                loader.setPower(0);
             }
 
             if (gamepad1.right_bumper) {
