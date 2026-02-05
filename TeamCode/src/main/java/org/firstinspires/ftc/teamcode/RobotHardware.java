@@ -40,6 +40,7 @@ public class RobotHardware {
     public Servo spindexer;
 
     public Servo kickStand1;
+    public Servo kickStand2;
     public Servo kicker;
     public Servo headlight;  //PWM Controlled LED
     public boolean allianceColorRed = false;
@@ -113,9 +114,7 @@ public class RobotHardware {
         rearRGB1 = new rgbIndicator(myOpMode.hardwareMap, "rearRGB1");
         rearRGB2 = new rgbIndicator(myOpMode.hardwareMap, "rearRGB2");
         rearRGB3 = new rgbIndicator(myOpMode.hardwareMap, "rearRGB3");
-        rearRGB1.setColor(LEDColors.YELLOW);
-        rearRGB2.setColor(LEDColors.YELLOW);
-        rearRGB3.setColor(LEDColors.YELLOW);
+        setColorOfBackLights(LEDColors.YELLOW);
 
         allianceButton = myOpMode.hardwareMap.get(DigitalChannel.class, "allianceButton");
         allianceButton.setMode(DigitalChannel.Mode.INPUT);
@@ -188,6 +187,8 @@ public class RobotHardware {
 
         kickStand1 = myOpMode.hardwareMap.get(Servo.class, "kickStand1");
         kickStand1.setPosition(Constants.KICKERSTAND_NORMAL);
+        kickStand2 = myOpMode.hardwareMap.get(Servo.class, "kickStand2");
+        kickStand2.setPosition(Constants.KICKERSTAND_NORMAL);
 
         //Turret LED
         headlight = myOpMode.hardwareMap.get(Servo.class, "headlight");
@@ -249,9 +250,7 @@ public class RobotHardware {
         refreshAllianceFromSwitchState();
         rgbIndicatorMain.setColor(allianceColorRed ? LEDColors.RED : LEDColors.BLUE);
         frontLED.setColor(allianceColorRed ? LEDColors.RED : LEDColors.BLUE);
-        rearRGB1.setColor(allianceColorRed ? LEDColors.RED : LEDColors.BLUE);
-        rearRGB2.setColor(allianceColorRed ? LEDColors.RED : LEDColors.BLUE);
-        rearRGB3.setColor(allianceColorRed ? LEDColors.RED : LEDColors.BLUE);
+        setColorOfBackLights(allianceColorRed ? LEDColors.RED : LEDColors.BLUE);
 
     }
 
@@ -367,5 +366,16 @@ public class RobotHardware {
         } else if (Direction == IntakeDirection.STOP) {
             intake.setPower(0.0);
         }
+    }
+
+    public void setKickStandPosition(double position) {
+        kickStand1.setPosition(position);
+        kickStand2.setPosition(position);
+    }
+
+    public void setColorOfBackLights(double color) {
+        rearRGB1.setColor(color);
+        rearRGB2.setColor(color);
+        rearRGB3.setColor(color);
     }
 }

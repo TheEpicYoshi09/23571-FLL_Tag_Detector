@@ -11,6 +11,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit;
 import org.firstinspires.ftc.teamcode.Constants;
 import org.firstinspires.ftc.teamcode.RobotHardware;
+import org.firstinspires.ftc.teamcode.drivers.rgbIndicator;
 import org.firstinspires.ftc.teamcode.subsystems.FlywheelController;
 import org.firstinspires.ftc.teamcode.subsystems.FlywheelPidfConfig;
 import org.firstinspires.ftc.teamcode.subsystems.ShootingController;
@@ -32,6 +33,8 @@ public class CompetitionTest extends LinearOpMode {
         FlywheelController flywheelController = new FlywheelController(robot, telemetry);
         SpindexerController spindexerController = new SpindexerController(robot, telemetry);
         ShootingController shootingController = new ShootingController(robot, flywheelController, spindexerController, telemetry);
+
+        boolean kickerStandToggled = false;
 
         spindexerController.init();
 
@@ -167,9 +170,21 @@ public class CompetitionTest extends LinearOpMode {
                 }
             }
 
+            ///  Gamepad 1 Toggle Kicker Stand
+            if (gamepad1.rightBumperWasPressed()) {
+                if (kickerStandToggled) {
+                    robot.setKickStandPosition(Constants.KICKERSTAND_NORMAL);
+                } else {
+                    robot.setKickStandPosition(Constants.KICKERSTAND_RETRACTED);
+                }
+                kickerStandToggled = !kickerStandToggled;
+            }
+
             flywheelController.update();
             spindexerController.update();
             shootingController.update(false);
+
+            if (kickerStandToggled) robot.setColorOfBackLights(rgbIndicator.LEDColors.INDIGO);
 
             telemetry.addLine("--- FLYWHEEL DATA ---");
             telemetry.addData("Flywheel Tolerance", "%.0f rpm", flywheelController.getRpmTolerance());

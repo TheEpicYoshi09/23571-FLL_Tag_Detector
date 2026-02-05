@@ -48,7 +48,7 @@ public class Constants {
     public static final double KICKER_UP = 1.0;
 
     /// KICKER STAND POSITION
-    public static final double KICKERSTAND_RETRACTED = 0.1;
+    public static final double KICKERSTAND_RETRACTED = 0.35;
     public static final double KICKERSTAND_NORMAL = 0.9;
 
     /// SHOOTER TIMING (milliseconds)
@@ -68,7 +68,7 @@ public class Constants {
     public static final long SPINDEXER_ROTATION_TIME = 700;
 
     /// FLYWHEEL
-    public static final double FLYWHEEL_ADJUSTMENT_TIME = 0.67;
+    public static final double FLYWHEEL_ADJUSTMENT_TIME = 0.3;
     public static final double FLYWHEEL_ADJUSTMENT_INCREMENT = 0.25;
 
     ///AUTONOMOUS SETPOINTS
