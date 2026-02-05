@@ -180,11 +180,13 @@ public class CompetitionTest extends LinearOpMode {
                 kickerStandToggled = !kickerStandToggled;
             }
 
-            flywheelController.update();
-            spindexerController.update();
-            shootingController.update(false);
-
-            if (kickerStandToggled) robot.setColorOfBackLights(rgbIndicator.LEDColors.INDIGO);
+            if (kickerStandToggled) {
+                robot.setColorOfBackLights(rgbIndicator.LEDColors.INDIGO);
+            } else {
+                flywheelController.update();
+                spindexerController.update();
+                shootingController.update(false);
+            };
 
             telemetry.addLine("--- FLYWHEEL DATA ---");
             telemetry.addData("Flywheel Tolerance", "%.0f rpm", flywheelController.getRpmTolerance());
