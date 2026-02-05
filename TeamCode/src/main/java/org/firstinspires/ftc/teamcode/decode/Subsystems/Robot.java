@@ -12,6 +12,7 @@ public final class Robot {
     public final Intake intake;
 
 
+
     public final BulkReader bulkReader;
     public final ActionScheduler actionScheduler;
 
@@ -38,4 +39,6 @@ public final class Robot {
     public void printTelemetry() {
         // add subsystem telemetry here later
     }
+
+
 }

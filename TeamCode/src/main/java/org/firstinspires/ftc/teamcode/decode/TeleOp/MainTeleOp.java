@@ -14,11 +14,14 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad; // Standard Gamepad import
 import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.control.controllers.PIDController;
 import org.firstinspires.ftc.teamcode.control.gainmatrix.PIDGains;
 import org.firstinspires.ftc.teamcode.control.motion.State;
 import org.firstinspires.ftc.teamcode.decode.Subsystems.Common;
+import org.firstinspires.ftc.teamcode.decode.Subsystems.Drivetrain;
 import org.firstinspires.ftc.teamcode.decode.Subsystems.HoodServo;
 import org.firstinspires.ftc.teamcode.decode.Subsystems.Robot;
 
@@ -27,10 +30,12 @@ import org.firstinspires.ftc.teamcode.decode.Subsystems.Robot;
 public class MainTeleOp extends LinearOpMode {
 
     private Robot robot;
+
+    private Drivetrain drivetrain;
     private IMU imu;
 
     // Changed from GamepadEx to standard Gamepad
-    private GamepadEx gp1;
+    //private GamepadEx gp1;
 
     private PIDController pidController = new PIDController();
 //    private HoodServo hood = new HoodServo();
@@ -51,6 +56,8 @@ public class MainTeleOp extends LinearOpMode {
         DcMotor followerWheelMotor = hardwareMap.dcMotor.get("leftShooterMotor");
         DcMotor intake = hardwareMap.dcMotor.get("intakeMotor");
         DcMotor loader = hardwareMap.dcMotor.get("loaderMotor");
+        Servo servo = hardwareMap.servo.get("leftServo");
+
         // Assigning standard gamepad1 directly
         frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -69,7 +76,8 @@ public class MainTeleOp extends LinearOpMode {
 
 //        hood.setHoodservo(0.45);
 
-        gp1 = new GamepadEx(gamepad1);
+        //gp1 = new GamepadEx(gamepad1);
+
         robot = new Robot(hardwareMap);
         robot.drivetrain.setStartingPose(Common.AUTO_END_POSE);
         pidController.setGains(pidGains);
@@ -83,12 +91,12 @@ public class MainTeleOp extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
-            if (gp1.getButton(GamepadKeys.Button.LEFT_STICK_BUTTON)) {
+            if (gamepad1.left_stick_button) {
                 imu.resetYaw();
                 }
-            gp1.readButtons();
+            //gp1.readButtons();
 
-            if (gp1.wasJustPressed(GamepadKeys.Button.DPAD_RIGHT) && isFirst)  {
+            if (gamepad1.dpad_right && isFirst)  {
                 pidController.setTarget(new State(Math.atan2(goal.getY() - robot.drivetrain.getPose().getY(), goal.getX() -  robot.drivetrain.getPose().getX())));
                 isFirst = false;
             }
@@ -98,55 +106,57 @@ public class MainTeleOp extends LinearOpMode {
                         0, 0, pidController.calculate(new State(robot.drivetrain.getHeading())), true
                 );
                 if (pidController.isInTolerance(new State(robot.drivetrain.getHeading()), Math.toRadians(3))) isFirst = true;
-            }else {
+            }
+            else {
 
                 // Standard gamepad access uses field names (e.g., .left_stick_y)
-                robot.drivetrain.setTeleOpDrive(
-                        -gp1.getLeftY(),
-                        gp1.getLeftX(),
-                        gp1.getRightX(),
-                        true
-                );
+                double y = -gamepad1.left_stick_y;    // forward/backward
+                double x = -gamepad1.left_stick_x; // left/right strafe with multiplier
+                double rx = -gamepad1.right_stick_x;   // rotation
+
+              robot.drivetrain.setTeleOpDrive(y,x,rx);
+
+
             }
 
 
-            flyPower += gp1.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) * 0.05;
-            flyPower -= gp1.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) * 0.05;
+            flyPower += gamepad1.right_trigger * 0.05;
+            flyPower -= gamepad1.left_trigger * 0.05;
             flyPower = Math.max(0, Math.min(1, flyPower));
             double output = flyPower;
             flyWheelMotor.setPower(flyPower);
             followerWheelMotor.setPower(output);
 
-            if (gp1.getButton(GamepadKeys.Button.DPAD_UP)) {
+            if (gamepad1.dpad_left) {
                 robot.loader.setLoaderMotor(1);
                 robot.intake.intakeArtifacts(1);
             }
             // Button logic changed from .isDown() to direct boolean access
-            if (gp1.getButton(GamepadKeys.Button.Y)) {
+            if (gamepad1.y) {
                 robot.loader.setLoaderMotor(1);
             }
-            else if (gp1.getButton(GamepadKeys.Button.A)){
+            else if (gamepad1.a){
                 robot.loader.setLoaderMotor(-1);
             }
 
-            if (gp1.getButton(GamepadKeys.Button.RIGHT_BUMPER)) {
+            if (gamepad1.right_bumper) {
                 robot.intake.intakeArtifacts(1);
-            } else if (gp1.getButton(GamepadKeys.Button.LEFT_BUMPER)) {
+            } else if (gamepad1.left_bumper) {
                 robot.intake.intakeArtifacts(-.50);
             } else {
                 robot.intake.stop();
             }
 
-            // hood
-//            if (gp1.getButton(GamepadKeys.Button.X)){
-//                hood.setHoodservo(0.45);
-//            }
-//            if (gp1.getButton(GamepadKeys.Button.B)){
-//                hood.setHoodservo(0.2);
-//            }
-//            if (gp1.getButton(GamepadKeys.Button.DPAD_DOWN)){
-//                hood.setHoodservo(0.3);
-//            }
+
+            if (gamepad1.x){
+                servo.setPosition(0.45);
+            }
+            if (gamepad1.b){
+                servo.setPosition(0.35);
+            }
+            if (gamepad1.dpad_down){
+                servo.setPosition(0.3);
+            }
 
             robot.run();
             telemetry.addData("Shooter Power", flyPower);

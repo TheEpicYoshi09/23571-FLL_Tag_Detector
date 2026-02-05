@@ -57,10 +57,10 @@ public class Drivetrain {
          backLeftPower /= maxSpeed;
          backRightPower /= maxSpeed;
 
-        Drivetrain.setSafePower(frontLeft, frontLeftPower);
-        Drivetrain.setSafePower(frontRight,frontRightPower);
-        Drivetrain.setSafePower(backLeft, backLeftPower);
-        Drivetrain.setSafePower(backRight, backRightPower);
+        frontLeft.setPower( frontLeftPower);
+        frontRight.setPower(frontRightPower);
+        backLeft.setPower( backLeftPower);
+        backRight.setPower(backRightPower);
     }
 
     // Thanks to FTC16072 for sharing this code!!
