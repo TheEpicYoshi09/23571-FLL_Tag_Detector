@@ -59,8 +59,8 @@ private void shootPreload() {
             new SequentialAction(
                     new ParallelAction(
                             new Actions.CallbackAction(
-                                    RobotActions.startShooter(0.7),
-                                    path.shootPreload,1,0,f,"Preloadrev"
+                                    RobotActions.startShooter(1),
+                                    path.shootPreload,0.3,0,f,"Preloadrev"
                             ),
                             new FollowPathAction(f,path.shootPreload,true)
 
@@ -94,8 +94,8 @@ private void shootPreload() {
                         new ParallelAction(
                                 new InstantAction(()-> f.setMaxPower(0.8)),
                                 new Actions.CallbackAction(
-                                        RobotActions.startShooter(0.7),
-                                        path.shoot3,0.97,0,f,"Shoot3"
+                                        RobotActions.startShooter(1),
+                                        path.shoot3,0.3,0,f,"Shoot3"
                                 ),
                                 new FollowPathAction(f,path.shoot3)
                         ),
@@ -126,7 +126,7 @@ private void shootPreload() {
                         new ParallelAction(
                                 new InstantAction(()-> f.setMaxPower(1)),
                                 new Actions.CallbackAction(
-                                        RobotActions.startShooter(0.4), path.shoot6, 0.99, 0, f, "Shoot6"
+                                        RobotActions.startShooter(1), path.shoot6, 0.4, 0, f, "Shoot6"
                                 ),
                                 new FollowPathAction(f, path.shoot6)
                         ),
@@ -165,7 +165,7 @@ path.shoot9.getPath(0).setBrakingStrength(0.8);
                             new ParallelAction(
                                     new InstantAction(()-> f.setMaxPower(1)),
                                     new Actions.CallbackAction(
-                                            RobotActions.startShooter(0.68),path.shoot9,0.99,0,f,"Shoot9"
+                                            RobotActions.startShooter(1),path.shoot9,0.6,0,f,"Shoot9"
                                     ),
                                     new FollowPathAction(f,path.shoot9)
                             ),

@@ -22,6 +22,9 @@ public class AudiencePath {
 
     public PathChain intake9;
     public PathChain shoot9;
+    public PathChain intakeHuman;
+    public PathChain shootHuman;
+
 
     public PathChain intakeExtra1;
     public PathChain shootExtra1;
@@ -42,7 +45,7 @@ public class AudiencePath {
     // Intake 3
     public static Pose P_I3_CP = new Pose(58.748, 31.2);
     public static Pose P_I3_END = new Pose(40.853, 31.2);
-    public static Pose P_I3_WALL = new Pose(24, 31.2);
+    public static Pose P_I3_WALL = new Pose(26, 31.2);
 
     // Intake 6
     public static Pose P_I6_CP = new Pose(57.060, 57);
@@ -60,6 +63,15 @@ public class AudiencePath {
     public static Pose P_I9_END = new Pose(47.606, 82);
     public static Pose P_I9_WALL = new Pose(22, 82);
     public static Pose P_I9_RETURN = new Pose(47.437, 82);
+
+    public static Pose P_HP_START = new Pose(58.000, 16.000);
+
+    public static Pose P_HP_CP1 = new Pose(36.696, 57.580);
+    public static Pose P_HP_END = new Pose(6.005, 25.960);
+
+    public static Pose P_HP_WALL = new Pose(7.5, 14.3);
+    public static Pose P_HP_RETURN = new Pose(6.036, 26.155);
+
 
     // Extra balls
     public static Pose P_EX_CP1 = new Pose(56.891, 60.436);
@@ -79,6 +91,7 @@ public class AudiencePath {
     public static double H_114 = Math.toRadians(115); // heading for far
 
     public static double H_150 = Math.toRadians(150);
+     public static double H_270 = Math.toRadians(270);
     // =============================
     // MIRROR SUPPORT
     // ===================
@@ -112,6 +125,14 @@ public class AudiencePath {
         P_I9_WALL = P_I9_WALL.mirror();
         P_I9_RETURN = P_I9_RETURN.mirror();
 
+        P_HP_START = P_HP_START.mirror();
+
+        P_HP_CP1 = P_HP_CP1.mirror();
+        P_HP_END = P_HP_END.mirror();
+
+        P_HP_WALL = P_HP_WALL.mirror();
+        P_HP_RETURN = P_HP_RETURN.mirror();
+
         P_EX_CP1 = P_EX_CP1.mirror();
         P_EX_END1 = P_EX_END1.mirror();
 
@@ -127,13 +148,49 @@ public class AudiencePath {
         H_114 = mirrorAngleBlue(H_114);
         H_90 = mirrorAngleBlue(H_90);
         H_150 = mirrorAngleBlue(H_150);
+        H_270 = mirrorAngleBlue(H_270);
     }
 
     // =============================
     // CONSTRUCTOR
     // =============================
 
+public void human6Build() {
+    shootPreload = f.pathBuilder()
+            .addPath(new BezierLine(P_START, P_SHOOT))
+            .setLinearHeadingInterpolation(H_90,H_114)
+            .build();
+    intakeHuman = f.pathBuilder()
+            .addPath(new BezierCurve(
+                    P_SHOOT, P_HP_CP1, P_HP_END))
+            .setLinearHeadingInterpolation(H_114, H_270)
+            .addPath(new BezierLine(P_HP_END, P_HP_WALL))
+            .setTangentHeadingInterpolation()
+            .addPath(new BezierLine(P_HP_WALL, P_HP_RETURN))
+            .setTangentHeadingInterpolation()
+            .setReversed()
+            .build();
+    shootHuman = f.pathBuilder()
+            .addPath(new BezierCurve(P_HP_RETURN, P_HP_CP1, P_SHOOT))
+            .setLinearHeadingInterpolation(H_270, H_114)
+            .build();
+    intakeHuman = f.pathBuilder()
+            .addPath(new BezierCurve(
+                    P_SHOOT, P_HP_CP1, P_HP_END))
+            .setLinearHeadingInterpolation(H_114, H_270)
+            .addPath(new BezierLine(P_HP_END, P_HP_WALL))
+            .setTangentHeadingInterpolation()
+            .addPath(new BezierLine(P_HP_WALL, P_HP_RETURN))
+            .setTangentHeadingInterpolation()
+            .setReversed()
+            .build();
+    shootHuman = f.pathBuilder()
+            .addPath(new BezierCurve(P_HP_RETURN, P_HP_CP1, P_SHOOT))
+            .setLinearHeadingInterpolation(H_270, H_114)
+            .build();
 
+
+}
     public void goal3Build() {
 
         // ---------- Preload ----------
