@@ -31,3 +31,12 @@ dependencies {
     implementation project(':FtcRobotController')
     implementation 'androidx.core:core-ktx:1.17.0'
 }
+dependencies {
+    // Add this line for NextFTC core and subsystems
+    implementation 'dev.nextftc:ftc:1.0.0' // Check for latest version
+
+    // Optionally, add this for pre-built hardware support
+    // implementation 'dev.nextftc:hardware:1.0.0'
+
+    // ... existing dependencies
+}
