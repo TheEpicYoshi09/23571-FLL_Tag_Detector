@@ -121,11 +121,11 @@ class TeleOp : NextFTCOpMode() {
             Distance = detection.ftcPose.y/12
             sleep(4000)
             aS.play("Move Forward.mp3")
-            sleep(1000)
+            sleep(1500)
 
-            val t: String = ( when(floor(Distance / 12).toInt()) {
+            val t: String = ( when(floor(Distance / 6).toInt()) {
                 0 -> {"1 step.mp3"}
-                1 -> {"2 step.mp3"}
+                1 -> {"2 steps.mp3"}
                 2 -> {"3 steps.mp3"}
                 3 -> {"4 steps.mp3"}
                 4 -> {"5 steps.mp3"}
@@ -141,8 +141,8 @@ class TeleOp : NextFTCOpMode() {
 
         }
         aS.volume = 100.0f
-        telemetry.addData(" AprilTags Detected", currentDetections.size)
-        telemetry.addData(" = Distance To Target", Distance)
+        telemetry.addData("AprilTags Detected = ", currentDetections.size)
+        telemetry.addData("Distance To Target = ", Distance)
         telemetry.update()
         //telemetry.addLine(String.format ("Opposite = %.1f", Dist1))
         //telemetry.addLine(String.format ("Ajacent = %.1f", Dist2))
