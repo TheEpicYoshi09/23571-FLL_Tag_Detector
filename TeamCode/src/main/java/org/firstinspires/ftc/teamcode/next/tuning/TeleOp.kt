@@ -62,8 +62,8 @@ class TeleOp : NextFTCOpMode() {
                 telemetryAprilTag()
 
                 if(targetAcquired == false){
-                    aS.play("Relocate April tag")
-                    sleep(1000)
+                    aS.play("Relocate April tag.mp3")
+                    sleep(3000)
                 }
                 // Push telemetry to the Driver Station.
                 telemetry.update()
@@ -121,29 +121,29 @@ class TeleOp : NextFTCOpMode() {
             Distance = detection.ftcPose.y/12
             sleep(4000)
             aS.play("Move Forward.mp3")
-            sleep(2000)
+            sleep(1000)
 
             val t: String = ( when(floor(Distance / 12).toInt()) {
-                0 -> {"ignore"}
-                1 -> {"1 steps.mp3"}
-                2 -> {"2 steps.mp3"}
-                3 -> {"3 steps.mp3"}
-                4 -> {"4 steps.mp3"}
-                5 -> {"5 steps.mp3"}
-                6 -> {"6 steps.mp3"}
-                7 -> {"7 steps.mp3"}
-                8 -> {"8 steps.mp3"}
-                9 -> {"9 steps.mp3"}
-                else -> {"ignore"}
+                0 -> {"1 step.mp3"}
+                1 -> {"2 step.mp3"}
+                2 -> {"3 steps.mp3"}
+                3 -> {"4 steps.mp3"}
+                4 -> {"5 steps.mp3"}
+                5 -> {"6 steps.mp3"}
+                6 -> {"7 steps.mp3"}
+                7 -> {"8 steps.mp3"}
+                8 -> {"9 steps.mp3"}
+                else -> {"1 step.mp3"}
             }
                     )
-            if(t != "ignore") {
-                aS.play(t)
-            }
+
+            aS.play(t)
+
         }
         aS.volume = 100.0f
         telemetry.addData(" AprilTags Detected", currentDetections.size)
         telemetry.addData(" = Distance To Target", Distance)
+        telemetry.update()
         //telemetry.addLine(String.format ("Opposite = %.1f", Dist1))
         //telemetry.addLine(String.format ("Ajacent = %.1f", Dist2))
         //telemetry.addLine(String.format ("Theta = %.2f", Theta))
